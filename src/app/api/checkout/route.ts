@@ -21,6 +21,11 @@ export async function POST(request: Request) {
       country,
       email,
       fullName,
+      recipientAge,
+      recipientGender,
+      interests,
+      giftNotes,
+      cardMessage,
     } = body;
 
     // Validate required fields
@@ -76,6 +81,11 @@ export async function POST(request: Request) {
         country: country || "US",
         email: email || user?.email || "",
         fullName: fullName || "",
+        recipientAge: recipientAge || "",
+        recipientGender: recipientGender || "",
+        interests: interests || "",
+        giftNotes: giftNotes || "",
+        cardMessage: cardMessage || "",
       },
     });
 

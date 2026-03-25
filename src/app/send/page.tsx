@@ -37,6 +37,7 @@ const STEP_LABELS = [
   "Occasion",
   "Gift Tier",
   "Address",
+  "About Them",
   "Review",
 ];
 
@@ -68,6 +69,11 @@ interface FormData {
   country: string;
   email: string;
   fullName: string;
+  recipientAge: string;
+  recipientGender: string;
+  interests: string[];
+  giftNotes: string;
+  cardMessage: string;
 }
 
 const initialFormData: FormData = {
@@ -86,6 +92,11 @@ const initialFormData: FormData = {
   country: "US",
   email: "",
   fullName: "",
+  recipientAge: "",
+  recipientGender: "",
+  interests: [],
+  giftNotes: "",
+  cardMessage: "",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -120,7 +131,7 @@ export default function SendPage() {
 
   /* ────────────────────────── Helpers ──────────────────────────── */
 
-  const update = (field: keyof FormData, value: string | number) => {
+  const update = (field: keyof FormData, value: string | number | string[]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -166,7 +177,9 @@ export default function SendPage() {
       }
     }
 
-    if (s === 4) {
+    // Step 4 = About Them — no validation required (all optional)
+
+    if (s === 5) {
       if (!isLoggedIn) {
         if (!form.email.trim()) errs.email = "Email is required";
         if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -182,7 +195,7 @@ export default function SendPage() {
 
   function handleNext() {
     if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, 4));
+      setStep((s) => Math.min(s + 1, 5));
     }
   }
 
@@ -193,7 +206,7 @@ export default function SendPage() {
   /* ────────────────────────── Checkout ─────────────────────────── */
 
   async function handleSubmit() {
-    if (!validateStep(4)) return;
+    if (!validateStep(5)) return;
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -202,7 +215,10 @@ export default function SendPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          interests: form.interests.join(", "),
+        }),
       });
 
       if (!res.ok) {
@@ -304,7 +320,8 @@ export default function SendPage() {
           {step === 1 && <StepOccasion form={form} errors={errors} update={update} currentYear={currentYear} />}
           {step === 2 && <StepTier form={form} errors={errors} update={update} totalPrice={totalPrice} />}
           {step === 3 && <StepAddress form={form} errors={errors} update={update} />}
-          {step === 4 && (
+          {step === 4 && <StepAboutThem form={form} update={update} />}
+          {step === 5 && (
             <StepReview
               form={form}
               errors={errors}
@@ -337,7 +354,7 @@ export default function SendPage() {
               <div />
             )}
 
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 type="button"
                 onClick={handleNext}
@@ -390,7 +407,7 @@ const selectClass =
 interface StepProps {
   form: FormData;
   errors: Partial<Record<keyof FormData, string>>;
-  update: (field: keyof FormData, value: string | number) => void;
+  update: (field: keyof FormData, value: string | number | string[]) => void;
 }
 
 function StepRecipient({ form, errors, update }: StepProps) {
@@ -682,6 +699,151 @@ function StepTier({
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Step 5 — About Them (Recipient Profile)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const INTEREST_OPTIONS = [
+  { emoji: "\uD83C\uDFAE", label: "Gaming" },
+  { emoji: "\uD83D\uDCDA", label: "Reading" },
+  { emoji: "\uD83C\uDFB5", label: "Music" },
+  { emoji: "\uD83C\uDF73", label: "Cooking" },
+  { emoji: "\uD83C\uDFC3", label: "Sports/Fitness" },
+  { emoji: "\uD83C\uDFA8", label: "Art & Crafts" },
+  { emoji: "\uD83C\uDF3F", label: "Outdoors/Nature" },
+  { emoji: "\u2708\uFE0F", label: "Travel" },
+  { emoji: "\uD83D\uDC85", label: "Fashion & Beauty" },
+  { emoji: "\uD83D\uDC3E", label: "Animals/Pets" },
+  { emoji: "\uD83D\uDD27", label: "Tech & Gadgets" },
+  { emoji: "\uD83E\uDDD8", label: "Wellness" },
+] as const;
+
+const GENDER_OPTIONS = ["Female", "Male", "Non-binary"] as const;
+
+function StepAboutThem({
+  form,
+  update,
+}: {
+  form: FormData;
+  update: (field: keyof FormData, value: string | number | string[]) => void;
+}) {
+  function toggleInterest(interest: string) {
+    const current = form.interests;
+    const next = current.includes(interest)
+      ? current.filter((i) => i !== interest)
+      : [...current, interest];
+    update("interests", next);
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-navy sm:text-3xl">
+        Help us pick the perfect gift
+      </h2>
+      <p className="mt-2 text-warm-gray">
+        The more you tell us, the more personal the gift.
+      </p>
+
+      <div className="mt-8 space-y-6">
+        {/* Age */}
+        <div>
+          <label htmlFor="recipientAge" className="mb-1.5 block text-sm font-medium text-navy">
+            How old will they be? <span className="text-warm-gray-light font-normal">Optional</span>
+          </label>
+          <input
+            id="recipientAge"
+            type="text"
+            placeholder="e.g. 30"
+            value={form.recipientAge}
+            onChange={(e) => update("recipientAge", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+
+        {/* Gender */}
+        <div>
+          <p className="mb-2 text-sm font-medium text-navy">
+            Gender <span className="text-warm-gray-light font-normal">Optional</span>
+          </p>
+          <div className="flex gap-3">
+            {GENDER_OPTIONS.map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => update("recipientGender", form.recipientGender === g ? "" : g)}
+                className={`rounded-lg border-2 px-5 py-2.5 text-sm font-semibold transition ${
+                  form.recipientGender === g
+                    ? "border-gold bg-gold/10 text-navy shadow-sm"
+                    : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
+                }`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Interests */}
+        <div>
+          <p className="mb-2 text-sm font-medium text-navy">
+            Interests <span className="text-warm-gray-light font-normal">Optional — select all that apply</span>
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {INTEREST_OPTIONS.map(({ emoji, label }) => {
+              const selected = form.interests.includes(label);
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => toggleInterest(label)}
+                  className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition ${
+                    selected
+                      ? "border-gold bg-gold/10 text-navy shadow-sm"
+                      : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
+                  }`}
+                >
+                  <span className="text-base">{emoji}</span>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Card message */}
+        <div>
+          <label htmlFor="cardMessage" className="mb-1.5 block text-sm font-medium text-navy">
+            What should the card say? <span className="text-warm-gray-light font-normal">Optional</span>
+          </label>
+          <textarea
+            id="cardMessage"
+            rows={3}
+            placeholder="e.g. Happy Birthday! Wishing you all the joy in the world..."
+            value={form.cardMessage}
+            onChange={(e) => update("cardMessage", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+
+        {/* Gift notes */}
+        <div>
+          <label htmlFor="giftNotes" className="mb-1.5 block text-sm font-medium text-navy">
+            Anything else we should know? <span className="text-warm-gray-light font-normal">Optional</span>
+          </label>
+          <textarea
+            id="giftNotes"
+            rows={3}
+            placeholder="e.g. She loves purple. He is allergic to nuts. They prefer eco-friendly products."
+            value={form.giftNotes}
+            onChange={(e) => update("giftNotes", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -188,6 +188,14 @@ export async function POST(request: Request) {
                 ${metadata.city}, ${metadata.state} ${metadata.postalCode}<br/>
                 ${metadata.country || "US"}</p>
               </div>
+              <div style="background: #f0fff4; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <h2 style="margin-top: 0;">Recipient Profile</h2>
+                <p><strong>Age:</strong> ${metadata.recipientAge || "Not provided"}</p>
+                <p><strong>Gender:</strong> ${metadata.recipientGender || "Not provided"}</p>
+                <p><strong>Interests:</strong> ${metadata.interests || "None selected"}</p>
+                <p><strong>Card Message:</strong> ${metadata.cardMessage || "Not provided"}</p>
+                <p><strong>Gift Notes:</strong> ${metadata.giftNotes || "Not provided"}</p>
+              </div>
               <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
             </div>
           `,
