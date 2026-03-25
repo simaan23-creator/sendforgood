@@ -11,8 +11,8 @@ export const TIERS = [
   {
     id: "starter",
     name: "Starter",
-    price: 29,
-    priceInCents: 2900,
+    price: 10,
+    priceInCents: 1000,
     description: "Greeting card + collectible card",
     features: [
       "Premium greeting card",
@@ -24,8 +24,8 @@ export const TIERS = [
   {
     id: "classic",
     name: "Classic",
-    price: 49,
-    priceInCents: 4900,
+    price: 25,
+    priceInCents: 2500,
     description: "Small wrapped gift + card",
     features: [
       "Thoughtfully selected small gift",
@@ -37,8 +37,8 @@ export const TIERS = [
   {
     id: "premium",
     name: "Premium",
-    price: 79,
-    priceInCents: 7900,
+    price: 45,
+    priceInCents: 4500,
     description: "Curated gift box + card",
     popular: true,
     features: [
@@ -52,8 +52,8 @@ export const TIERS = [
   {
     id: "deluxe",
     name: "Deluxe",
-    price: 129,
-    priceInCents: 12900,
+    price: 75,
+    priceInCents: 7500,
     description: "Premium gift matched to interests + preview photo",
     features: [
       "Interest-matched premium gift",
@@ -66,8 +66,8 @@ export const TIERS = [
   {
     id: "legacy",
     name: "Legacy",
-    price: 199,
-    priceInCents: 19900,
+    price: 120,
+    priceInCents: 12000,
     description: "Luxury gift + premium box + handwritten letter + unboxing experience",
     features: [
       "Luxury curated gift",
