@@ -52,25 +52,35 @@ function GiftCard({ gift }: { gift: GiftItem }) {
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
-      {/* Placeholder image area */}
-      <div className="flex h-48 items-center justify-center bg-cream-dark">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-16 w-16 text-warm-gray-light"
-          aria-hidden="true"
-        >
-          <rect x="3" y="8" width="18" height="13" rx="2" />
-          <path d="M12 8v13" />
-          <path d="M3 13h18" />
-          <path d="M8 8c0-2 0-5 4-5" />
-          <path d="M16 8c0-2 0-5-4-5" />
-        </svg>
+      {/* Gift image */}
+      <div className="relative h-48 overflow-hidden bg-cream-dark">
+        {gift.image_url ? (
+          <img
+            src={gift.image_url}
+            alt={gift.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-16 w-16 text-warm-gray-light"
+              aria-hidden="true"
+            >
+              <rect x="3" y="8" width="18" height="13" rx="2" />
+              <path d="M12 8v13" />
+              <path d="M3 13h18" />
+              <path d="M8 8c0-2 0-5 4-5" />
+              <path d="M16 8c0-2 0-5-4-5" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* Card body */}
