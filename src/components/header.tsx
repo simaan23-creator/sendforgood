@@ -85,7 +85,7 @@ export function Header() {
                   </Link>
                 ) : (
                   <Link
-                    href="/sign-in"
+                    href="/auth"
                     className="text-sm font-medium text-navy/70 hover:text-navy transition-colors duration-150"
                   >
                     Sign In
@@ -174,7 +174,7 @@ export function Header() {
                     </Link>
                   ) : (
                     <Link
-                      href="/sign-in"
+                      href="/auth"
                       className="block rounded-lg px-3 py-2.5 text-base font-medium text-navy/70 hover:bg-cream-dark hover:text-navy transition-colors duration-150"
                       onClick={() => setMobileMenuOpen(false)}
                     >
