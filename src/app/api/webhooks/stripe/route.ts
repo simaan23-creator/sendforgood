@@ -131,28 +131,69 @@ export async function POST(request: Request) {
 
       if (shipmentError) throw shipmentError;
 
-      // Send confirmation email
+      const customerEmail = metadata.email || session.customer_email!;
+      const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+
+      // Send confirmation email to customer
       try {
         await resend.emails.send({
           from: "SendForGood <noreply@sendforgood.com>",
-          to: metadata.email || session.customer_email!,
-          subject: "Your Gift Plan is Confirmed!",
+          to: customerEmail,
+          subject: "Your Gift Plan is Confirmed! 🎁",
           html: `
-            <h1>Your gift plan is set up!</h1>
-            <p>Thank you for choosing SendForGood. Here's a summary of your gift plan:</p>
-            <ul>
-              <li><strong>Recipient:</strong> ${metadata.recipientName}</li>
-              <li><strong>Occasion:</strong> ${metadata.occasionType}</li>
-              <li><strong>Tier:</strong> ${metadata.tier}</li>
-              <li><strong>Duration:</strong> ${years} year${years > 1 ? "s" : ""}</li>
-            </ul>
-            <p>We'll take care of everything from here. Your first gift will be delivered on the occasion date.</p>
-            <p>With love,<br/>The SendForGood Team</p>
+            <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+              <h1 style="color: #1a2744;">Your gift plan is all set! 🎉</h1>
+              <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful.</p>
+              <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
+                <p><strong>Recipient:</strong> ${metadata.recipientName}</p>
+                <p><strong>Occasion:</strong> ${metadata.occasionType}</p>
+                <p><strong>Tier:</strong> ${metadata.tier}</p>
+                <p><strong>Duration:</strong> ${years} year${years > 1 ? "s" : ""}</p>
+                <p><strong>Total paid:</strong> ${amountFormatted}</p>
+              </div>
+              <p>We'll take care of everything from here. Your first gift will be on its way before the occasion date.</p>
+              <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
+              <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+            </div>
           `,
         });
       } catch (emailError) {
-        // Don't fail the webhook if email fails
-        console.error("Failed to send confirmation email:", emailError);
+        console.error("Failed to send customer confirmation email:", emailError);
+      }
+
+      // Send owner notification email to Simaan
+      try {
+        await resend.emails.send({
+          from: "SendForGood <noreply@sendforgood.com>",
+          to: "Simaan23@gmail.com",
+          subject: `🎁 New Order! ${metadata.tier} tier — ${metadata.recipientName} (${years} yr${years > 1 ? "s" : ""}) — ${amountFormatted}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+              <h1 style="color: #1a2744;">New Order Received! 🎉</h1>
+              <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <h2 style="margin-top: 0;">Order Details</h2>
+                <p><strong>Customer:</strong> ${customerEmail}</p>
+                <p><strong>Recipient:</strong> ${metadata.recipientName}</p>
+                <p><strong>Relationship:</strong> ${metadata.relationship || "N/A"}</p>
+                <p><strong>Occasion:</strong> ${metadata.occasionType} (${metadata.occasionDate})</p>
+                <p><strong>Tier:</strong> ${metadata.tier}</p>
+                <p><strong>Years:</strong> ${years}</p>
+                <p><strong>Amount:</strong> ${amountFormatted}</p>
+              </div>
+              <div style="background: #fff8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <h2 style="margin-top: 0;">Delivery Address</h2>
+                <p>${metadata.recipientName}<br/>
+                ${metadata.addressLine1}${metadata.addressLine2 ? "<br/>" + metadata.addressLine2 : ""}<br/>
+                ${metadata.city}, ${metadata.state} ${metadata.postalCode}<br/>
+                ${metadata.country || "US"}</p>
+              </div>
+              <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+            </div>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Failed to send owner notification email:", emailError);
       }
 
     } catch (error) {
