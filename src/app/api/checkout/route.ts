@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/send/success?recipient=${encodeURIComponent(recipientName)}&occasion=${encodeURIComponent(occasionType)}&tier=${encodeURIComponent(tier)}&years=${years}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/send?cancelled=true`,
       customer_email: user?.email || email,
       metadata: {

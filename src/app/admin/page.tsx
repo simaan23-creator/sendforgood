@@ -1,0 +1,687 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+}
+
+interface Recipient {
+  id: string;
+  name: string;
+  relationship: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+}
+
+interface Occasion {
+  id: string;
+  type: string;
+  occasion_date: string;
+  label: string | null;
+}
+
+interface Order {
+  id: string;
+  tier: string;
+  years_purchased: number;
+  years_remaining: number;
+  amount_paid: number;
+  status: string;
+  created_at: string;
+  user_id: string;
+  profiles: Profile | null;
+  recipients: Recipient | null;
+  occasions: Occasion | null;
+}
+
+interface Shipment {
+  id: string;
+  order_id: string;
+  scheduled_date: string;
+  status: string;
+  tracking_number: string | null;
+  gift_description: string | null;
+  created_at: string;
+  orders: {
+    id: string;
+    tier: string;
+    years_purchased: number;
+    years_remaining: number;
+    amount_paid: number;
+    status: string;
+    user_id: string;
+    recipient_id: string;
+    occasion_id: string;
+    recipients: Recipient | null;
+    occasions: Occasion | null;
+    profiles: Profile | null;
+  };
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const ADMIN_PASSWORD = "SendAdmin2026!";
+const SESSION_KEY = "sfg_admin_auth";
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatCurrency(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
+}
+
+function daysUntil(dateStr: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr + "T00:00:00");
+  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// ─── Password Gate ───────────────────────────────────────────────────────────
+
+function PasswordGate({ onAuth }: { onAuth: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+  const [shaking, setShaking] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, "true");
+      onAuth();
+    } else {
+      setError(true);
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <form
+        onSubmit={handleSubmit}
+        className={`bg-white rounded-lg shadow-lg p-8 w-full max-w-sm ${
+          shaking ? "animate-shake" : ""
+        }`}
+      >
+        <h1 className="text-xl font-bold text-gray-900 mb-1">Admin Dashboard</h1>
+        <p className="text-sm text-gray-500 mb-6">Enter password to continue</p>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError(false);
+          }}
+          placeholder="Password"
+          autoFocus
+          className={`w-full rounded-md border px-3 py-2 text-sm outline-none transition ${
+            error
+              ? "border-red-400 focus:ring-red-200"
+              : "border-gray-300 focus:ring-blue-200"
+          } focus:ring-2`}
+        />
+        {error && (
+          <p className="text-red-500 text-xs mt-1.5">Incorrect password</p>
+        )}
+        <button
+          type="submit"
+          className="mt-4 w-full rounded-md bg-gray-900 text-white text-sm font-medium py-2 hover:bg-gray-800 transition"
+        >
+          Sign In
+        </button>
+      </form>
+      <style jsx>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+          20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── Ship Modal ──────────────────────────────────────────────────────────────
+
+function ShipModal({
+  shipment,
+  onClose,
+  onConfirm,
+}: {
+  shipment: Shipment;
+  onClose: () => void;
+  onConfirm: (trackingNumber: string) => void;
+}) {
+  const [tracking, setTracking] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    await onConfirm(tracking);
+    setLoading(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+      >
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">
+          Mark as Shipped
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          {shipment.orders.recipients?.name} &mdash;{" "}
+          {formatDate(shipment.scheduled_date)}
+        </p>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Tracking Number{" "}
+          <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={tracking}
+          onChange={(e) => setTracking(e.target.value)}
+          placeholder="e.g. 1Z999AA10123456784"
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+          autoFocus
+        />
+        <p className="text-xs text-gray-400 mt-1.5">
+          This will also decrement years remaining on the order.
+        </p>
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-md bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? "Updating..." : "Confirm Shipped"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ─── Stats Bar ───────────────────────────────────────────────────────────────
+
+function StatsBar({
+  orders,
+  shipments,
+}: {
+  orders: Order[];
+  shipments: Shipment[];
+}) {
+  const activeOrders = orders.filter((o) => o.status === "active").length;
+
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const nextMonth = thisMonth === 11 ? 0 : thisMonth + 1;
+  const nextMonthYear = thisMonth === 11 ? thisYear + 1 : thisYear;
+
+  const pendingShipments = shipments.filter((s) => s.status === "pending");
+
+  const dueThisMonth = pendingShipments.filter((s) => {
+    const d = new Date(s.scheduled_date + "T00:00:00");
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+
+  const dueNextMonth = pendingShipments.filter((s) => {
+    const d = new Date(s.scheduled_date + "T00:00:00");
+    return d.getMonth() === nextMonth && d.getFullYear() === nextMonthYear;
+  }).length;
+
+  const totalRevenue = orders.reduce((sum, o) => sum + o.amount_paid, 0);
+
+  const stats = [
+    { label: "Active Orders", value: activeOrders },
+    { label: "Due This Month", value: dueThisMonth },
+    { label: "Due Next Month", value: dueNextMonth },
+    { label: "Total Revenue", value: formatCurrency(totalRevenue) },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {stats.map((s) => (
+        <div
+          key={s.label}
+          className="bg-white rounded-lg border border-gray-200 p-4"
+        >
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            {s.label}
+          </p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Shipments Tab ───────────────────────────────────────────────────────────
+
+function ShipmentsTab({
+  shipments,
+  onRefresh,
+}: {
+  shipments: Shipment[];
+  onRefresh: () => void;
+}) {
+  const [modalShipment, setModalShipment] = useState<Shipment | null>(null);
+  const pending = shipments.filter((s) => s.status === "pending");
+
+  async function handleMarkShipped(
+    shipmentId: string,
+    trackingNumber: string
+  ) {
+    const res = await fetch("/api/admin/shipments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shipment_id: shipmentId,
+        status: "shipped",
+        tracking_number: trackingNumber || null,
+      }),
+    });
+    if (res.ok) {
+      setModalShipment(null);
+      onRefresh();
+    }
+  }
+
+  async function handleMarkDelivered(shipmentId: string) {
+    const res = await fetch("/api/admin/shipments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shipment_id: shipmentId, status: "delivered" }),
+    });
+    if (res.ok) onRefresh();
+  }
+
+  function rowColor(scheduledDate: string) {
+    const days = daysUntil(scheduledDate);
+    if (days < 0) return "bg-red-50";
+    if (days <= 7) return "bg-yellow-50";
+    return "";
+  }
+
+  return (
+    <div>
+      {modalShipment && (
+        <ShipModal
+          shipment={modalShipment}
+          onClose={() => setModalShipment(null)}
+          onConfirm={(tn) => handleMarkShipped(modalShipment.id, tn)}
+        />
+      )}
+
+      {pending.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          No pending shipments
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="pb-3 pr-4">Scheduled</th>
+                <th className="pb-3 pr-4">Recipient</th>
+                <th className="pb-3 pr-4">Occasion</th>
+                <th className="pb-3 pr-4">Tier</th>
+                <th className="pb-3 pr-4">Address</th>
+                <th className="pb-3 pr-4">Customer</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((s) => {
+                const days = daysUntil(s.scheduled_date);
+                return (
+                  <tr
+                    key={s.id}
+                    className={`border-b border-gray-100 ${rowColor(
+                      s.scheduled_date
+                    )}`}
+                  >
+                    <td className="py-3 pr-4 whitespace-nowrap">
+                      <span className="font-medium">
+                        {formatDate(s.scheduled_date)}
+                      </span>
+                      {days < 0 && (
+                        <span className="ml-1.5 text-xs text-red-600 font-medium">
+                          Overdue
+                        </span>
+                      )}
+                      {days >= 0 && days <= 7 && (
+                        <span className="ml-1.5 text-xs text-yellow-700 font-medium">
+                          {days === 0 ? "Today" : `${days}d`}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {s.orders.recipients?.name || "—"}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {capitalize(s.orders.occasions?.type || "—")}
+                      {s.orders.occasions?.label && (
+                        <span className="text-gray-400 ml-1">
+                          ({s.orders.occasions.label})
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                        {s.orders.tier}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4 text-gray-500">
+                      {s.orders.recipients
+                        ? `${s.orders.recipients.city}, ${s.orders.recipients.state}`
+                        : "—"}
+                    </td>
+                    <td className="py-3 pr-4 text-gray-500 text-xs">
+                      {s.orders.profiles?.email || "—"}
+                    </td>
+                    <td className="py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => setModalShipment(s)}
+                        className="rounded bg-blue-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-blue-700 transition mr-1.5"
+                      >
+                        Mark Shipped
+                      </button>
+                      <button
+                        onClick={() => handleMarkDelivered(s.id)}
+                        className="rounded bg-gray-100 text-gray-700 px-2.5 py-1 text-xs font-medium hover:bg-gray-200 transition"
+                      >
+                        Mark Delivered
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Orders Tab ──────────────────────────────────────────────────────────────
+
+function OrdersTab() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (search) params.set("search", search);
+    const res = await fetch(`/api/admin/orders?${params}`);
+    const data = await res.json();
+    setOrders(data.orders || []);
+    setLoading(false);
+  }, [statusFilter, search]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  return (
+    <div>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
+        </select>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search by recipient or email..."
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 sm:w-72"
+        />
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">Loading orders...</div>
+      ) : orders.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">No orders found</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="pb-3 pr-4">Customer</th>
+                <th className="pb-3 pr-4">Recipient</th>
+                <th className="pb-3 pr-4">Tier</th>
+                <th className="pb-3 pr-4">Years</th>
+                <th className="pb-3 pr-4">Remaining</th>
+                <th className="pb-3 pr-4">Status</th>
+                <th className="pb-3 pr-4">Paid</th>
+                <th className="pb-3">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr
+                  key={o.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
+                  <td className="py-3 pr-4">
+                    <div className="font-medium text-gray-900">
+                      {o.profiles?.full_name || "—"}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {o.profiles?.email || "—"}
+                    </div>
+                  </td>
+                  <td className="py-3 pr-4">{o.recipients?.name || "—"}</td>
+                  <td className="py-3 pr-4">
+                    <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                      {o.tier}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4">{o.years_purchased}</td>
+                  <td className="py-3 pr-4">{o.years_remaining}</td>
+                  <td className="py-3 pr-4">
+                    <StatusBadge status={o.status} />
+                  </td>
+                  <td className="py-3 pr-4 font-medium">
+                    {formatCurrency(o.amount_paid)}
+                  </td>
+                  <td className="py-3 text-gray-500 whitespace-nowrap">
+                    {formatDate(o.created_at.split("T")[0])}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    active: "bg-green-100 text-green-700",
+    paused: "bg-yellow-100 text-yellow-700",
+    cancelled: "bg-red-100 text-red-700",
+    completed: "bg-blue-100 text-blue-700",
+  };
+
+  return (
+    <span
+      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+        colors[status] || "bg-gray-100 text-gray-700"
+      }`}
+    >
+      {status}
+    </span>
+  );
+}
+
+// ─── Main Dashboard ──────────────────────────────────────────────────────────
+
+export default function AdminDashboard() {
+  const [authed, setAuthed] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [tab, setTab] = useState<"shipments" | "orders">("shipments");
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Check existing session
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (sessionStorage.getItem(SESSION_KEY) === "true") {
+        setAuthed(true);
+      }
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const [shipmentsRes, ordersRes] = await Promise.all([
+      fetch("/api/admin/shipments"),
+      fetch("/api/admin/orders"),
+    ]);
+    const shipmentsData = await shipmentsRes.json();
+    const ordersData = await ordersRes.json();
+    setShipments(shipmentsData.shipments || []);
+    setOrders(ordersData.orders || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (authed) fetchData();
+  }, [authed, fetchData]);
+
+  if (checkingAuth) return null;
+  if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">
+              SendForGood Admin
+            </h1>
+            <p className="text-xs text-gray-400">
+              Fulfillment Dashboard
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem(SESSION_KEY);
+              setAuthed(false);
+            }}
+            className="text-xs text-gray-400 hover:text-gray-600 transition"
+          >
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading ? (
+          <div className="text-center py-20 text-gray-400">
+            Loading dashboard...
+          </div>
+        ) : (
+          <>
+            {/* Stats */}
+            <StatsBar orders={orders} shipments={shipments} />
+
+            {/* Tabs */}
+            <div className="flex gap-1 mb-6 border-b border-gray-200">
+              <button
+                onClick={() => setTab("shipments")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "shipments"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Upcoming Shipments
+              </button>
+              <button
+                onClick={() => setTab("orders")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "orders"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                All Orders
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+              {tab === "shipments" ? (
+                <ShipmentsTab
+                  shipments={shipments}
+                  onRefresh={fetchData}
+                />
+              ) : (
+                <OrdersTab />
+              )}
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
