@@ -73,7 +73,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-navy/10">
           <p className="text-sm text-warm-gray text-center">
-            &copy; 2025 SendForGood. All rights reserved. Made with love.
+            &copy; 2026 SendForGood. All rights reserved. Made with love.
           </p>
         </div>
       </div>
