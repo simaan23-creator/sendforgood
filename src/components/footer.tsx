@@ -3,7 +3,7 @@ import Link from "next/link";
 const FOOTER_LINKS = {
   Product: [
     { href: "/#how-it-works", label: "How It Works" },
-    { href: "/gifts", label: "Gift Catalog" },
+    { href: "/gifts", label: "Our Gifts" },
     { href: "/pricing", label: "Pricing" },
   ],
   Company: [

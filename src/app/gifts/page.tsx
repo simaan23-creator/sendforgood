@@ -1,404 +1,350 @@
-"use client";
-
-import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { OCCASION_TYPES, TIERS } from "@/lib/constants";
+import type { Metadata } from "next";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Types
+   SEO Metadata
    ═══════════════════════════════════════════════════════════════════════════ */
 
-interface GiftItem {
-  id: string;
-  name: string;
-  description: string;
-  tier: string;
-  price: number;
-  occasion_tags: string[];
-  image_url: string;
-  active: boolean;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Tier Badge Styling
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-const TIER_BADGE_STYLES: Record<string, string> = {
-  starter: "bg-warm-gray-light/20 text-warm-gray",
-  classic: "bg-forest/10 text-forest",
-  premium: "bg-gold/20 text-gold-dark",
-  deluxe: "bg-navy/10 text-navy",
-  legacy: "bg-gold-dark/20 text-gold-dark",
+export const metadata: Metadata = {
+  title: "Our Gifts | SendForGood",
+  description:
+    "See examples of the thoughtfully curated gifts we send for birthdays, graduations, anniversaries, holidays, and more — personalized for every recipient.",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Helper — Format cents to dollars
+   Tier Badge Styles
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
+const TIER_STYLES: Record<string, string> = {
+  Starter: "bg-warm-gray-light/20 text-warm-gray",
+  Classic: "bg-forest/10 text-forest",
+  Premium: "bg-gold/20 text-gold-dark",
+  Deluxe: "bg-navy/10 text-navy",
+  Legacy: "bg-gold-dark/20 text-gold-dark",
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Gift Card Component
+   Occasion Data
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function GiftCard({ gift }: { gift: GiftItem }) {
-  const tierLabel =
-    TIERS.find((t) => t.id === gift.tier)?.name ?? gift.tier;
-  const badgeStyle =
-    TIER_BADGE_STYLES[gift.tier] ?? "bg-warm-gray-light/20 text-warm-gray";
+interface Tier {
+  name: string;
+  suffix?: string;
+  description: string;
+}
 
+interface Occasion {
+  emoji: string;
+  title: string;
+  intro: string;
+  tiers: Tier[];
+}
+
+const OCCASIONS: Occasion[] = [
+  {
+    emoji: "\u{1F382}",
+    title: "Birthdays",
+    intro: "From collectible keepsakes to luxury experiences \u2014 every birthday feels special.",
+    tiers: [
+      {
+        name: "Starter",
+        suffix: "/yr",
+        description:
+          "A beautifully designed birthday card with a collectible art print or trading card",
+      },
+      {
+        name: "Classic",
+        suffix: "/yr",
+        description:
+          "A small wrapped gift: think a cozy candle, a fun puzzle, a cool desk toy, or a sweet treat box",
+      },
+      {
+        name: "Premium",
+        suffix: "/yr",
+        description:
+          "A curated gift box: could be a spa set, a gourmet snack collection, a book + bookmark set, or a personalized keepsake",
+      },
+      {
+        name: "Deluxe",
+        suffix: "/yr",
+        description:
+          "A premium interest-matched gift with a preview photo before we ship. Past examples: a custom star map, a leather journal set, a premium skincare kit",
+      },
+      {
+        name: "Legacy",
+        suffix: "/yr",
+        description:
+          "A luxury unboxing experience: premium branded box, handwritten letter, tissue paper, ribbon, and a show-stopping gift",
+      },
+    ],
+  },
+  {
+    emoji: "\u{1F393}",
+    title: "Graduation",
+    intro: "Mark their milestone with something they will actually remember.",
+    tiers: [
+      {
+        name: "Starter",
+        description:
+          "A congratulations card with a motivational print or collectible",
+      },
+      {
+        name: "Classic",
+        description:
+          "A practical gift for their next chapter: a quality notebook set, a coffee kit, or a meaningful keepsake",
+      },
+      {
+        name: "Premium",
+        description:
+          "A curated \u2018starting fresh\u2019 gift box: planner, quality pen, inspirational book, and a treat",
+      },
+      {
+        name: "Deluxe",
+        description:
+          "A personalized achievement gift: engraved item, custom portfolio, or experience voucher",
+      },
+      {
+        name: "Legacy",
+        description:
+          "A luxury milestone box: premium keepsake, handwritten letter of congratulations, and a gift that marks the occasion forever",
+      },
+    ],
+  },
+  {
+    emoji: "\u{1F491}",
+    title: "Anniversaries",
+    intro: "Love that shows up, year after year.",
+    tiers: [
+      {
+        name: "Starter",
+        description: "A heartfelt anniversary card with a romantic print",
+      },
+      {
+        name: "Classic",
+        description:
+          "A small romantic gift: a candle, a photo frame, a sweet treat box",
+      },
+      {
+        name: "Premium",
+        description:
+          "A couples gift box: wine + chocolates, a spa duo set, or a personalized keepsake",
+      },
+      {
+        name: "Deluxe",
+        description:
+          "A premium romantic gift matched to their relationship: custom jewelry, an experience, or a luxury item they\u2019ve been eyeing",
+      },
+      {
+        name: "Legacy",
+        description:
+          "The ultimate anniversary gesture: a luxury gift, a handwritten love letter, and premium presentation",
+      },
+    ],
+  },
+  {
+    emoji: "\u{1F384}",
+    title: "Holidays",
+    intro: "Festive gifts that arrive right on time, every year.",
+    tiers: [
+      {
+        name: "Starter",
+        description: "A seasonal holiday card with a limited edition print",
+      },
+      {
+        name: "Classic",
+        description: "A holiday treat box or small festive gift",
+      },
+      {
+        name: "Premium",
+        description:
+          "A holiday gift box: artisanal treats, a cozy candle, a festive ornament, and more",
+      },
+      {
+        name: "Deluxe",
+        description:
+          "A premium seasonal gift matched to their taste: gourmet hamper, luxury home item, or personalized holiday keepsake",
+      },
+      {
+        name: "Legacy",
+        description:
+          "A luxury holiday experience box with premium gifts, handwritten wishes, and beautiful presentation",
+      },
+    ],
+  },
+  {
+    emoji: "\u{1F3E2}",
+    title: "Business & Corporate",
+    intro: "Keep clients and employees feeling valued \u2014 automatically.",
+    tiers: [
+      {
+        name: "Starter",
+        description:
+          "A professional branded card for birthdays, work anniversaries, or client milestones",
+      },
+      {
+        name: "Classic",
+        description:
+          "A quality small gift: a premium pen, a desk plant, or a branded treat box",
+      },
+      {
+        name: "Premium",
+        description:
+          "A professional gift box: quality notebook, coffee/tea set, or a curated desk accessory set",
+      },
+      {
+        name: "Deluxe",
+        description:
+          "A premium client gift with preview approval: personalized, tasteful, and memorable",
+      },
+      {
+        name: "Legacy",
+        description:
+          "A white-glove corporate gift experience: luxury item, handwritten note on premium stationery, and elegant packaging",
+      },
+    ],
+  },
+  {
+    emoji: "\u{1F381}",
+    title: "Just Because",
+    intro: "Sometimes the best gifts have no reason at all.",
+    tiers: [
+      {
+        name: "Starter",
+        description: "A warm, heartfelt \u2018thinking of you\u2019 card",
+      },
+      {
+        name: "Classic",
+        description: "A small surprise gift to brighten their day",
+      },
+      {
+        name: "Premium",
+        description:
+          "A curated \u2018happy box\u2019 \u2014 fun, cozy, and full of little delights",
+      },
+      {
+        name: "Deluxe",
+        description: "A premium surprise gift based on their interests",
+      },
+      {
+        name: "Legacy",
+        description:
+          "An unforgettable luxury surprise that shows how much you care",
+      },
+    ],
+  },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Occasion Section Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function OccasionSection({ occasion }: { occasion: Occasion }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
-      {/* Gift image */}
-      <div className="relative h-48 overflow-hidden bg-cream-dark">
-        {gift.image_url ? (
-          <img
-            src={gift.image_url}
-            alt={gift.name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-16 w-16 text-warm-gray-light"
-              aria-hidden="true"
-            >
-              <rect x="3" y="8" width="18" height="13" rx="2" />
-              <path d="M12 8v13" />
-              <path d="M3 13h18" />
-              <path d="M8 8c0-2 0-5 4-5" />
-              <path d="M16 8c0-2 0-5-4-5" />
-            </svg>
-          </div>
-        )}
-      </div>
-
-      {/* Card body */}
-      <div className="flex flex-1 flex-col p-5">
-        {/* Name */}
-        <h3 className="text-lg font-bold text-navy">{gift.name}</h3>
-
-        {/* Description — truncated to 2 lines */}
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-warm-gray">
-          {gift.description}
+    <section className="py-12 sm:py-16">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-navy sm:text-3xl">
+          <span className="mr-3">{occasion.emoji}</span>
+          {occasion.title}
+        </h2>
+        <p className="mt-2 text-base leading-relaxed text-warm-gray sm:text-lg">
+          {occasion.intro}
         </p>
-
-        {/* Tier badge + price */}
-        <div className="mt-4 flex items-center justify-between">
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${badgeStyle}`}
-          >
-            {tierLabel}
-          </span>
-          <span className="text-lg font-extrabold text-navy">
-            {formatPrice(gift.price)}
-          </span>
-        </div>
-
-        {/* Occasion tags */}
-        {gift.occasion_tags && gift.occasion_tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {gift.occasion_tags.map((tag) => {
-              const label =
-                OCCASION_TYPES.find((o) => o.value === tag)?.label ?? tag;
-              return (
-                <span
-                  key={tag}
-                  className="rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-medium text-warm-gray"
-                >
-                  {label}
-                </span>
-              );
-            })}
-          </div>
-        )}
       </div>
-    </article>
+
+      <div className="space-y-4">
+        {occasion.tiers.map((tier) => (
+          <div
+            key={tier.name}
+            className="flex flex-col gap-3 rounded-xl border border-cream-dark/60 bg-white p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
+          >
+            <span
+              className={`inline-flex w-fit shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES[tier.name]}`}
+            >
+              {tier.name}
+              {tier.suffix && (
+                <span className="ml-1 text-[10px] font-normal opacity-70">
+                  {tier.suffix}
+                </span>
+              )}
+            </span>
+            <span className="hidden text-warm-gray-light sm:inline">&mdash;</span>
+            <p className="text-sm leading-relaxed text-warm-gray sm:text-base">
+              {tier.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Main Page Component
+   Page Component
    ═══════════════════════════════════════════════════════════════════════════ */
 
-export default function GiftCatalogPage() {
-  const [gifts, setGifts] = useState<GiftItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [selectedOccasion, setSelectedOccasion] = useState<string>("all");
-  const [selectedTier, setSelectedTier] = useState<string>("all");
-
-  /* ────────────────────────── Fetch gifts ────────────────────────── */
-
-  useEffect(() => {
-    async function fetchGifts() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const supabase = createClient();
-        const { data, error: fetchError } = await supabase
-          .from("gift_catalog")
-          .select("*")
-          .eq("active", true)
-          .order("price", { ascending: true });
-
-        if (fetchError) {
-          throw fetchError;
-        }
-
-        setGifts((data as GiftItem[]) ?? []);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load gift catalog. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchGifts();
-  }, []);
-
-  /* ────────────────────────── Filtered gifts ────────────────────────── */
-
-  const filteredGifts = useMemo(() => {
-    return gifts.filter((gift) => {
-      const matchesOccasion =
-        selectedOccasion === "all" ||
-        (gift.occasion_tags && gift.occasion_tags.includes(selectedOccasion));
-
-      const matchesTier =
-        selectedTier === "all" || gift.tier === selectedTier;
-
-      return matchesOccasion && matchesTier;
-    });
-  }, [gifts, selectedOccasion, selectedTier]);
-
-  /* ────────────────────────── Reset filters ────────────────────────── */
-
-  function resetFilters() {
-    setSelectedOccasion("all");
-    setSelectedTier("all");
-  }
-
-  /* ════════════════════════════ Render ═════════════════════════════ */
-
+export default function OurGiftsPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-cream to-white">
-      {/* ─────────────────────────── Page Header ─────────────────────────── */}
-      <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl text-center">
+      {/* ─────────────────────────── Hero Section ─────────────────────────── */}
+      <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
-            Gift Catalog
+            Thoughtfully Curated, Every Time
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-warm-gray">
-            Explore our curated selection of gifts for every occasion and budget.
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-warm-gray">
+            Every gift is personally selected by our team based on your
+            recipient&rsquo;s interests, age, and occasion. Below are examples
+            of what we send &mdash; your recipient&rsquo;s actual gift will be
+            uniquely chosen just for them.
           </p>
+          <span className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-4 py-1.5 text-sm font-medium text-gold-dark">
+            &#10024; No two gifts are exactly alike
+          </span>
         </div>
       </section>
 
-      {/* ─────────────────────────── Filter Bar ──────────────────────────── */}
-      <section className="border-b border-cream-dark bg-white px-6 py-6">
-        <div className="mx-auto max-w-6xl space-y-4">
-          {/* Occasion filters */}
-          <div>
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-warm-gray">
-              Occasion
-            </span>
-            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-              <button
-                type="button"
-                onClick={() => setSelectedOccasion("all")}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  selectedOccasion === "all"
-                    ? "bg-gold text-navy shadow-sm"
-                    : "bg-cream-dark text-warm-gray hover:bg-cream-dark/80"
-                }`}
-              >
-                All
-              </button>
-              {OCCASION_TYPES.map((occasion) => (
-                <button
-                  key={occasion.value}
-                  type="button"
-                  onClick={() => setSelectedOccasion(occasion.value)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-                    selectedOccasion === occasion.value
-                      ? "bg-gold text-navy shadow-sm"
-                      : "bg-cream-dark text-warm-gray hover:bg-cream-dark/80"
-                  }`}
-                >
-                  {occasion.label}
-                </button>
-              ))}
-            </div>
+      {/* ─────────────────────── Disclaimer Banner ────────────────────────── */}
+      <div className="bg-gold/15 px-6 py-4">
+        <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-gold-dark sm:text-base">
+          These are gift examples only. We curate each gift individually based
+          on what you tell us about your recipient. The actual gift may differ.
+        </p>
+      </div>
+
+      {/* ─────────────────────── Occasion Sections ────────────────────────── */}
+      <div className="mx-auto max-w-4xl px-6">
+        {OCCASIONS.map((occasion, i) => (
+          <div key={occasion.title}>
+            <OccasionSection occasion={occasion} />
+            {i < OCCASIONS.length - 1 && (
+              <hr className="border-cream-dark/60" />
+            )}
           </div>
+        ))}
+      </div>
 
-          {/* Tier filters */}
-          <div>
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-warm-gray">
-              Tier
-            </span>
-            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-              <button
-                type="button"
-                onClick={() => setSelectedTier("all")}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  selectedTier === "all"
-                    ? "bg-gold text-navy shadow-sm"
-                    : "bg-cream-dark text-warm-gray hover:bg-cream-dark/80"
-                }`}
-              >
-                All Tiers
-              </button>
-              {TIERS.map((tier) => (
-                <button
-                  key={tier.id}
-                  type="button"
-                  onClick={() => setSelectedTier(tier.id)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-                    selectedTier === tier.id
-                      ? "bg-gold text-navy shadow-sm"
-                      : "bg-cream-dark text-warm-gray hover:bg-cream-dark/80"
-                  }`}
-                >
-                  {tier.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────── Gift Grid ───────────────────────────── */}
-      <section className="px-6 py-12 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          {/* Loading state */}
-          {loading && (
-            <div className="flex items-center justify-center py-20">
-              <div className="flex flex-col items-center gap-4">
-                <svg
-                  className="h-8 w-8 animate-spin text-gold"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <p className="text-sm text-warm-gray">
-                  Loading gift catalog...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Error state */}
-          {!loading && error && (
-            <div className="flex items-center justify-center py-20">
-              <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-                <p className="text-sm text-red-700">{error}</p>
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  className="mt-4 inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!loading && !error && filteredGifts.length === 0 && (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-cream-dark">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-10 w-10 text-warm-gray-light"
-                    aria-hidden="true"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                  </svg>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-navy">
-                  No gifts found
-                </h3>
-                <p className="mt-2 text-sm text-warm-gray">
-                  No gifts found for this combination. Try adjusting your
-                  filters.
-                </p>
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="mt-6 inline-flex items-center rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold-light"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Gift cards grid */}
-          {!loading && !error && filteredGifts.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredGifts.map((gift) => (
-                <GiftCard key={gift.id} gift={gift} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ─────────────────────── CTA Section ──────────────────────────── */}
+      {/* ─────────────────────── Bottom CTA Section ───────────────────────── */}
       <section className="bg-navy px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold text-cream sm:text-4xl">
             Ready to start sending?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-cream/80">
-            Choose your gift, pick an occasion, and let us handle the rest
-            &mdash; year after year.
+            Tell us about your recipient and we&rsquo;ll handle everything from
+            there.
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/send"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-10 py-4 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Start Sending
+            </Link>
+            <Link
+              href="/business"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-cream/30 px-8 py-3.5 text-base font-semibold text-cream transition hover:border-cream/60 hover:bg-white/5"
+            >
+              For businesses sending to multiple people
             </Link>
           </div>
         </div>
