@@ -712,13 +712,13 @@ const INTEREST_OPTIONS = [
   { emoji: "\uD83D\uDCDA", label: "Reading" },
   { emoji: "\uD83C\uDFB5", label: "Music" },
   { emoji: "\uD83C\uDF73", label: "Cooking" },
-  { emoji: "\uD83C\uDFC3", label: "Sports/Fitness" },
+  { emoji: "\uD83C\uDFC3", label: "Sports" },
   { emoji: "\uD83C\uDFA8", label: "Art & Crafts" },
-  { emoji: "\uD83C\uDF3F", label: "Outdoors/Nature" },
+  { emoji: "\uD83C\uDF3F", label: "Outdoors" },
   { emoji: "\u2708\uFE0F", label: "Travel" },
-  { emoji: "\uD83D\uDC85", label: "Fashion & Beauty" },
+  { emoji: "\uD83D\uDC85", label: "Fashion" },
   { emoji: "\uD83D\uDC3E", label: "Animals/Pets" },
-  { emoji: "\uD83D\uDD27", label: "Tech & Gadgets" },
+  { emoji: "\uD83D\uDD27", label: "Tech" },
   { emoji: "\uD83E\uDDD8", label: "Wellness" },
 ] as const;
 
