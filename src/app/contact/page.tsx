@@ -43,8 +43,33 @@ export default function ContactPage() {
           </p>
         </div>
 
+        {/* Text / Phone CTA */}
+        <div className="mt-10 rounded-xl bg-cream-dark p-8 text-center">
+          <h2 className="text-xl font-bold text-navy sm:text-2xl">
+            Prefer to text us?
+          </h2>
+          <p className="mt-2 text-warm-gray leading-relaxed">
+            Send us a text and we&rsquo;ll get back to you within a few hours.
+          </p>
+          <a
+            href="sms:+16317074968"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-6 py-4 text-lg font-semibold text-cream shadow-sm transition hover:bg-navy-light sm:w-auto"
+          >
+            <span aria-hidden="true">💬</span> Text Us: (631) 707-4968
+          </a>
+          <p className="mt-3 text-sm text-warm-gray">
+            You can also call us at{" "}
+            <a
+              href="tel:+16317074968"
+              className="font-semibold text-navy underline decoration-gold underline-offset-4 hover:text-navy-light"
+            >
+              (631) 707-4968
+            </a>
+          </p>
+        </div>
+
         {/* Direct email */}
-        <div className="mt-10 rounded-xl bg-cream-dark p-6 text-center">
+        <div className="mt-6 rounded-xl bg-cream-dark p-6 text-center">
           <p className="text-sm text-warm-gray">
             You can also email us directly at
           </p>

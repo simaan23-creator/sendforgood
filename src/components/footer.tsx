@@ -46,6 +46,12 @@ export function Footer() {
             <p className="mt-3 text-sm text-warm-gray leading-relaxed max-w-xs">
               Legacy giving, made simple.
             </p>
+            <a
+              href="sms:+16317074968"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-warm-gray hover:text-navy transition-colors duration-150"
+            >
+              <span aria-hidden="true">📱</span> Text: (631) 707-4968
+            </a>
           </div>
 
           {/* Link Columns */}
