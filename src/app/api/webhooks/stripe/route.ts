@@ -87,6 +87,11 @@ async function handleIndividualOrder(
       state: metadata.state,
       postal_code: metadata.postalCode,
       country: metadata.country || "US",
+      age: metadata.recipientAge || null,
+      gender: metadata.recipientGender || null,
+      interests: metadata.interests || null,
+      card_message: metadata.cardMessage || null,
+      gift_notes: metadata.giftNotes || null,
     })
     .select()
     .single();

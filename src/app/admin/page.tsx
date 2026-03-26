@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,11 @@ interface Recipient {
   state: string;
   postal_code: string;
   country: string;
+  age: string | null;
+  gender: string | null;
+  interests: string | null;
+  card_message: string | null;
+  gift_notes: string | null;
 }
 
 interface Occasion {
@@ -93,6 +98,15 @@ function daysUntil(dateStr: string) {
   today.setHours(0, 0, 0, 0);
   const target = new Date(dateStr + "T00:00:00");
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex gap-2">
+      <span className="text-gray-400 min-w-[90px]">{label}:</span>
+      <span className="text-gray-700">{value || "—"}</span>
+    </div>
+  );
 }
 
 // ─── Password Gate ───────────────────────────────────────────────────────────
@@ -298,6 +312,7 @@ function ShipmentsTab({
   onRefresh: () => void;
 }) {
   const [modalShipment, setModalShipment] = useState<Shipment | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const pending = shipments.filter((s) => s.status === "pending");
 
   async function handleMarkShipped(
@@ -366,67 +381,127 @@ function ShipmentsTab({
             <tbody>
               {pending.map((s) => {
                 const days = daysUntil(s.scheduled_date);
+                const isExpanded = expandedId === s.id;
+                const r = s.orders.recipients;
                 return (
-                  <tr
-                    key={s.id}
-                    className={`border-b border-gray-100 ${rowColor(
-                      s.scheduled_date
-                    )}`}
-                  >
-                    <td className="py-3 pr-4 whitespace-nowrap">
-                      <span className="font-medium">
-                        {formatDate(s.scheduled_date)}
-                      </span>
-                      {days < 0 && (
-                        <span className="ml-1.5 text-xs text-red-600 font-medium">
-                          Overdue
+                  <React.Fragment key={s.id}>
+                    <tr
+                      className={`border-b border-gray-100 ${rowColor(
+                        s.scheduled_date
+                      )}`}
+                    >
+                      <td className="py-3 pr-4 whitespace-nowrap">
+                        <span className="font-medium">
+                          {formatDate(s.scheduled_date)}
                         </span>
-                      )}
-                      {days >= 0 && days <= 7 && (
-                        <span className="ml-1.5 text-xs text-yellow-700 font-medium">
-                          {days === 0 ? "Today" : `${days}d`}
+                        {days < 0 && (
+                          <span className="ml-1.5 text-xs text-red-600 font-medium">
+                            Overdue
+                          </span>
+                        )}
+                        {days >= 0 && days <= 7 && (
+                          <span className="ml-1.5 text-xs text-yellow-700 font-medium">
+                            {days === 0 ? "Today" : `${days}d`}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {r?.name || "—"}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {capitalize(s.orders.occasions?.type || "—")}
+                        {s.orders.occasions?.label && (
+                          <span className="text-gray-400 ml-1">
+                            ({s.orders.occasions.label})
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                          {s.orders.tier}
                         </span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {s.orders.recipients?.name || "—"}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {capitalize(s.orders.occasions?.type || "—")}
-                      {s.orders.occasions?.label && (
-                        <span className="text-gray-400 ml-1">
-                          ({s.orders.occasions.label})
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4">
-                      <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
-                        {s.orders.tier}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-gray-500">
-                      {s.orders.recipients
-                        ? `${s.orders.recipients.city}, ${s.orders.recipients.state}`
-                        : "—"}
-                    </td>
-                    <td className="py-3 pr-4 text-gray-500 text-xs">
-                      {s.orders.profiles?.email || "—"}
-                    </td>
-                    <td className="py-3 whitespace-nowrap">
-                      <button
-                        onClick={() => setModalShipment(s)}
-                        className="rounded bg-blue-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-blue-700 transition mr-1.5"
-                      >
-                        Mark Shipped
-                      </button>
-                      <button
-                        onClick={() => handleMarkDelivered(s.id)}
-                        className="rounded bg-gray-100 text-gray-700 px-2.5 py-1 text-xs font-medium hover:bg-gray-200 transition"
-                      >
-                        Mark Delivered
-                      </button>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500">
+                        {r
+                          ? `${r.city}, ${r.state}`
+                          : "—"}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                        {s.orders.profiles?.email || "—"}
+                      </td>
+                      <td className="py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : s.id)}
+                          className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition mr-1.5"
+                        >
+                          {isExpanded ? "Hide" : "Details"}
+                        </button>
+                        <button
+                          onClick={() => setModalShipment(s)}
+                          className="rounded bg-blue-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-blue-700 transition mr-1.5"
+                        >
+                          Mark Shipped
+                        </button>
+                        <button
+                          onClick={() => handleMarkDelivered(s.id)}
+                          className="rounded bg-gray-100 text-gray-700 px-2.5 py-1 text-xs font-medium hover:bg-gray-200 transition"
+                        >
+                          Mark Delivered
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={7} className="p-0">
+                          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                              {/* Delivery Address */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Delivery Address
+                                </h4>
+                                {r ? (
+                                  <div className="text-gray-700 space-y-0.5">
+                                    <p>{r.address_line1}</p>
+                                    {r.address_line2 && <p>{r.address_line2}</p>}
+                                    <p>{r.city}, {r.state} {r.postal_code}</p>
+                                    <p>{r.country}</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-400">No address</p>
+                                )}
+                              </div>
+
+                              {/* Recipient Profile */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Recipient Profile
+                                </h4>
+                                <div className="space-y-1">
+                                  <DetailRow label="Age" value={r?.age} />
+                                  <DetailRow label="Gender" value={r?.gender} />
+                                  <DetailRow label="Interests" value={r?.interests} />
+                                  <DetailRow label="Card Message" value={r?.card_message} />
+                                  <DetailRow label="Gift Notes" value={r?.gift_notes} />
+                                </div>
+                              </div>
+
+                              {/* Customer Info */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Customer
+                                </h4>
+                                <div className="space-y-1">
+                                  <DetailRow label="Email" value={s.orders.profiles?.email} />
+                                  <DetailRow label="Name" value={s.orders.profiles?.full_name} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </tbody>
