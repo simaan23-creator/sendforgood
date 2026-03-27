@@ -25,8 +25,10 @@ export async function POST(request: Request) {
     const metadata = session.metadata!;
 
     try {
-      // Check if this is a business order
-      if (metadata.isBusinessOrder === "true") {
+      // Check order type
+      if (metadata.isCartOrder === "true") {
+        await handleCartOrder(session, metadata);
+      } else if (metadata.isBusinessOrder === "true") {
         await handleBusinessOrder(session, metadata);
       } else {
         await handleIndividualOrder(session, metadata);
@@ -230,6 +232,276 @@ async function handleIndividualOrder(
     });
   } catch (emailError) {
     console.error("Failed to send owner notification email:", emailError);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Cart Order Handler
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+interface CartItemMeta {
+  recipientName: string;
+  relationship: string;
+  occasionType: string;
+  occasionLabel: string;
+  occasionDate: string;
+  years: number;
+  tier: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  recipientAge: string;
+  recipientGender: string;
+  interests: string;
+  giftNotes: string;
+  cardMessage: string;
+  petType: string;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+async function handleCartOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  // Reassemble cart items JSON from chunks
+  let cartJson = "";
+  let chunkIndex = 0;
+  while (metadata[`cart_items_${chunkIndex}`] !== undefined) {
+    cartJson += metadata[`cart_items_${chunkIndex}`];
+    chunkIndex++;
+  }
+
+  const cartItems: CartItemMeta[] = JSON.parse(cartJson);
+
+  // Find or create user
+  let userId = metadata.userId;
+
+  if (!userId) {
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => u.email === metadata.email
+    );
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const { data: newUser, error: userError } = await supabaseAdmin.auth.admin.createUser({
+        email: metadata.email,
+        email_confirm: true,
+        user_metadata: { full_name: metadata.fullName },
+      });
+
+      if (userError) throw userError;
+      userId = newUser.user.id;
+    }
+  }
+
+  // Process each cart item
+  const currentYear = new Date().getFullYear();
+  const processedItems: Array<{ recipientName: string; tier: string; years: number; occasionType: string; totalPrice: number }> = [];
+
+  for (const item of cartItems) {
+    const tierInfo = TIER_PRICES[item.tier];
+    const itemAmount = tierInfo ? tierInfo.price * item.years : 0;
+
+    // Create recipient
+    const { data: recipient, error: recipientError } = await supabaseAdmin
+      .from("recipients")
+      .insert({
+        user_id: userId,
+        name: item.recipientName,
+        relationship: item.relationship,
+        address_line1: item.addressLine1,
+        address_line2: item.addressLine2 || null,
+        city: item.city,
+        state: item.state,
+        postal_code: item.postalCode,
+        country: item.country || "US",
+        age: item.recipientAge || null,
+        gender: item.recipientGender || null,
+        interests: item.interests || null,
+        card_message: item.cardMessage || null,
+        gift_notes: item.giftNotes || null,
+      })
+      .select()
+      .single();
+
+    if (recipientError) throw recipientError;
+
+    // Create occasion
+    const { data: occasion, error: occasionError } = await supabaseAdmin
+      .from("occasions")
+      .insert({
+        recipient_id: recipient.id,
+        type: item.occasionType,
+        occasion_date: item.occasionDate,
+        label: item.occasionLabel || null,
+      })
+      .select()
+      .single();
+
+    if (occasionError) throw occasionError;
+
+    // Create order
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        recipient_id: recipient.id,
+        occasion_id: occasion.id,
+        tier: item.tier,
+        years_purchased: item.years,
+        years_remaining: item.years,
+        amount_paid: itemAmount,
+        stripe_payment_intent_id: session.payment_intent as string,
+        status: "active",
+      })
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    // Create shipment records for each year
+    const occasionDate = new Date(item.occasionDate);
+    const shipments = [];
+
+    for (let i = 0; i < item.years; i++) {
+      const shipDate = new Date(occasionDate);
+      shipDate.setFullYear(currentYear + i);
+
+      if (shipDate < new Date()) {
+        shipDate.setFullYear(shipDate.getFullYear() + 1);
+      }
+
+      shipments.push({
+        order_id: order.id,
+        scheduled_date: shipDate.toISOString().split("T")[0],
+        status: "pending",
+        gift_description: `${item.tier} tier gift for ${item.recipientName}`,
+      });
+    }
+
+    const { error: shipmentError } = await supabaseAdmin
+      .from("shipments")
+      .insert(shipments);
+
+    if (shipmentError) throw shipmentError;
+
+    processedItems.push({
+      recipientName: item.recipientName,
+      tier: item.tier,
+      years: item.years,
+      occasionType: item.occasionType,
+      totalPrice: item.totalPrice,
+    });
+  }
+
+  const customerEmail = metadata.email || session.customer_email!;
+  const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+
+  // Build items summary for emails
+  const itemRows = processedItems
+    .map(
+      (item) =>
+        `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.recipientName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.occasionType}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.tier}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.years} yr${item.years > 1 ? "s" : ""}</td>
+        </tr>`
+    )
+    .join("");
+
+  // Send customer confirmation email
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: customerEmail,
+      subject: `Your Gift Plans are Confirmed! \u{1F381} ${cartItems.length} gift${cartItems.length > 1 ? "s" : ""} set up`,
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+          <h1 style="color: #1a2744;">Your gift plans are all set! \u{1F389}</h1>
+          <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful to ${cartItems.length} ${cartItems.length === 1 ? "person" : "people"}.</p>
+          <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
+            <p><strong>Total gifts:</strong> ${cartItems.length}</p>
+            <p><strong>Total paid:</strong> ${amountFormatted}</p>
+          </div>
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">Your Gifts</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr style="background: #f5ede0;">
+                <th style="padding: 8px; text-align: left;">Recipient</th>
+                <th style="padding: 8px; text-align: left;">Occasion</th>
+                <th style="padding: 8px; text-align: left;">Tier</th>
+                <th style="padding: 8px; text-align: left;">Duration</th>
+              </tr>
+              ${itemRows}
+            </table>
+          </div>
+          <p>We'll take care of everything from here. Each recipient will receive their gift on time, every year.</p>
+          <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send cart confirmation email:", emailError);
+  }
+
+  // Send owner notification email
+  try {
+    const ownerItemRows = cartItems
+      .map(
+        (item) =>
+          `<tr>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.recipientName}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.relationship || "N/A"}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.occasionType} (${item.occasionDate})</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.tier}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.years}yr</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${item.city}, ${item.state}</td>
+          </tr>`
+      )
+      .join("");
+
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: "Simaan23@gmail.com",
+      subject: `\u{1F6D2} New Cart Order! ${cartItems.length} gift${cartItems.length > 1 ? "s" : ""} \u2014 ${amountFormatted}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px;">
+          <h1 style="color: #1a2744;">New Cart Order! \u{1F389}</h1>
+          <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0;">Order Details</h2>
+            <p><strong>Customer:</strong> ${metadata.fullName} (${customerEmail})</p>
+            <p><strong>Total Gifts:</strong> ${cartItems.length}</p>
+            <p><strong>Total Amount:</strong> ${amountFormatted}</p>
+          </div>
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">All Gifts</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr style="background: #e8f0ff;">
+                <th style="padding: 6px 8px; text-align: left;">Recipient</th>
+                <th style="padding: 6px 8px; text-align: left;">Relationship</th>
+                <th style="padding: 6px 8px; text-align: left;">Occasion</th>
+                <th style="padding: 6px 8px; text-align: left;">Tier</th>
+                <th style="padding: 6px 8px; text-align: left;">Duration</th>
+                <th style="padding: 6px 8px; text-align: left;">Location</th>
+              </tr>
+              ${ownerItemRows}
+            </table>
+          </div>
+          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send cart owner notification email:", emailError);
   }
 }
 

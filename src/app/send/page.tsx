@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
 import type { TierId } from "@/lib/constants";
+import { addToCart, getCartCount } from "@/lib/cart";
 
 /* ─────────────────────────────── US States ─────────────────────────────── */
 
@@ -117,6 +119,8 @@ export default function SendPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   /* Check if user is logged in */
   useEffect(() => {
@@ -132,6 +136,14 @@ export default function SendPage() {
         }));
       }
     });
+  }, []);
+
+  /* Track cart count */
+  useEffect(() => {
+    setCartCount(getCartCount());
+    const onCartUpdate = () => setCartCount(getCartCount());
+    window.addEventListener("cart-updated", onCartUpdate);
+    return () => window.removeEventListener("cart-updated", onCartUpdate);
   }, []);
 
   /* ────────────────────────── Helpers ──────────────────────────── */
@@ -208,43 +220,117 @@ export default function SendPage() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  /* ────────────────────────── Checkout ─────────────────────────── */
+  /* ────────────────────────── Add to Cart ─────────────────────── */
 
-  async function handleSubmit() {
+  function handleAddToCart() {
     if (!validateStep(5)) return;
+    if (!selectedTier) return;
 
-    setIsSubmitting(true);
+    addToCart({
+      recipientName: form.recipientName,
+      relationship: form.relationship,
+      occasionType: form.occasionType,
+      occasionLabel: form.occasionLabel,
+      occasionDate: form.occasionDate,
+      years: form.years,
+      tier: form.tier as TierId,
+      addressLine1: form.addressLine1,
+      addressLine2: form.addressLine2,
+      city: form.city,
+      state: form.state,
+      postalCode: form.postalCode,
+      country: form.country,
+      recipientAge: form.recipientAge,
+      recipientGender: form.recipientGender,
+      interests: form.interests.join(", "),
+      giftNotes: form.giftNotes,
+      cardMessage: form.cardMessage,
+      petType: form.petType,
+      unitPrice: selectedTier.price,
+      totalPrice: totalPrice,
+    });
+
+    setAddedToCart(true);
+  }
+
+  function handleAddAnother() {
+    setForm(initialFormData);
+    setStep(0);
+    setErrors({});
     setSubmitError("");
-
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          interests: form.interests.join(", "),
-        }),
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? "Something went wrong. Please try again.");
-      }
-
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    setAddedToCart(false);
   }
 
   /* ════════════════════════════ Render ═════════════════════════════ */
 
+  /* ────────────────────────── Added to Cart ───────────────────── */
+
+  if (addedToCart) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-cream to-cream-dark px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8 text-center">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-forest/10 ring-4 ring-forest/20">
+              <svg className="h-10 w-10 text-forest" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-navy sm:text-3xl">Added to cart!</h2>
+            <p className="mt-3 text-warm-gray">
+              Gift for <span className="font-semibold text-navy">{form.recipientName}</span> has been added.
+              Would you like to add another gift or go to checkout?
+            </p>
+            <p className="mt-2 text-sm text-warm-gray-light">
+              You have <span className="font-semibold text-navy">{cartCount}</span> {cartCount === 1 ? "item" : "items"} in your cart.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={handleAddAnother}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                </svg>
+                Add Another Gift
+              </button>
+              <Link
+                href="/cart"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-forest px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-forest-light"
+              >
+                View Cart ({cartCount})
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-cream to-cream-dark px-4 py-10 sm:px-6 sm:py-14">
       <div className="mx-auto max-w-2xl">
+        {/* ──────────────── Cart Badge ──────────────── */}
+        {cartCount > 0 && (
+          <div className="mb-4 flex justify-end">
+            <Link
+              href="/cart"
+              className="inline-flex items-center gap-2 rounded-lg border border-cream-dark bg-white px-4 py-2 text-sm font-medium text-navy shadow-sm transition hover:border-gold hover:shadow-md"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-navy">
+                <path d="M2.25 2.25a.75.75 0 0 0 0 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 0 0-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5 14.25h11.218a.75.75 0 0 0 .674-.421 60.358 60.358 0 0 0 2.96-7.228.75.75 0 0 0-.525-.965A60.864 60.864 0 0 0 5.68 4.509l-.232-.867A1.875 1.875 0 0 0 3.636 2.25H2.25ZM3.75 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM16.5 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" />
+              </svg>
+              Cart
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-white">
+                {cartCount}
+              </span>
+            </Link>
+          </div>
+        )}
+
         {/* ──────────────── Progress Bar ──────────────── */}
         <nav aria-label="Progress" className="mb-10">
           <ol className="flex items-center justify-between">
@@ -338,7 +424,7 @@ export default function SendPage() {
               userEmail={userEmail}
               isSubmitting={isSubmitting}
               submitError={submitError}
-              onSubmit={handleSubmit}
+              onSubmit={handleAddToCart}
             />
           )}
 
@@ -1127,7 +1213,7 @@ function StepReview({
             Processing...
           </span>
         ) : (
-          `Place Order \u2014 $${totalPrice.toLocaleString()}`
+          `Add to Cart \uD83D\uDED2 \u2014 $${totalPrice.toLocaleString()}`
         )}
       </button>
 
