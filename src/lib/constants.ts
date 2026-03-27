@@ -4,6 +4,8 @@ export const OCCASION_TYPES = [
   { value: "holiday", label: "Holiday" },
   { value: "anniversary", label: "Anniversary" },
   { value: "just_because", label: "Just Because" },
+  { value: "pet_birthday", label: "Pet Birthday" },
+  { value: "pet_gotcha_day", label: "Pet Gotcha Day" },
   { value: "custom", label: "Custom" },
 ] as const;
 

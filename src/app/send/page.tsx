@@ -48,8 +48,11 @@ const RELATIONSHIP_OPTIONS = [
   "Sibling",
   "Partner/Spouse",
   "Friend",
+  "My Pet / Fur Baby",
   "Other",
 ];
+
+const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Fish", "Rabbit", "Other"] as const;
 
 /* ──────────────────────────── Form Data Type ───────────────────────────── */
 
@@ -74,6 +77,7 @@ interface FormData {
   interests: string[];
   giftNotes: string;
   cardMessage: string;
+  petType: string;
 }
 
 const initialFormData: FormData = {
@@ -97,6 +101,7 @@ const initialFormData: FormData = {
   interests: [],
   giftNotes: "",
   cardMessage: "",
+  petType: "",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -411,23 +416,27 @@ interface StepProps {
 }
 
 function StepRecipient({ form, errors, update }: StepProps) {
+  const isPet = form.relationship === "My Pet / Fur Baby";
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-navy sm:text-3xl">
         Who&rsquo;s the lucky recipient?
       </h2>
       <p className="mt-2 text-warm-gray">
-        Tell us about the person you want to surprise with years of thoughtful gifts.
+        Tell us about the {isPet ? "pet" : "person"} you want to surprise with years of thoughtful gifts.
       </p>
 
       <div className="mt-8 space-y-5">
         {/* Recipient Name */}
         <div>
-          <Label htmlFor="recipientName" required>Recipient&rsquo;s name</Label>
+          <Label htmlFor="recipientName" required>
+            {isPet ? "Your pet\u2019s name" : "Recipient\u2019s name"}
+          </Label>
           <input
             id="recipientName"
             type="text"
-            placeholder="e.g. Sarah Johnson"
+            placeholder={isPet ? "e.g. Buddy" : "e.g. Sarah Johnson"}
             value={form.recipientName}
             onChange={(e) => update("recipientName", e.target.value)}
             className={inputClass}
@@ -454,6 +463,27 @@ function StepRecipient({ form, errors, update }: StepProps) {
           </div>
           <FieldError message={errors.relationship} />
         </div>
+
+        {/* Pet Type (shown when relationship is pet) */}
+        {isPet && (
+          <div>
+            <Label htmlFor="petType" required>What type of pet?</Label>
+            <div className="relative">
+              <select
+                id="petType"
+                value={form.petType}
+                onChange={(e) => update("petType", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select pet type...</option>
+                {PET_TYPE_OPTIONS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+              <ChevronDownIcon />
+            </div>
+          </div>
+        )}
 
         {/* Occasion Type */}
         <div>

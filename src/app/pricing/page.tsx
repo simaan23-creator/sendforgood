@@ -24,6 +24,21 @@ const FAQ = [
     answer:
       "This is the heart of SendForGood. All prepaid gift plans are fulfilled in their entirety regardless of your account status. If your account becomes inactive, your scheduled gifts will continue to arrive as promised. A family member or legal representative can also contact us to manage remaining deliveries. Your love keeps arriving.",
   },
+  {
+    question: "Will the recipient know the gift was sent through SendForGood?",
+    answer:
+      "Never. Every gift arrives completely unbranded \u2014 no SendForGood packaging, no retailer boxes, nothing to give it away. The card is signed with your name and your message. It looks and feels like you sent it personally, because in every way that matters, you did.",
+  },
+  {
+    question: "Can I send gifts to pets?",
+    answer:
+      "Absolutely! We love celebrating the furry, feathered, and finned members of the family. Select Pet Birthday or Pet Gotcha Day as your occasion type and we will curate age and breed-appropriate treats and toys every year.",
+  },
+  {
+    question: "What is your refund policy?",
+    answer:
+      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
+  },
 ];
 
 export default function PricingPage() {

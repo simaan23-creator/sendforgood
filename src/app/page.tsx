@@ -60,6 +60,15 @@ const USE_CASES = [
     quote:
       "My dad set this up before he passed. We still get a gift from him every Christmas.",
   },
+  {
+    emoji: "🐾",
+    label: "Pet Parents",
+    headline: "Because fur babies deserve birthdays too",
+    description:
+      "Send annual treats, toys, and surprises for the pets you love. They may not know what day it is, but you do.",
+    quote:
+      "My dog gets a birthday box every year. The look on his face when it arrives never gets old.",
+  },
 ];
 
 const BUSINESS_CARDS = [
@@ -316,6 +325,59 @@ export default function HomePage() {
                 </p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════ WHITE LABEL / NO BRANDING ═══════════════════ */}
+      <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Your name. Your love. Zero trace of us.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
+            Every gift arrives as if you sent it personally. No SendForGood
+            packaging, no third-party branding, no Amazon boxes. Just a
+            beautiful gift that feels like it came straight from your heart.
+          </p>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Unbranded packaging">
+                🎁
+              </span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">
+                Unbranded packaging
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Custom gift wrap with no SendForGood or retailer markings
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Your message, your name">
+                💌
+              </span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">
+                Your message, your name
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Every card is signed from you, not from us
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="The magic stays intact">
+                ✨
+              </span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">
+                The magic stays intact
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Recipients never know it was automated. They just know you
+                remembered.
+              </p>
+            </article>
           </div>
         </div>
       </section>

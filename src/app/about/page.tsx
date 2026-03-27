@@ -212,6 +212,27 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ───────────────────── White-Label Promise ─────────────────────────── */}
+      <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            We stay invisible so your love shines through
+          </h2>
+
+          <div className="mt-12 rounded-2xl bg-cream p-8 shadow-md sm:p-10">
+            <p className="text-lg leading-relaxed text-warm-gray">
+              We never put our name on anything. No SendForGood stickers, no
+              branded boxes, no inserts asking for reviews. When your recipient
+              opens their gift, all they see is you&nbsp;&mdash; your name, your
+              message, your thoughtfulness.{" "}
+              <span className="font-semibold text-navy">
+                That is the whole point.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────────────────── Values Section ────────────────────────────── */}
       <section className="px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl">

@@ -232,6 +232,43 @@ const OCCASIONS: Occasion[] = [
       },
     ],
   },
+  {
+    emoji: "\uD83D\uDC3E",
+    title: "For Your Pets",
+    intro: "Because the animals in our lives deserve to be celebrated too.",
+    tiers: [
+      {
+        name: "Starter",
+        suffix: "/yr",
+        description:
+          "A fun birthday card + a small bag of premium treats",
+      },
+      {
+        name: "Classic",
+        suffix: "/yr",
+        description:
+          "A wrapped gift: a new toy, a treat box, or a cozy pet accessory",
+      },
+      {
+        name: "Premium",
+        suffix: "/yr",
+        description:
+          "A curated pet gift box: premium treats, a new toy, and a personalized pet tag or bandana",
+      },
+      {
+        name: "Deluxe",
+        suffix: "/yr",
+        description:
+          "A premium interest-matched pet gift: breed-specific toys, gourmet treats, or a personalized keepsake",
+      },
+      {
+        name: "Legacy",
+        suffix: "/yr",
+        description:
+          "The ultimate pet celebration box: luxury treats, premium toy, personalized item, and a heartfelt card to the pet parent",
+      },
+    ],
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
