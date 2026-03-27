@@ -6,6 +6,13 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS } from "@/lib/constants";
 
+interface Shipment {
+  id: string;
+  scheduled_date: string;
+  status: string;
+  tracking_number: string | null;
+}
+
 interface Order {
   id: string;
   tier: string;
@@ -24,28 +31,26 @@ interface Order {
     label: string;
     occasion_date: string;
   };
+  shipments: Shipment[];
 }
 
-function getNextDeliveryDate(occasionDate: string): string {
-  const today = new Date();
-  const [year, month, day] = occasionDate.split("-").map(Number);
-  const thisYear = today.getFullYear();
-
-  const thisYearDate = new Date(thisYear, month - 1, day);
-  if (thisYearDate > today) {
-    return thisYearDate.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-
-  const nextYearDate = new Date(thisYear + 1, month - 1, day);
-  return nextYearDate.toLocaleDateString("en-US", {
+function formatShipmentDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
+}
+
+function getNextPendingShipment(shipments: Shipment[]): Shipment | null {
+  return (
+    shipments
+      .filter((s) => s.status === "pending")
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0] ??
+    null
+  );
 }
 
 function getTierBadgeClasses(tierId: string): string {
@@ -96,7 +101,10 @@ export default function DashboardPage() {
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
-  const deliveredCount = 0; // Shipments table not queried here; placeholder for future
+  const deliveredCount = orders.reduce(
+    (count, o) => count + (o.shipments?.filter((s) => s.status === "delivered").length ?? 0),
+    0
+  );
 
   useEffect(() => {
     async function loadDashboard() {
@@ -113,7 +121,7 @@ export default function DashboardPage() {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("*, recipients(*), occasions(*)")
+        .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -342,9 +350,10 @@ export default function DashboardPage() {
                 ? (yearsUsed / order.years_purchased) * 100
                 : 0;
             const tierName = getTierName(order.tier);
-            const nextDelivery = order.occasions?.occasion_date
-              ? getNextDeliveryDate(order.occasions.occasion_date)
-              : null;
+            const sortedShipments = [...(order.shipments ?? [])].sort((a, b) =>
+              a.scheduled_date.localeCompare(b.scheduled_date)
+            );
+            const nextPending = getNextPendingShipment(order.shipments ?? []);
 
             return (
               <div
@@ -391,11 +400,11 @@ export default function DashboardPage() {
                       {order.years_remaining} of {order.years_purchased} year
                       {order.years_purchased !== 1 ? "s" : ""} remaining
                     </span>
-                    {nextDelivery && order.status === "active" && (
+                    {nextPending && order.status === "active" && (
                       <span className="text-warm-gray">
                         Next delivery:{" "}
                         <span className="font-medium text-navy">
-                          {nextDelivery}
+                          {formatShipmentDate(nextPending.scheduled_date)}
                         </span>
                       </span>
                     )}
@@ -409,6 +418,42 @@ export default function DashboardPage() {
                     />
                   </div>
                 </div>
+
+                {/* Shipment timeline */}
+                {sortedShipments.length > 0 && (
+                  <div className="mt-4 border-t border-cream-dark pt-4">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-warm-gray">
+                      Shipments
+                    </p>
+                    <ul className="space-y-1">
+                      {sortedShipments.map((shipment, idx) => (
+                        <li
+                          key={shipment.id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="text-warm-gray">
+                            Year {idx + 1}: {formatShipmentDate(shipment.scheduled_date)}
+                          </span>
+                          <span
+                            className={
+                              shipment.status === "delivered"
+                                ? "font-medium text-forest"
+                                : shipment.status === "shipped"
+                                  ? "font-medium text-navy"
+                                  : "text-warm-gray"
+                            }
+                          >
+                            {shipment.status === "delivered"
+                              ? "Delivered \u2713"
+                              : shipment.status === "shipped"
+                                ? "Shipped \u2713"
+                                : "Pending"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Actions */}
                 {order.status === "active" && (
