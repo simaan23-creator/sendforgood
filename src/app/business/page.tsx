@@ -161,7 +161,7 @@ export default function BusinessPage() {
           </h2>
           <p className="text-warm-gray mb-3 leading-relaxed">
             Business accounts use the same gift tiers as individual senders —
-            from $10/year to $120/year per recipient. Pay once for multi-year
+            from $20/year to $200/year per recipient. Pay once for multi-year
             plans.
           </p>
           <p className="text-sm text-warm-gray-light mb-10">

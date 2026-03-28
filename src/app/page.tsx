@@ -470,7 +470,7 @@ export default function HomePage() {
       <section className="bg-cream-dark px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-navy sm:text-3xl">
-            Starting at <span className="text-gold">$10</span>/year
+            Starting at <span className="text-gold">$20</span>/year
           </h2>
           <p className="mt-4 text-lg text-warm-gray">
             One payment. Years of joy. No subscriptions.
