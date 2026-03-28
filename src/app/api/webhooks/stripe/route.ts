@@ -76,6 +76,15 @@ async function handleIndividualOrder(
     }
   }
 
+  // Ensure profile row exists before creating recipient (FK dependency)
+  await supabaseAdmin
+    .from('profiles')
+    .upsert({
+      id: userId,
+      email: metadata.email || session.customer_email || '',
+      full_name: metadata.fullName || '',
+    }, { onConflict: 'id' });
+
   // Create recipient
   const { data: recipient, error: recipientError } = await supabaseAdmin
     .from("recipients")
@@ -299,6 +308,15 @@ async function handleCartOrder(
       userId = newUser.user.id;
     }
   }
+
+  // Ensure profile row exists before creating recipients (FK dependency)
+  await supabaseAdmin
+    .from('profiles')
+    .upsert({
+      id: userId,
+      email: metadata.email || session.customer_email || '',
+      full_name: metadata.fullName || '',
+    }, { onConflict: 'id' });
 
   // Process each cart item
   const currentYear = new Date().getFullYear();
