@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS } from "@/lib/constants";
+import ManagePlanModal from "@/components/manage-plan-modal";
 
 interface Shipment {
   id: string;
@@ -25,6 +26,18 @@ interface Order {
   recipients: {
     name: string;
     relationship: string;
+    age?: string;
+    gender?: string;
+    interests?: string;
+    card_message?: string;
+    gift_notes?: string;
+    pet_type?: string;
+    address_line1?: string;
+    address_line2?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
   };
   occasions: {
     type: string;
@@ -32,6 +45,12 @@ interface Order {
     occasion_date: string;
   };
   shipments: Shipment[];
+}
+
+interface RefundRequest {
+  id: string;
+  order_id: string;
+  status: string;
 }
 
 function formatShipmentDate(dateStr: string): string {
@@ -48,6 +67,15 @@ function getNextPendingShipment(shipments: Shipment[]): Shipment | null {
   return (
     shipments
       .filter((s) => s.status === "pending")
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0] ??
+    null
+  );
+}
+
+function getNextPausedShipment(shipments: Shipment[]): Shipment | null {
+  return (
+    shipments
+      .filter((s) => s.status === "paused")
       .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0] ??
     null
   );
@@ -95,9 +123,11 @@ export default function DashboardPage() {
   const supabase = createClient();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [managingOrder, setManagingOrder] = useState<Order | null>(null);
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
@@ -106,32 +136,43 @@ export default function DashboardPage() {
     0
   );
 
-  useEffect(() => {
-    async function loadDashboard() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const loadDashboard = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push("/auth");
-        return;
-      }
+    if (!user) {
+      router.push("/auth");
+      return;
+    }
 
-      setUserEmail(user.email ?? "");
+    setUserEmail(user.email ?? "");
 
-      const { data, error } = await supabase
+    const [ordersResult, refundsResult] = await Promise.all([
+      supabase
         .from("orders")
         .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number)")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("refund_requests")
+        .select("id, order_id, status")
+        .eq("user_id", user.id)
+        .eq("status", "pending"),
+    ]);
 
-      if (!error && data) {
-        setOrders(data as Order[]);
-      }
-
-      setLoading(false);
+    if (!ordersResult.error && ordersResult.data) {
+      setOrders(ordersResult.data as Order[]);
     }
 
+    if (!refundsResult.error && refundsResult.data) {
+      setRefundRequests(refundsResult.data as RefundRequest[]);
+    }
+
+    setLoading(false);
+  }, [supabase, router]);
+
+  useEffect(() => {
     loadDashboard();
   }, []);
 
@@ -160,6 +201,19 @@ export default function DashboardPage() {
     }
 
     setCancellingId(null);
+  }
+
+  function handleOrderUpdated() {
+    loadDashboard();
+    // Also refresh the managing order if it's open
+    if (managingOrder) {
+      const refreshed = orders.find((o) => o.id === managingOrder.id);
+      if (refreshed) setManagingOrder(refreshed);
+    }
+  }
+
+  function hasRefundRequest(orderId: string): boolean {
+    return refundRequests.some((r) => r.order_id === orderId);
   }
 
   // ---------------------------------------------------------------------------
@@ -354,6 +408,8 @@ export default function DashboardPage() {
               a.scheduled_date.localeCompare(b.scheduled_date)
             );
             const nextPending = getNextPendingShipment(order.shipments ?? []);
+            const nextPaused = getNextPausedShipment(order.shipments ?? []);
+            const orderHasRefund = hasRefundRequest(order.id);
 
             return (
               <div
@@ -367,7 +423,7 @@ export default function DashboardPage() {
                       {order.recipients?.name ?? "Unknown Recipient"}
                     </h3>
                     <p className="mt-1 text-sm text-warm-gray">
-                      {order.occasions?.label ?? order.occasions?.type ?? "—"}
+                      {order.occasions?.label ?? order.occasions?.type ?? "\u2014"}
                       {order.recipients?.relationship && (
                         <span className="ml-2 text-warm-gray-light">
                           &middot; {order.recipients.relationship}
@@ -390,6 +446,20 @@ export default function DashboardPage() {
                     >
                       {order.status}
                     </span>
+
+                    {/* Paused shipment badge */}
+                    {nextPaused && (
+                      <span className="inline-flex items-center rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-gold-dark">
+                        Next delivery paused
+                      </span>
+                    )}
+
+                    {/* Pending refund badge */}
+                    {orderHasRefund && (
+                      <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                        Refund pending
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -440,14 +510,18 @@ export default function DashboardPage() {
                                 ? "font-medium text-forest"
                                 : shipment.status === "shipped"
                                   ? "font-medium text-navy"
-                                  : "text-warm-gray"
+                                  : shipment.status === "paused"
+                                    ? "font-medium text-gold-dark"
+                                    : "text-warm-gray"
                             }
                           >
                             {shipment.status === "delivered"
                               ? "Delivered \u2713"
                               : shipment.status === "shipped"
                                 ? "Shipped \u2713"
-                                : "Pending"}
+                                : shipment.status === "paused"
+                                  ? "Paused"
+                                  : "Pending"}
                           </span>
                         </li>
                       ))}
@@ -457,7 +531,13 @@ export default function DashboardPage() {
 
                 {/* Actions */}
                 {order.status === "active" && (
-                  <div className="mt-5 flex justify-end border-t border-cream-dark pt-4">
+                  <div className="mt-5 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                    <button
+                      onClick={() => setManagingOrder(order)}
+                      className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                    >
+                      Manage Plan
+                    </button>
                     <button
                       onClick={() => handleCancelOrder(order.id)}
                       disabled={cancellingId === order.id}
@@ -474,6 +554,16 @@ export default function DashboardPage() {
           })}
         </div>
       </div>
+
+      {/* Manage Plan Modal */}
+      {managingOrder && (
+        <ManagePlanModal
+          order={managingOrder}
+          onClose={() => setManagingOrder(null)}
+          onOrderUpdated={handleOrderUpdated}
+          hasRefundRequest={hasRefundRequest(managingOrder.id)}
+        />
+      )}
     </div>
   );
 }
