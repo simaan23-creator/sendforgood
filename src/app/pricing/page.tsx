@@ -12,7 +12,7 @@ const FAQ = [
   {
     question: "How does prepay work?",
     answer:
-      "When you create a gift plan, you pay upfront for the number of years you choose. For example, if you select the Premium tier ($79/yr) for 5 years, your one-time payment is $395. We then curate and deliver a gift on the scheduled occasion every year for the next 5 years — no subscriptions, no renewals, no surprises on your credit card.",
+      "When you create a gift plan, you pay upfront for the number of years you choose. For example, if you select the Premium tier ($80/yr) for 5 years, your one-time payment is $400. We then curate and deliver a gift on the scheduled occasion every year for the next 5 years — no subscriptions, no renewals, no surprises on your credit card.",
   },
   {
     question: "What if I want to cancel?",
