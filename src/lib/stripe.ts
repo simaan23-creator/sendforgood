@@ -28,6 +28,6 @@ export const TIER_PRICES: Record<string, { name: string; price: number; descript
   legacy: {
     name: "Legacy",
     price: 20000,
-    description: "White-glove luxury unboxing experience",
+    description: "The most unforgettable gift they will ever receive",
   },
 };
