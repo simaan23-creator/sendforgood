@@ -713,7 +713,7 @@ function StepOccasion({
             <span className="font-bold text-navy">{form.years} {form.years === 1 ? "year" : "years"}</span>{" "}
             of joy, from{" "}
             <span className="font-bold text-navy">{currentYear}</span> to{" "}
-            <span className="font-bold text-navy">{currentYear + form.years}</span>!
+            <span className="font-bold text-navy">{currentYear + form.years - 1}</span>!
           </p>
         </div>
       </div>
@@ -1127,7 +1127,7 @@ function StepReview({
         <SummaryRow label="Gift tier" value={selectedTier?.name ?? ""} />
         <SummaryRow
           label="Duration"
-          value={`${form.years} ${form.years === 1 ? "year" : "years"} (${currentYear}\u2013${currentYear + form.years})`}
+          value={`${form.years} ${form.years === 1 ? "year" : "years"} (${currentYear}\u2013${currentYear + form.years - 1})`}
         />
         <SummaryRow
           label="Delivery address"
