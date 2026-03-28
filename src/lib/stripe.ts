@@ -7,27 +7,27 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export const TIER_PRICES: Record<string, { name: string; price: number; description: string }> = {
   starter: {
     name: "Starter",
-    price: 1000,
-    description: "Greeting card + collectible card",
+    price: 2000,
+    description: "Heartfelt card + small keepsake or treat",
   },
   classic: {
     name: "Classic",
-    price: 2500,
-    description: "Small wrapped gift + card",
+    price: 4500,
+    description: "Curated small gift delivered to their door",
   },
   premium: {
     name: "Premium",
-    price: 4500,
-    description: "Curated gift box + card",
+    price: 8000,
+    description: "Premium curated gift matched to their interests",
   },
   deluxe: {
     name: "Deluxe",
-    price: 7500,
-    description: "Premium gift matched to interests + preview photo",
+    price: 12500,
+    description: "Luxury gift box — personally curated & fulfilled",
   },
   legacy: {
     name: "Legacy",
-    price: 12000,
-    description: "Luxury gift + premium box + handwritten letter + unboxing experience",
+    price: 20000,
+    description: "White-glove luxury unboxing experience",
   },
 };
