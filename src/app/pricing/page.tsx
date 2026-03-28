@@ -27,7 +27,7 @@ const FAQ = [
   {
     question: "Will the recipient know the gift was sent through SendForGood?",
     answer:
-      "Never. Every gift arrives completely unbranded \u2014 no SendForGood packaging, no retailer boxes, nothing to give it away. The card is signed with your name and your message. It looks and feels like you sent it personally, because in every way that matters, you did.",
+      "They will never see SendForGood branding on anything. For our Starter, Deluxe, and Legacy tiers, gifts are packed and shipped by us personally \u2014 no retailer packaging. For Classic and Premium tiers, gifts ship directly from the retailer, so the box may have retailer branding. Either way, the card is signed with your name and your message, and they will never know it was set up in advance.",
   },
   {
     question: "Can I send gifts to pets?",

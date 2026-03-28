@@ -337,7 +337,7 @@ export default function HomePage() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
             Every gift arrives as if you sent it personally. No SendForGood
-            packaging, no third-party branding, no Amazon boxes. Just a
+            packaging. For our personally fulfilled tiers, gifts arrive with no retailer branding — just a
             beautiful gift that feels like it came straight from your heart.
           </p>
 
