@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "SendForGood — Legacy Gift Giving, Made Simple",
   description:
     "Prepay for gifts to be delivered to your loved ones every year — even after you're gone. Legacy giving made simple.",
+  icons: {
+    icon: "/logo-icon.jpg",
+    apple: "/logo-icon.jpg",
+  },
   openGraph: {
     title: "SendForGood — Legacy Gift Giving, Made Simple",
     description:
@@ -21,6 +25,14 @@ export const metadata: Metadata = {
     url: "https://sendforgood.com",
     siteName: "SendForGood",
     type: "website",
+    images: [{ url: "/og-image.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SendForGood — Legacy Gift Giving, Made Simple",
+    description:
+      "Prepay for gifts to be delivered to your loved ones every year — even after you're gone.",
+    images: ["/og-image.jpg"],
   },
 };
 
