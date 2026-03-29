@@ -1083,12 +1083,15 @@ function StepAddress({ form, errors, update }: StepProps) {
                 className={selectClass}
               >
                 <option value="US">United States</option>
-                <option value="CA">Canada</option>
               </select>
               <ChevronDownIcon />
             </div>
           </div>
         </div>
+
+        <p className="mt-5 rounded-lg bg-cream/80 px-4 py-3 text-xs leading-relaxed text-warm-gray">
+          📦 We currently deliver to the continental United States only. Alaska, Hawaii, and international addresses are not supported at this time.
+        </p>
       </div>
     </div>
   );

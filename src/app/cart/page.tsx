@@ -224,6 +224,9 @@ export default function CartPage() {
                     ${total.toLocaleString()}
                   </span>
                 </div>
+                <p className="mt-2 text-xs text-warm-gray-light">
+                  📦 Delivers to continental US only
+                </p>
               </div>
 
               {/* Contact info for non-logged-in users */}

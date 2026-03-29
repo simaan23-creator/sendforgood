@@ -39,6 +39,11 @@ const FAQ = [
     answer:
       "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
   },
+  {
+    question: "Do you ship internationally?",
+    answer:
+      "At this time we only deliver within the continental United States. We do not ship to Alaska, Hawaii, US territories, or international addresses. We hope to expand in the future!",
+  },
 ];
 
 export default function PricingPage() {

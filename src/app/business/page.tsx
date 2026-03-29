@@ -164,7 +164,7 @@ export default function BusinessPage() {
             from $20/year to $200/year per recipient. Pay once for multi-year
             plans.
           </p>
-          <p className="text-sm text-warm-gray-light mb-10">
+          <p className="text-sm text-warm-gray-light mb-3">
             Volume discounts available for 20+ recipients —{" "}
             <a
               href="mailto:support@sendforgood.com"
@@ -173,6 +173,9 @@ export default function BusinessPage() {
               contact us
             </a>
             .
+          </p>
+          <p className="text-xs text-warm-gray-light mb-10">
+            📦 Delivers to continental US only
           </p>
           <Link
             href="/pricing"

@@ -475,6 +475,9 @@ export default function HomePage() {
           <p className="mt-4 text-lg text-warm-gray">
             One payment. Years of joy. No subscriptions.
           </p>
+          <p className="mt-2 text-sm text-warm-gray-light">
+            Currently serving the continental United States
+          </p>
           <Link
             href="/pricing"
             className="mt-6 inline-flex items-center gap-1.5 text-lg font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 transition hover:text-navy-light hover:decoration-gold-light"
