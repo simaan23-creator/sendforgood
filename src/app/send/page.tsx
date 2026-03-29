@@ -656,6 +656,22 @@ function StepOccasion({
             className={inputClass}
           />
           <FieldError message={errors.occasionDate} />
+
+          {/* 2-week warning */}
+          {form.occasionDate && (() => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const occasion = new Date(form.occasionDate + "T00:00:00");
+            const diffDays = Math.ceil((occasion.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays >= 0 && diffDays < 14) {
+              return (
+                <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-navy">
+                  <span className="font-medium">⚠️ Heads up!</span> This occasion is less than 2 weeks away. We will do our best to get your gift there in time, but delivery cannot be guaranteed for orders placed this close to the occasion date.
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {/* Years Range Slider */}

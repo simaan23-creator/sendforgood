@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS } from "@/lib/constants";
 import ManagePlanModal from "@/components/manage-plan-modal";
@@ -12,6 +13,7 @@ interface Shipment {
   scheduled_date: string;
   status: string;
   tracking_number: string | null;
+  photo_url?: string | null;
 }
 
 interface Order {
@@ -23,6 +25,7 @@ interface Order {
   status: string;
   created_at: string;
   stripe_payment_intent_id: string;
+  recipient_id: string;
   recipients: {
     name: string;
     relationship: string;
@@ -32,6 +35,7 @@ interface Order {
     card_message?: string;
     gift_notes?: string;
     pet_type?: string;
+    photo_url?: string;
     address_line1?: string;
     address_line2?: string;
     city?: string;
@@ -128,6 +132,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [managingOrder, setManagingOrder] = useState<Order | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
@@ -151,7 +156,7 @@ export default function DashboardPage() {
     const [ordersResult, refundsResult] = await Promise.all([
       supabase
         .from("orders")
-        .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number)")
+        .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number, photo_url)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -495,34 +500,51 @@ export default function DashboardPage() {
                     <p className="mb-2 text-xs font-medium uppercase tracking-wide text-warm-gray">
                       Shipments
                     </p>
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {sortedShipments.map((shipment, idx) => (
-                        <li
-                          key={shipment.id}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span className="text-warm-gray">
-                            Year {idx + 1}: {formatShipmentDate(shipment.scheduled_date)}
-                          </span>
-                          <span
-                            className={
-                              shipment.status === "delivered"
-                                ? "font-medium text-forest"
+                        <li key={shipment.id}>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-warm-gray">
+                              Year {idx + 1}: {formatShipmentDate(shipment.scheduled_date)}
+                            </span>
+                            <span
+                              className={
+                                shipment.status === "delivered"
+                                  ? "font-medium text-forest"
+                                  : shipment.status === "shipped"
+                                    ? "font-medium text-navy"
+                                    : shipment.status === "paused"
+                                      ? "font-medium text-gold-dark"
+                                      : "text-warm-gray"
+                              }
+                            >
+                              {shipment.status === "delivered"
+                                ? "Delivered \u2713"
                                 : shipment.status === "shipped"
-                                  ? "font-medium text-navy"
+                                  ? "Shipped \u2713"
                                   : shipment.status === "paused"
-                                    ? "font-medium text-gold-dark"
-                                    : "text-warm-gray"
-                            }
-                          >
-                            {shipment.status === "delivered"
-                              ? "Delivered \u2713"
-                              : shipment.status === "shipped"
-                                ? "Shipped \u2713"
-                                : shipment.status === "paused"
-                                  ? "Paused"
-                                  : "Pending"}
-                          </span>
+                                    ? "Paused"
+                                    : "Pending"}
+                            </span>
+                          </div>
+                          {shipment.photo_url && (
+                            <button
+                              onClick={() => setPreviewPhoto(shipment.photo_url!)}
+                              className="mt-1.5 flex items-center gap-2 rounded-lg border border-cream-dark bg-cream/40 px-3 py-2 transition hover:border-gold/50 hover:bg-cream"
+                            >
+                              <Image
+                                src={shipment.photo_url}
+                                alt="Gift preview"
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded-md object-cover"
+                                unoptimized
+                              />
+                              <span className="text-xs font-medium text-navy">
+                                Gift Preview 📸
+                              </span>
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -563,6 +585,42 @@ export default function DashboardPage() {
           onOrderUpdated={handleOrderUpdated}
           hasRefundRequest={hasRefundRequest(managingOrder.id)}
         />
+      )}
+
+      {/* Gift Photo Preview Modal */}
+      {previewPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setPreviewPhoto(null)}
+        >
+          <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm" />
+          <div
+            className="relative z-10 max-h-[85vh] max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-cream-dark px-5 py-4">
+              <h3 className="text-lg font-semibold text-navy">Your Gift Preview</h3>
+              <button
+                onClick={() => setPreviewPhoto(null)}
+                className="rounded-lg p-2 text-warm-gray transition-colors hover:bg-cream-dark hover:text-navy"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <Image
+                src={previewPhoto}
+                alt="Gift preview"
+                width={500}
+                height={500}
+                className="w-full rounded-xl object-contain"
+                unoptimized
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

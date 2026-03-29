@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ interface Shipment {
   status: string;
   tracking_number: string | null;
   gift_description: string | null;
+  photo_url: string | null;
   created_at: string;
   orders: {
     id: string;
@@ -302,6 +304,91 @@ function StatsBar({
   );
 }
 
+// ─── Shipment Photo Upload ───────────────────────────────────────────────────
+
+function ShipmentPhotoUpload({
+  shipment,
+  onUploaded,
+}: {
+  shipment: Shipment;
+  onUploaded: () => void;
+}) {
+  const [photoUrl, setPhotoUrl] = useState(shipment.photo_url ?? "");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="mt-4 border-t border-gray-200 pt-4">
+      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        Upload Gift Photo
+      </h4>
+      <p className="text-xs text-gray-400 mb-3">
+        Photo of the gift before shipping (visible to customer)
+      </p>
+
+      {(preview || photoUrl) && (
+        <div className="mb-3">
+          <Image
+            src={preview || photoUrl}
+            alt="Gift photo"
+            width={160}
+            height={160}
+            className="h-32 w-32 rounded-lg border border-gray-200 object-cover"
+            unoptimized={!!preview}
+          />
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (ev) => setPreview(ev.target?.result as string);
+          reader.readAsDataURL(file);
+
+          setUploading(true);
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("shipment_id", shipment.id);
+
+          const res = await fetch("/api/upload/shipment-photo", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            setPhotoUrl(data.url);
+            setPreview(null);
+            onUploaded();
+          }
+          setUploading(false);
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+      >
+        {uploading
+          ? "Uploading..."
+          : photoUrl
+            ? "Change Photo"
+            : "Choose Photo"}
+      </button>
+    </div>
+  );
+}
+
 // ─── Shipments Tab ───────────────────────────────────────────────────────────
 
 function ShipmentsTab({
@@ -497,6 +584,12 @@ function ShipmentsTab({
                                 </div>
                               </div>
                             </div>
+
+                            {/* Gift Photo Upload */}
+                            <ShipmentPhotoUpload
+                              shipment={s}
+                              onUploaded={onRefresh}
+                            />
                           </div>
                         </td>
                       </tr>

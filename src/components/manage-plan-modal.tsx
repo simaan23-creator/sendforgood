@@ -58,6 +58,7 @@ interface Shipment {
   scheduled_date: string;
   status: string;
   tracking_number: string | null;
+  photo_url?: string | null;
 }
 
 interface Order {
@@ -69,6 +70,7 @@ interface Order {
   status: string;
   created_at: string;
   stripe_payment_intent_id: string;
+  recipient_id: string;
   recipients: {
     name: string;
     relationship: string;
@@ -78,6 +80,7 @@ interface Order {
     card_message?: string;
     gift_notes?: string;
     pet_type?: string;
+    photo_url?: string;
     address_line1?: string;
     address_line2?: string;
     city?: string;
@@ -111,13 +114,15 @@ export default function ManagePlanModal({
   onClose,
   onOrderUpdated,
   hasRefundRequest,
+  initialTab,
 }: {
   order: Order;
   onClose: () => void;
   onOrderUpdated: () => void;
   hasRefundRequest: boolean;
+  initialTab?: TabId;
 }) {
-  const [activeTab, setActiveTab] = useState<TabId>("recipient");
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab ?? "recipient");
 
   return (
     <div
@@ -982,3 +987,4 @@ function RefundTab({
     </div>
   );
 }
+
