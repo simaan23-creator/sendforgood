@@ -31,7 +31,7 @@ const USE_CASES = [
     description:
       "Prepay for anniversary gifts years in advance. Even when life gets busy, your partner feels remembered.",
     quote:
-      "I set up 10 years of anniversary gifts on our wedding day. Best decision I ever made.",
+      "I set up 5 years of anniversary gifts. It arrives every year without me doing a thing.",
   },
   {
     emoji: "🏢",
@@ -47,9 +47,9 @@ const USE_CASES = [
     label: "Parents",
     headline: "A gift from you, even when you can\u2019t be there",
     description:
-      "Set up birthday gifts for your kids through college and beyond. Your love ships on time, every time.",
+      "Set up birthday gifts for your kids \u2014 up to 5 years at a time. We handle everything, every year.",
     quote:
-      "My daughter is 6. I\u2019ve already set up her gifts through her 18th birthday.",
+      "I set up 5 years of birthday gifts for my daughter in one sitting. Done.",
   },
   {
     emoji: "🕯️",
@@ -333,15 +333,14 @@ export default function HomePage() {
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Your name. Your message. Delivered.
+            Your name. Their smile. Delivered.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            Every gift arrives with a card signed from you. No SendForGood
-            branding anywhere. The recipient just knows someone who loves them
-            sent something wonderful.
+            Every gift arrives with no SendForGood branding. The recipient just
+            knows someone who loves them sent something wonderful.
           </p>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 max-w-3xl mx-auto">
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
               <span className="text-4xl" role="img" aria-label="Gifts shipped directly to them">
                 🎁
@@ -351,18 +350,6 @@ export default function HomePage() {
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
                 No middleman, no delays. Ordered and shipped to their door.
-              </p>
-            </article>
-
-            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-4xl" role="img" aria-label="Your message on every card">
-                💌
-              </span>
-              <h3 className="mt-4 text-xl font-semibold text-navy">
-                Your message on every card
-              </h3>
-              <p className="mt-3 leading-relaxed text-warm-gray">
-                Every gift includes a card with your personal note, signed from you.
               </p>
             </article>
 

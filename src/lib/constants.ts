@@ -33,7 +33,6 @@ export const TIERS = [
       "A genuine gift worth getting excited about",
       "Curated based on their interests and preferences",
       "Shipped directly to their door",
-      "Includes a card with your personal message",
     ],
   },
   {
@@ -47,7 +46,6 @@ export const TIERS = [
       "Higher value — a noticeable step up",
       "Carefully selected based on their interests",
       "Shipped directly to their door",
-      "Includes a card with your personal message",
       "A gift they will actually be excited to open",
     ],
   },
@@ -62,7 +60,6 @@ export const TIERS = [
       "Extra time spent finding exactly the right thing",
       "Based on their age, interests, and personality",
       "Shipped directly to their door",
-      "Includes a card with your personal message",
     ],
   },
   {
@@ -76,7 +73,6 @@ export const TIERS = [
       "The most time spent on selection",
       "A gift that genuinely impresses",
       "Shipped directly to their door",
-      "Includes a card with your personal message",
       "The kind of gift people talk about",
     ],
   },

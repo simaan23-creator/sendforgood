@@ -144,7 +144,7 @@ export default function AboutPage() {
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
                 Year after year, your loved one gets a gift from you&nbsp;&mdash;
-                on time, with your personal message, no matter what.
+                on time, no matter what.
               </p>
             </article>
           </div>
@@ -185,8 +185,7 @@ export default function AboutPage() {
 
                 <p className="text-lg leading-relaxed text-warm-gray">
                   We keep a secure record of every plan. Your gifts will arrive
-                  on time, with a card containing whatever message
-                  you&rsquo;ve chosen.{" "}
+                  on time, every time.{" "}
                   <span className="font-semibold text-forest">
                     Your love keeps arriving.
                   </span>
@@ -226,9 +225,6 @@ export default function AboutPage() {
             </p>
             <p className="text-lg leading-relaxed text-warm-gray">
               We order it and have it shipped directly to them.
-            </p>
-            <p className="text-lg leading-relaxed text-warm-gray">
-              Every gift includes a card with your personal message.
             </p>
             <p className="text-lg leading-relaxed text-warm-gray font-semibold text-navy">
               You never have to think about it again.

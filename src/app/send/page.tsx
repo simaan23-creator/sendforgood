@@ -78,7 +78,6 @@ interface FormData {
   recipientGender: string;
   interests: string[];
   giftNotes: string;
-  cardMessage: string;
   petType: string;
 }
 
@@ -102,7 +101,6 @@ const initialFormData: FormData = {
   recipientGender: "",
   interests: [],
   giftNotes: "",
-  cardMessage: "",
   petType: "",
 };
 
@@ -244,7 +242,7 @@ export default function SendPage() {
       recipientGender: form.recipientGender,
       interests: form.interests.join(", "),
       giftNotes: form.giftNotes,
-      cardMessage: form.cardMessage,
+      cardMessage: "",
       petType: form.petType,
       unitPrice: selectedTier.price,
       totalPrice: totalPrice,
@@ -951,21 +949,6 @@ function StepAboutThem({
               );
             })}
           </div>
-        </div>
-
-        {/* Card message */}
-        <div>
-          <label htmlFor="cardMessage" className="mb-1.5 block text-sm font-medium text-navy">
-            What should the card say? <span className="text-warm-gray-light font-normal">Optional</span>
-          </label>
-          <textarea
-            id="cardMessage"
-            rows={3}
-            placeholder="e.g. Happy Birthday! Wishing you all the joy in the world..."
-            value={form.cardMessage}
-            onChange={(e) => update("cardMessage", e.target.value)}
-            className={inputClass}
-          />
         </div>
 
         {/* Gift notes */}
