@@ -12,12 +12,12 @@ const FAQ = [
   {
     question: "How does prepay work?",
     answer:
-      "When you create a gift plan, you pay upfront for the number of years you choose. For example, if you select the Premium tier ($80/yr) for 5 years, your one-time payment is $400. We then curate and deliver a gift on the scheduled occasion every year for the next 5 years — no subscriptions, no renewals, no surprises on your credit card.",
+      "When you create a gift plan, you pay upfront for the number of years you choose (up to 5 years). For example, if you select the Premium tier ($80/yr) for 5 years, your one-time payment is $400. We then select and ship a gift on the scheduled occasion every year for the next 5 years \u2014 no subscriptions, no renewals, no surprises on your credit card.",
   },
   {
     question: "What if I want to cancel?",
     answer:
-      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since gifts are prepaid and our team begins curation early, refunds for already-shipped years aren't available. For multi-year plans with remaining deliveries, please contact us and we'll work with you on a case-by-case basis.",
+      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since gifts are prepaid and our team begins selection early, refunds for already-shipped years aren\u2019t available. For multi-year plans (up to 5 years) with remaining deliveries, please contact us and we\u2019ll work with you on a case-by-case basis.",
   },
   {
     question: "What happens to my gifts if something happens to me?",
@@ -27,17 +27,17 @@ const FAQ = [
   {
     question: "Will the recipient know the gift was sent through SendForGood?",
     answer:
-      "They will never see SendForGood branding on anything. For our Starter, Deluxe, and Legacy tiers, gifts are packed and shipped by us personally \u2014 no retailer packaging. For Classic and Premium tiers, gifts ship directly from the retailer, so the box may have retailer branding. Either way, the card is signed with your name and your message, and they will never know it was set up in advance.",
+      "Gifts are shipped from our fulfillment partners. The package may have retailer branding, but it will always include a card with your name and personal message \u2014 so to the recipient, it came from you.",
   },
   {
     question: "Can I send gifts to pets?",
     answer:
-      "Absolutely! We love celebrating the furry, feathered, and finned members of the family. Select Pet Birthday or Pet Gotcha Day as your occasion type and we will curate age and breed-appropriate treats and toys every year.",
+      "Absolutely! We love celebrating the furry, feathered, and finned members of the family. Select Pet Birthday or Pet Gotcha Day as your occasion type and we will select age and breed-appropriate treats and toys every year.",
   },
   {
     question: "What is your refund policy?",
     answer:
-      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
+      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years (up to 5 year max plans) for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
   },
   {
     question: "Do you ship internationally?",
@@ -56,8 +56,8 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray leading-relaxed">
-            Choose a tier, pick how many years, and pay once. Every plan
-            includes gift curation, wrapping, a personal message, and delivery.
+            Choose a tier, pick how many years (up to 5), and pay once. Every
+            plan includes gift selection, a personal message card, and delivery.
           </p>
         </div>
 

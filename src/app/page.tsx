@@ -97,21 +97,21 @@ const BUSINESS_CARDS = [
 const TESTIMONIALS = [
   {
     quote:
-      "I set this up for all my grandkids at once. Now every birthday is handled, and they know Grandma always remembers.",
+      "I set this up for all 6 grandkids at once. Every birthday, a gift shows up at their door. I did it once and have not thought about it since.",
     author: "Sandra M.",
-    role: "Grandmother of 6",
+    role: "Grandmother",
   },
   {
     quote:
-      "12 referrals last year. Every single one mentioned the anniversary gift I sent. Worth every penny.",
+      "My clients get a gift on their home anniversary every year. The referrals I get from it are worth 10 times what I spend.",
     author: "James T.",
     role: "Realtor",
   },
   {
     quote:
-      "My VIP clients get a birthday gift every year. The loyalty it builds is priceless.",
+      "My dog Holly gets a birthday gift every year automatically. Best money I ever spent.",
     author: "Maria L.",
-    role: "Small Business Owner",
+    role: "Pet Owner",
   },
 ];
 
@@ -297,14 +297,14 @@ export default function HomePage() {
                 emoji: "🎁",
                 title: "Select your gift tier",
                 description:
-                  "From heartfelt cards to luxury experiences",
+                  "From quality gifts to premium selections",
               },
               {
                 step: "3",
                 emoji: "✅",
                 title: "We handle everything, forever",
                 description:
-                  "We source, wrap, and deliver. Every year. On time.",
+                  "We select and ship. Every year. On time.",
               },
             ].map((item) => (
               <article
@@ -333,49 +333,48 @@ export default function HomePage() {
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Your name. Your love. Zero trace of us.
+            Your name. Your message. Delivered.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            Every gift arrives as if you sent it personally. No SendForGood
-            packaging. For our personally fulfilled tiers, gifts arrive with no retailer branding — just a
-            beautiful gift that feels like it came straight from your heart.
+            Every gift arrives with a card signed from you. No SendForGood
+            branding anywhere. The recipient just knows someone who loves them
+            sent something wonderful.
           </p>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-3">
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-4xl" role="img" aria-label="Unbranded packaging">
+              <span className="text-4xl" role="img" aria-label="Gifts shipped directly to them">
                 🎁
               </span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Unbranded packaging
+                Gifts shipped directly to them
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Custom gift wrap with no SendForGood or retailer markings
+                No middleman, no delays. Ordered and shipped to their door.
               </p>
             </article>
 
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-4xl" role="img" aria-label="Your message, your name">
+              <span className="text-4xl" role="img" aria-label="Your message on every card">
                 💌
               </span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Your message, your name
+                Your message on every card
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Every card is signed from you, not from us
+                Every gift includes a card with your personal note, signed from you.
               </p>
             </article>
 
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-4xl" role="img" aria-label="The magic stays intact">
+              <span className="text-4xl" role="img" aria-label="They never know it was automated">
                 ✨
               </span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                The magic stays intact
+                They never know it was automated
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Recipients never know it was automated. They just know you
-                remembered.
+                It just looks like you remembered. Because in every way that matters, you did.
               </p>
             </article>
           </div>
@@ -473,7 +472,7 @@ export default function HomePage() {
             Starting at <span className="text-gold">$20</span>/year
           </h2>
           <p className="mt-4 text-lg text-warm-gray">
-            One payment. Years of joy. No subscriptions.
+            One payment. Up to 5 years of joy. No subscriptions.
           </p>
           <p className="mt-2 text-sm text-warm-gray-light">
             Currently serving the continental United States

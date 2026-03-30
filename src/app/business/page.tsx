@@ -4,11 +4,11 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "For Business — SendForGood",
   description:
-    "Keep clients, employees, and partners loyal with automated annual gifts. Set it up once — we handle the rest forever.",
+    "Gifts selected and shipped to your clients — automated, effortless, memorable. Set it up once — we handle the rest.",
   openGraph: {
     title: "For Business — SendForGood",
     description:
-      "Keep clients, employees, and partners loyal with automated annual gifts. Set it up once — we handle the rest forever.",
+      "Gifts selected and shipped to your clients — automated, effortless, memorable. Set it up once — we handle the rest.",
     url: "https://sendforgood.com/business",
     siteName: "SendForGood",
     type: "website",
@@ -80,8 +80,8 @@ export default function BusinessPage() {
             Gifting that grows your business
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-warm-gray max-w-2xl mx-auto leading-relaxed">
-            Keep clients, employees, and partners loyal with automated annual
-            gifts. Set it up once — we handle the rest forever.
+            Gifts selected and shipped to your clients &mdash; automated,
+            effortless, memorable. Set it up once &mdash; we handle the rest.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -194,7 +194,7 @@ export default function BusinessPage() {
           </h2>
           <p className="mt-4 text-lg text-cream/70 max-w-xl mx-auto leading-relaxed">
             Set up your business account in minutes. Add your recipients, choose
-            your tiers, and we take care of everything else — forever.
+            your tiers, and we select and ship gifts on your behalf &mdash; automatically.
           </p>
           <Link
             href="/business/signup"

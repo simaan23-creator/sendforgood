@@ -177,7 +177,7 @@ export default function SendPage() {
 
     if (s === 1) {
       if (!form.occasionDate) errs.occasionDate = "Please select a date";
-      if (form.years < 1 || form.years > 25) errs.years = "Years must be between 1 and 25";
+      if (form.years < 1 || form.years > 5) errs.years = "Years must be between 1 and 5";
     }
 
     if (s === 2) {
@@ -631,7 +631,7 @@ function StepOccasion({
       // We assume the occasion date year indicates the child's birth year or current year
       // Since we only have month/day, calculate from the current year
       const yearsUntil18 = 18;
-      update("years", Math.min(Math.max(yearsUntil18, 1), 25));
+      update("years", Math.min(Math.max(yearsUntil18, 1), 5));
     }
   }
 
@@ -691,7 +691,7 @@ function StepOccasion({
             id="years"
             type="range"
             min={1}
-            max={25}
+            max={5}
             value={form.years}
             onChange={(e) => {
               update("years", parseInt(e.target.value, 10));
@@ -701,7 +701,7 @@ function StepOccasion({
           />
           <div className="mt-1 flex justify-between text-xs text-warm-gray-light">
             <span>1 year</span>
-            <span>25 years</span>
+            <span>5 years</span>
           </div>
 
           <FieldError message={errors.years} />
@@ -709,17 +709,24 @@ function StepOccasion({
 
         {/* Until 18 toggle (birthday only) */}
         {isBirthday && (
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-cream-dark bg-cream/50 p-4 transition hover:border-gold/50">
-            <input
-              type="checkbox"
-              checked={untilEighteen}
-              onChange={(e) => handleUntilEighteenToggle(e.target.checked)}
-              className="h-5 w-5 rounded border-cream-dark accent-gold"
-            />
-            <span className="text-sm font-medium text-navy">
-              Until they turn 18
-            </span>
-          </label>
+          <div>
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-cream-dark bg-cream/50 p-4 transition hover:border-gold/50">
+              <input
+                type="checkbox"
+                checked={untilEighteen}
+                onChange={(e) => handleUntilEighteenToggle(e.target.checked)}
+                className="h-5 w-5 rounded border-cream-dark accent-gold"
+              />
+              <span className="text-sm font-medium text-navy">
+                Until they turn 18
+              </span>
+            </label>
+            {untilEighteen && (
+              <p className="mt-2 text-xs text-warm-gray-light">
+                Plans are currently limited to 5 years maximum.
+              </p>
+            )}
+          </div>
         )}
 
         {/* Summary note */}

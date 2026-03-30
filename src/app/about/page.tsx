@@ -117,8 +117,8 @@ export default function AboutPage() {
                 We Curate
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Our team hand-selects a thoughtful, beautifully wrapped gift
-                tailored to the recipient and the occasion.
+                Our team selects a thoughtful gift tailored to the recipient
+                and the occasion, then ships it directly to their door.
               </p>
             </article>
 
@@ -185,7 +185,7 @@ export default function AboutPage() {
 
                 <p className="text-lg leading-relaxed text-warm-gray">
                   We keep a secure record of every plan. Your gifts will arrive
-                  on time, beautifully wrapped, with whatever message
+                  on time, with a card containing whatever message
                   you&rsquo;ve chosen.{" "}
                   <span className="font-semibold text-forest">
                     Your love keeps arriving.
@@ -212,22 +212,26 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ───────────────────── White-Label Promise ─────────────────────────── */}
+      {/* ───────────────────── How We Work ─────────────────────────── */}
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            We stay invisible so your love shines through
+            What we actually do
           </h2>
 
-          <div className="mt-12 rounded-2xl bg-cream p-8 shadow-md sm:p-10">
+          <div className="mt-12 space-y-6 rounded-2xl bg-cream p-8 shadow-md sm:p-10">
             <p className="text-lg leading-relaxed text-warm-gray">
-              We never put our name on anything. No SendForGood stickers, no
-              branded boxes, no inserts asking for reviews. When your recipient
-              opens their gift, all they see is you&nbsp;&mdash; your name, your
-              message, your thoughtfulness.{" "}
-              <span className="font-semibold text-navy">
-                That is the whole point.
-              </span>
+              We find the right gift based on what you tell us about your
+              recipient.
+            </p>
+            <p className="text-lg leading-relaxed text-warm-gray">
+              We order it and have it shipped directly to them.
+            </p>
+            <p className="text-lg leading-relaxed text-warm-gray">
+              Every gift includes a card with your personal message.
+            </p>
+            <p className="text-lg leading-relaxed text-warm-gray font-semibold text-navy">
+              You never have to think about it again.
             </p>
           </div>
         </div>
@@ -288,7 +292,7 @@ export default function AboutPage() {
                 Thoughtfulness
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">
-                Each gift is hand-curated for the occasion and the recipient.
+                Each gift is carefully selected for the occasion and the recipient.
               </p>
             </article>
 

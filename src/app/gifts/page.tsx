@@ -44,37 +44,37 @@ const OCCASIONS: Occasion[] = [
   {
     emoji: "\u{1F382}",
     title: "Birthdays",
-    intro: "From collectible keepsakes to luxury experiences \u2014 every birthday feels special.",
+    intro: "From quality gifts to premium selections \u2014 every birthday feels special.",
     tiers: [
       {
         name: "Starter",
         suffix: "/yr",
         description:
-          "A beautifully designed birthday card with a collectible art print or trading card",
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
         suffix: "/yr",
         description:
-          "A small wrapped gift: think a cozy candle, a fun puzzle, a cool desk toy, or a sweet treat box",
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         suffix: "/yr",
         description:
-          "A curated gift box: could be a spa set, a gourmet snack collection, a book + bookmark set, or a personalized keepsake",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         suffix: "/yr",
         description:
-          "A premium interest-matched gift with a preview photo before we ship. Past examples: a custom star map, a leather journal set, a premium skincare kit",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         suffix: "/yr",
         description:
-          "A luxury unboxing experience: premium branded box, handwritten letter, tissue paper, ribbon, and a show-stopping gift",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -86,27 +86,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A congratulations card with a motivational print or collectible",
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
         description:
-          "A practical gift for their next chapter: a quality notebook set, a coffee kit, or a meaningful keepsake",
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         description:
-          "A curated \u2018starting fresh\u2019 gift box: planner, quality pen, inspirational book, and a treat",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         description:
-          "A personalized achievement gift: engraved item, custom portfolio, or experience voucher",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         description:
-          "A luxury milestone box: premium keepsake, handwritten letter of congratulations, and a gift that marks the occasion forever",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -117,27 +117,28 @@ const OCCASIONS: Occasion[] = [
     tiers: [
       {
         name: "Starter",
-        description: "A heartfelt anniversary card with a romantic print",
+        description:
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
         description:
-          "A small romantic gift: a candle, a photo frame, a sweet treat box",
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         description:
-          "A couples gift box: wine + chocolates, a spa duo set, or a personalized keepsake",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         description:
-          "A premium romantic gift matched to their relationship: custom jewelry, an experience, or a luxury item they\u2019ve been eyeing",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         description:
-          "The ultimate anniversary gesture: a luxury gift, a handwritten love letter, and premium presentation",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -148,26 +149,28 @@ const OCCASIONS: Occasion[] = [
     tiers: [
       {
         name: "Starter",
-        description: "A seasonal holiday card with a limited edition print",
+        description:
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
-        description: "A holiday treat box or small festive gift",
+        description:
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         description:
-          "A holiday gift box: artisanal treats, a cozy candle, a festive ornament, and more",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         description:
-          "A premium seasonal gift matched to their taste: gourmet hamper, luxury home item, or personalized holiday keepsake",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         description:
-          "A luxury holiday experience box with premium gifts, handwritten wishes, and beautiful presentation",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -179,27 +182,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A professional branded card for birthdays, work anniversaries, or client milestones",
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
         description:
-          "A quality small gift: a premium pen, a desk plant, or a branded treat box",
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         description:
-          "A professional gift box: quality notebook, coffee/tea set, or a curated desk accessory set",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         description:
-          "A premium client gift with preview approval: personalized, tasteful, and memorable",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         description:
-          "A white-glove corporate gift experience: luxury item, handwritten note on premium stationery, and elegant packaging",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -210,25 +213,28 @@ const OCCASIONS: Occasion[] = [
     tiers: [
       {
         name: "Starter",
-        description: "A warm, heartfelt \u2018thinking of you\u2019 card",
+        description:
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
-        description: "A small surprise gift to brighten their day",
+        description:
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         description:
-          "A curated \u2018happy box\u2019 \u2014 fun, cozy, and full of little delights",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
-        description: "A premium surprise gift based on their interests",
+        description:
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         description:
-          "An unforgettable luxury surprise that shows how much you care",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -241,31 +247,31 @@ const OCCASIONS: Occasion[] = [
         name: "Starter",
         suffix: "/yr",
         description:
-          "A fun birthday card + a small bag of premium treats",
+          "A quality gift in the $15\u201320 range, selected based on the occasion",
       },
       {
         name: "Classic",
         suffix: "/yr",
         description:
-          "A wrapped gift: a new toy, a treat box, or a cozy pet accessory",
+          "A genuine gift in the $30\u201345 range, curated to their interests",
       },
       {
         name: "Premium",
         suffix: "/yr",
         description:
-          "A curated pet gift box: premium treats, a new toy, and a personalized pet tag or bandana",
+          "A higher value gift in the $55\u201375 range, matched to what they love",
       },
       {
         name: "Deluxe",
         suffix: "/yr",
         description:
-          "A premium interest-matched pet gift: breed-specific toys, gourmet treats, or a personalized keepsake",
+          "A premium gift in the $90\u2013115 range, extra care taken in selection",
       },
       {
         name: "Legacy",
         suffix: "/yr",
         description:
-          "The ultimate pet celebration box: luxury treats, premium toy, personalized item, and a heartfelt card to the pet parent",
+          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
       },
     ],
   },
@@ -329,10 +335,10 @@ export default function OurGiftsPage() {
             Thoughtfully Curated, Every Time
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-warm-gray">
-            Every gift is personally selected by our team based on your
-            recipient&rsquo;s interests, age, and occasion. Below are examples
-            of what we send &mdash; your recipient&rsquo;s actual gift will be
-            uniquely chosen just for them.
+            Every gift is selected based on your recipient&rsquo;s interests,
+            age, and occasion, then shipped directly to their door. Below are
+            examples of what we send &mdash; your recipient&rsquo;s actual gift
+            will be uniquely chosen just for them.
           </p>
           <span className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-4 py-1.5 text-sm font-medium text-gold-dark">
             &#10024; No two gifts are exactly alike
