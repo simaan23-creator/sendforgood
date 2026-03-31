@@ -49,12 +49,13 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <head>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-622H0QNK45" strategy="afterInteractive" />
+        <Script src="https://www.googletagmanager.com/gtag/js?id=AW-17462992858" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'G-622H0QNK45');
+          gtag('config', 'AW-17462992858');
         `}</Script>
       </head>
       <body className={isAdmin ? "" : "min-h-screen flex flex-col"}>
