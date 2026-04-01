@@ -16,6 +16,15 @@ const USE_CASES = [
       "I set it up once for all 6 grandkids. Now I never have to worry about forgetting.",
   },
   {
+    emoji: "🎁",
+    label: "Treat Yourself",
+    headline: "The gift you never buy yourself — delivered every year",
+    description:
+      "Set up a birthday or holiday gift for YOU. Something you actually want, picked by our AI, arriving every year without you lifting a finger.",
+    quote:
+      "I bought it for myself on my birthday after a long week. Best decision ever. It shows up every year and I genuinely forget until it arrives.",
+  },
+  {
     emoji: "🏠",
     label: "Realtors",
     headline: "Turn one sale into a lifetime relationship",
@@ -187,7 +196,7 @@ export default function HomePage() {
               href="/send"
               className="inline-flex w-full items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
-              Start Sending
+              Send Your First Gift &mdash; From $20
             </Link>
             <a
               href="#for-businesses"
@@ -196,6 +205,13 @@ export default function HomePage() {
               For Businesses
             </a>
           </div>
+
+          {/* Trust badges */}
+          <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-warm-gray">
+            <span>🛡️ 48-hour money-back guarantee</span>
+            <span>✓ No subscriptions</span>
+            <span>✓ Ships directly to them</span>
+          </p>
         </div>
       </section>
 
@@ -269,6 +285,46 @@ export default function HomePage() {
                 />
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ AI CURATION ═══════════════════════ */}
+      <section className="bg-gradient-to-b from-white to-cream px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Smarter gift selection, powered by AI
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
+            Tell us about your recipient &mdash; their age, interests,
+            personality. Our AI analyzes thousands of products to find something
+            they will genuinely love. Not a generic gift. The right gift.
+          </p>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Matched to their interests">🎯</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">Matched to their interests</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                We factor in age, hobbies, personality, and what they actually care about.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Different every year">🔄</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">Different every year</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Our AI makes sure they never get the same gift twice.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Curated, not random">✨</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">Curated, not random</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Every gift is reviewed before it ships.
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -404,6 +460,55 @@ export default function HomePage() {
               className="inline-flex items-center justify-center rounded-lg bg-gold px-10 py-4 text-lg font-semibold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Contact us about business plans
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ SELF-GIFTING ═══════════════════════ */}
+      <section className="bg-gradient-to-b from-cream-dark to-cream px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Treat Yourself. Every Year.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
+            You buy gifts for everyone else. Who buys gifts for you? Set up a
+            birthday or holiday gift for yourself &mdash; something you actually
+            want, arriving every year automatically.
+          </p>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Your birthday, done right">🎂</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">Your birthday, done right</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Stop forgetting your own birthday. Set up something you actually want.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Holiday treats for you">🎄</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">Holiday treats for you</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                A Christmas or holiday gift to yourself, every year, no effort.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="You deserve it">💆</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">You deserve it</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Seriously. You work hard. Treat yourself.
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/send"
+              className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            >
+              Send Yourself a Gift
             </Link>
           </div>
         </div>

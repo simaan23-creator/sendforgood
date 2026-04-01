@@ -332,7 +332,7 @@ export default function OurGiftsPage() {
       <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
-            Thoughtfully Curated, Every Time
+            What Kinds of Gifts Do We Send?
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-warm-gray">
             Every gift is selected based on your recipient&rsquo;s interests,
@@ -349,10 +349,89 @@ export default function OurGiftsPage() {
       {/* ─────────────────────── Disclaimer Banner ────────────────────────── */}
       <div className="bg-gold/15 px-6 py-4">
         <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-gold-dark sm:text-base">
-          These are gift examples only. We curate each gift individually based
-          on what you tell us about your recipient. The actual gift may differ.
+          These are examples of actual products we send. Your recipient will
+          receive something similar based on their interests. Exact items vary.
         </p>
       </div>
+
+      {/* ─────────────────────── Sample Products by Tier ──────────────────── */}
+      <section className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+        <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+          Sample Products by Tier
+        </h2>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {/* Starter */}
+          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES.Starter}`}>Starter</span>
+            <p className="mt-2 text-lg font-bold text-navy">$20<span className="text-sm font-normal text-warm-gray">/yr</span></p>
+            <ul className="mt-4 space-y-2 text-sm text-warm-gray">
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Premium scented candle</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Fun card game or puzzle</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Cozy novelty socks set</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Cool desk toy or gadget</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Artisan chocolate box</li>
+            </ul>
+          </div>
+
+          {/* Classic */}
+          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES.Classic}`}>Classic</span>
+            <p className="mt-2 text-lg font-bold text-navy">$45<span className="text-sm font-normal text-warm-gray">/yr</span></p>
+            <ul className="mt-4 space-y-2 text-sm text-warm-gray">
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Quality skincare or grooming set</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Great book + leather bookmark</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Unique kitchen gadget</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Premium tea or coffee set</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Cozy throw blanket</li>
+            </ul>
+          </div>
+
+          {/* Premium */}
+          <div className="rounded-2xl border border-gold bg-white p-6 shadow-md ring-2 ring-gold/30">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES.Premium}`}>Premium</span>
+            <p className="mt-2 text-lg font-bold text-navy">$80<span className="text-sm font-normal text-warm-gray">/yr</span></p>
+            <ul className="mt-4 space-y-2 text-sm text-warm-gray">
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Spa or self-care gift set</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Nice leather wallet or accessory</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Premium board game</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Quality tech accessory</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Gourmet food hamper</li>
+            </ul>
+          </div>
+
+          {/* Deluxe */}
+          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES.Deluxe}`}>Deluxe</span>
+            <p className="mt-2 text-lg font-bold text-navy">$125<span className="text-sm font-normal text-warm-gray">/yr</span></p>
+            <ul className="mt-4 space-y-2 text-sm text-warm-gray">
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Wireless earbuds or headphones</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Premium smartwatch or fitness tracker</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>High-end skincare collection</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Designer fragrance</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Luxury home item</li>
+            </ul>
+          </div>
+
+          {/* Legacy */}
+          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES.Legacy}`}>Legacy</span>
+            <p className="mt-2 text-lg font-bold text-navy">$200<span className="text-sm font-normal text-warm-gray">/yr</span></p>
+            <ul className="mt-4 space-y-2 text-sm text-warm-gray">
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>High-end tech gadget</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Premium experience gift card</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Designer accessory</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>Luxury fragrance or skincare</li>
+              <li className="flex items-start gap-2"><span className="text-forest">•</span>High-end kitchen or home item</li>
+            </ul>
+          </div>
+        </div>
+
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-relaxed text-warm-gray-light">
+          These are representative examples. Your actual gift is personally
+          selected based on what you tell us about your recipient.
+        </p>
+      </section>
 
       {/* ─────────────────────── Occasion Sections ────────────────────────── */}
       <div className="mx-auto max-w-4xl px-6">

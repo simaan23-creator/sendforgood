@@ -50,6 +50,14 @@ export default function PricingPage() {
   return (
     <section className="px-6 py-16 sm:py-24">
       <div className="mx-auto max-w-7xl">
+        {/* Trust Bar */}
+        <div className="mb-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-xl bg-cream px-6 py-4 text-sm font-medium text-navy">
+          <span>✓ 48-hour money-back guarantee</span>
+          <span>✓ No subscriptions ever</span>
+          <span>✓ Ships directly to recipient</span>
+          <span>✓ AI-powered gift selection</span>
+        </div>
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">
@@ -125,7 +133,7 @@ export default function PricingPage() {
                       : "bg-navy text-cream hover:bg-navy-light focus-visible:outline-navy shadow-sm"
                   }`}
                 >
-                  Get Started
+                  Send Your First Gift
                 </Link>
               </article>
             );
@@ -162,7 +170,7 @@ export default function PricingPage() {
             href="/send"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Start Sending Today
+            Send Your First Gift &mdash; From $20
           </Link>
         </div>
       </div>

@@ -1222,7 +1222,7 @@ function StepReview({
             Processing...
           </span>
         ) : (
-          `Add to Cart \uD83D\uDED2 \u2014 $${totalPrice.toLocaleString()}`
+          `Send This Gift \uD83C\uDF81 \u2014 $${totalPrice.toLocaleString()}`
         )}
       </button>
 
