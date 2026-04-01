@@ -145,32 +145,32 @@ const OCCASIONS: Occasion[] = [
   {
     emoji: "\u{1F384}",
     title: "Holidays",
-    intro: "Festive gifts that arrive right on time, every year.",
+    intro: "Festive gifts that arrive right on time, every year. ??",
     tiers: [
       {
         name: "Starter",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A festive holiday treat in the $15\u201320 range \u2014 seasonal goodies, fun ornaments, or cozy items",
       },
       {
         name: "Classic",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A quality holiday gift in the $35\u201345 range \u2014 cozy home items, gourmet treats, or something seasonal and special",
       },
       {
         name: "Premium",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A premium holiday gift in the $60\u201375 range \u2014 a curated set of items they will genuinely enjoy",
       },
       {
         name: "Deluxe",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A luxurious holiday gift in the $100\u2013115 range \u2014 something indulgent and high quality",
       },
       {
         name: "Legacy",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our finest holiday gift \u2014 a high-end item in the $160\u2013180 range that makes the season unforgettable",
       },
     ],
   },
@@ -182,27 +182,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A professional gift in the $15\u201320 range \u2014 something tasteful and appropriate for any client",
       },
       {
         name: "Classic",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A quality client gift in the $35\u201345 range \u2014 premium desk items, food gifts, or useful accessories",
       },
       {
         name: "Premium",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A standout client gift in the $60\u201375 range \u2014 something that gets noticed and remembered",
       },
       {
         name: "Deluxe",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A premium client gift in the $100\u2013115 range \u2014 high-end and impressive, builds real loyalty",
       },
       {
         name: "Legacy",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our best corporate gift \u2014 a luxury item in the $160\u2013180 range that turns clients into advocates",
       },
     ],
   },
@@ -214,27 +214,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A fun surprise in the $15\u201320 range \u2014 something that says I was thinking of you",
       },
       {
         name: "Classic",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A genuine just because gift in the $35\u201345 range \u2014 something they would enjoy but never buy themselves",
       },
       {
         name: "Premium",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A quality surprise gift in the $60\u201375 range \u2014 matched to what they love",
       },
       {
         name: "Deluxe",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A premium just because gift in the $100\u2013115 range \u2014 the kind that makes people cry happy tears",
       },
       {
         name: "Legacy",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our most thoughtful surprise \u2014 a high-end item in the $160\u2013180 range that shows you really know them",
       },
     ],
   },
@@ -247,31 +247,31 @@ const OCCASIONS: Occasion[] = [
         name: "Starter",
         suffix: "/yr",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A fun pet treat or toy in the $15\u201320 range \u2014 something your pet will go crazy for",
       },
       {
         name: "Classic",
         suffix: "/yr",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A quality pet gift in the $35\u201345 range \u2014 premium treats, a durable toy, or a cozy accessory",
       },
       {
         name: "Premium",
         suffix: "/yr",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A premium pet gift in the $60\u201375 range \u2014 breed-appropriate toys, gourmet treats, or a nice accessory",
       },
       {
         name: "Deluxe",
         suffix: "/yr",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A luxury pet gift in the $100\u2013115 range \u2014 something spoil-worthy for your furry family member",
       },
       {
         name: "Legacy",
         suffix: "/yr",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our finest pet gift \u2014 a high-end item in the $160\u2013180 range for the pet who has everything",
       },
     ],
   },
