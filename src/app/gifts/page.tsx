@@ -50,31 +50,31 @@ const OCCASIONS: Occasion[] = [
         name: "Starter",
         suffix: "/yr",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A fun birthday gift in the $15\u201320 range \u2014 think novelty items, treats, or something quirky and fun",
       },
       {
         name: "Classic",
         suffix: "/yr",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A genuine birthday gift in the $35\u201345 range \u2014 skincare sets, cool gadgets, games, or something they would actually use",
       },
       {
         name: "Premium",
         suffix: "/yr",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A higher value birthday gift in the $60\u201375 range \u2014 quality items matched to their hobbies and interests",
       },
       {
         name: "Deluxe",
         suffix: "/yr",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A premium birthday gift in the $100\u2013115 range \u2014 something they would never buy themselves but would love",
       },
       {
         name: "Legacy",
         suffix: "/yr",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our best birthday gift \u2014 a high-end item in the $160\u2013180 range that makes them feel truly celebrated",
       },
     ],
   },
@@ -86,27 +86,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A fun graduation keepsake or treat in the $15\u201320 range \u2014 something to mark the milestone",
       },
       {
         name: "Classic",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A practical gift for their next chapter in the $35\u201345 range \u2014 quality notebook, coffee setup, or useful accessory",
       },
       {
         name: "Premium",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A standout graduation gift in the $60\u201375 range \u2014 something useful for their new life stage",
       },
       {
         name: "Deluxe",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A premium graduation gift in the $100\u2013115 range \u2014 tech, luggage, or something that sets them up for success",
       },
       {
         name: "Legacy",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our best graduation gift \u2014 a high-end item in the $160\u2013180 range they will remember forever",
       },
     ],
   },
@@ -118,27 +118,27 @@ const OCCASIONS: Occasion[] = [
       {
         name: "Starter",
         description:
-          "A quality gift in the $15\u201320 range, selected based on the occasion",
+          "A sweet anniversary treat in the $15\u201320 range \u2014 something romantic or sentimental",
       },
       {
         name: "Classic",
         description:
-          "A genuine gift in the $30\u201345 range, curated to their interests",
+          "A thoughtful anniversary gift in the $35\u201345 range \u2014 candles, keepsakes, or something to enjoy together",
       },
       {
         name: "Premium",
         description:
-          "A higher value gift in the $55\u201375 range, matched to what they love",
+          "A quality anniversary gift in the $60\u201375 range \u2014 experiences, premium home items, or something special for two",
       },
       {
         name: "Deluxe",
         description:
-          "A premium gift in the $90\u2013115 range, extra care taken in selection",
+          "A premium anniversary gift in the $100\u2013115 range \u2014 jewelry, luxury items, or something truly memorable",
       },
       {
         name: "Legacy",
         description:
-          "Our best gift in the $150\u2013180 range \u2014 the most thoughtfully selected",
+          "Our most romantic gift \u2014 a high-end item in the $160\u2013180 range that shows how much the relationship means",
       },
     ],
   },
