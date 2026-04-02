@@ -38,7 +38,8 @@ export async function GET() {
           profiles (
             id,
             email,
-            full_name
+            full_name,
+            phone
           )
         )
       `

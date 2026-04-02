@@ -8,6 +8,7 @@ import Image from "next/image";
 interface Profile {
   id: string;
   email: string;
+  phone?: string;
   full_name: string | null;
 }
 
@@ -580,6 +581,7 @@ function ShipmentsTab({
                                 </h4>
                                 <div className="space-y-1">
                                   <DetailRow label="Email" value={s.orders.profiles?.email} />
+                                  <DetailRow label="Phone" value={s.orders.profiles?.phone} />
                                   <DetailRow label="Name" value={s.orders.profiles?.full_name} />
                                 </div>
                               </div>
