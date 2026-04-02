@@ -12,12 +12,12 @@ const FAQ = [
   {
     question: "How does prepay work?",
     answer:
-      "When you create a gift plan, you pay upfront for the number of years you choose (up to 5 years). For example, if you select the Premium tier ($80/yr) for 5 years, your one-time payment is $400. We then select and ship a gift on the scheduled occasion every year for the next 5 years \u2014 no subscriptions, no renewals, no surprises on your credit card.",
+      "When you create a gift plan, you pay upfront for the number of years you choose (up to 25 years). For example, if you select the Premium tier ($80/yr) for 10 years, your one-time payment is $800. We then select and ship a gift on the scheduled occasion every year for the next 10 years \u2014 no subscriptions, no renewals, no surprises on your credit card.",
   },
   {
     question: "What if I want to cancel?",
     answer:
-      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since gifts are prepaid and our team begins selection early, refunds for already-shipped years aren\u2019t available. For multi-year plans (up to 5 years) with remaining deliveries, please contact us and we\u2019ll work with you on a case-by-case basis.",
+      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since gifts are prepaid and our team begins selection early, refunds for already-shipped years aren\u2019t available. For multi-year plans (up to 25 years) with remaining deliveries, please contact us and we\u2019ll work with you on a case-by-case basis.",
   },
   {
     question: "What happens to my gifts if something happens to me?",
@@ -37,7 +37,7 @@ const FAQ = [
   {
     question: "What is your refund policy?",
     answer:
-      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years (up to 5 year max plans) for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
+      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years (up to 25 year plans) for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
   },
   {
     question: "Do you ship internationally?",
@@ -64,7 +64,7 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray leading-relaxed">
-            Choose a tier, pick how many years (up to 5), and pay once. Every
+            Choose a tier, pick how many years (up to 25), and pay once. Every
             plan includes gift selection, a personal message card, and delivery.
           </p>
         </div>
@@ -95,6 +95,9 @@ export default function PricingPage() {
                     ${tier.price}
                   </span>
                   <span className="text-sm text-warm-gray">/yr</span>
+                </p>
+                <p className="mt-1 text-center text-xs text-warm-gray-light">
+                  Just {(tier.price / 12).toFixed(2)} per month
                 </p>
 
                 <p className="mt-3 text-center text-sm leading-relaxed text-warm-gray">

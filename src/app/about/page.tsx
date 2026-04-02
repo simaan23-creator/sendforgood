@@ -8,6 +8,22 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
+      {/* ───────────────────────────── Founder Section ─────────────────────────── */}
+      <section className="bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+            Why we built this
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray">
+            SendForGood started with a simple question: what happens to the gifts
+            you planned to give if life gets in the way? We built this so the
+            people you love always know you were thinking of them — no matter
+            what. We are not a big corporation. We personally select every gift
+            and care deeply about getting this right.
+          </p>
+        </div>
+      </section>
+
       {/* ───────────────────────────── Hero Section ───────────────────────────── */}
       <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-24 sm:py-32 md:py-40">
         <div className="mx-auto max-w-4xl text-center">

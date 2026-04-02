@@ -175,7 +175,7 @@ export default function SendPage() {
 
     if (s === 1) {
       if (!form.occasionDate) errs.occasionDate = "Please select a date";
-      if (form.years < 1 || form.years > 5) errs.years = "Years must be between 1 and 5";
+      if (form.years < 1 || form.years > 25) errs.years = "Years must be between 1 and 25";
     }
 
     if (s === 2) {
@@ -629,7 +629,7 @@ function StepOccasion({
       // We assume the occasion date year indicates the child's birth year or current year
       // Since we only have month/day, calculate from the current year
       const yearsUntil18 = 18;
-      update("years", Math.min(Math.max(yearsUntil18, 1), 5));
+      update("years", Math.min(Math.max(yearsUntil18, 1), 25));
     }
   }
 
@@ -689,7 +689,7 @@ function StepOccasion({
             id="years"
             type="range"
             min={1}
-            max={5}
+            max={25}
             value={form.years}
             onChange={(e) => {
               update("years", parseInt(e.target.value, 10));
@@ -699,7 +699,7 @@ function StepOccasion({
           />
           <div className="mt-1 flex justify-between text-xs text-warm-gray-light">
             <span>1 year</span>
-            <span>5 years</span>
+            <span>25 years</span>
           </div>
 
           <FieldError message={errors.years} />
@@ -721,7 +721,7 @@ function StepOccasion({
             </label>
             {untilEighteen && (
               <p className="mt-2 text-xs text-warm-gray-light">
-                Plans are currently limited to 5 years maximum.
+                Plans are currently limited to up to 25 years.
               </p>
             )}
           </div>

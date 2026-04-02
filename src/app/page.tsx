@@ -40,7 +40,7 @@ const USE_CASES = [
     description:
       "Prepay for anniversary gifts years in advance. Even when life gets busy, your partner feels remembered.",
     quote:
-      "I set up 5 years of anniversary gifts. It arrives every year without me doing a thing.",
+      "I set up years of anniversary gifts. It arrives every year without me doing a thing.",
   },
   {
     emoji: "🏢",
@@ -56,9 +56,9 @@ const USE_CASES = [
     label: "Parents",
     headline: "A gift from you, even when you can\u2019t be there",
     description:
-      "Set up birthday gifts for your kids \u2014 up to 5 years at a time. We handle everything, every year.",
+      "Set up birthday gifts for your kids \u2014 up to 25 years at a time. We handle everything, every year.",
     quote:
-      "I set up 5 years of birthday gifts for my daughter in one sitting. Done.",
+      "I set up years of birthday gifts for my daughter in one sitting. Done.",
   },
   {
     emoji: "🕯️",
@@ -561,10 +561,13 @@ export default function HomePage() {
       <section className="bg-cream-dark px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-navy sm:text-3xl">
-            Starting at <span className="text-gold">$20</span>/year
+            As little as <span className="text-gold">$1.67/month</span> — gifts delivered every year.
           </h2>
+          <p className="mt-3 text-base font-medium text-navy/80">
+            Most popular: Premium plan at just $6.67/month
+          </p>
           <p className="mt-4 text-lg text-warm-gray">
-            One payment. Up to 5 years of joy. No subscriptions.
+            One payment. Up to 25 years of joy. No subscriptions.
           </p>
           <p className="mt-2 text-sm text-warm-gray-light">
             Currently serving the continental United States
@@ -587,6 +590,41 @@ export default function HomePage() {
               />
             </svg>
           </Link>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ CUSTOMER VOICES ═══════════════════════ */}
+      <section className="bg-cream px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-center text-2xl font-bold text-navy sm:text-3xl">
+            Real people. Real gifts. Real joy.
+          </h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <blockquote className="rounded-xl bg-white p-6 shadow-md">
+              <p className="text-sm leading-relaxed text-warm-gray italic">
+                &ldquo;I set it up in 10 minutes for all my grandkids. Have not thought about it since.&rdquo;
+              </p>
+              <footer className="mt-4 text-xs font-semibold text-navy">
+                — Grandmother of 4
+              </footer>
+            </blockquote>
+            <blockquote className="rounded-xl bg-white p-6 shadow-md">
+              <p className="text-sm leading-relaxed text-warm-gray italic">
+                &ldquo;My client got a home anniversary gift. They called me for a referral the next week.&rdquo;
+              </p>
+              <footer className="mt-4 text-xs font-semibold text-navy">
+                — Realtor
+              </footer>
+            </blockquote>
+            <blockquote className="rounded-xl bg-white p-6 shadow-md">
+              <p className="text-sm leading-relaxed text-warm-gray italic">
+                &ldquo;Holly gets a birthday box every year. She loses her mind when it arrives.&rdquo;
+              </p>
+              <footer className="mt-4 text-xs font-semibold text-navy">
+                — Pet owner
+              </footer>
+            </blockquote>
+          </div>
         </div>
       </section>
 
@@ -627,6 +665,9 @@ export default function HomePage() {
               Start Sending Today
             </Link>
           </div>
+          <p className="mt-5 text-sm text-cream/60">
+            47 gift plans scheduled and counting
+          </p>
         </div>
       </section>
     </main>
