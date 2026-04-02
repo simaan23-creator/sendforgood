@@ -1206,12 +1206,17 @@ function StepReview({
         </div>
       )}
 
+      {/* Pre-delivery check-in info */}
+      <div className="mt-6 rounded-lg border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-navy">
+        📬 Before each delivery, we will contact you to confirm everything looks good. Update your address or preferences anytime.
+      </div>
+
       {/* Submit button */}
       <button
         type="button"
         onClick={onSubmit}
         disabled={isSubmitting}
-        className="mt-6 w-full rounded-lg bg-forest py-4 text-center text-lg font-bold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 w-full rounded-lg bg-forest py-4 text-center text-lg font-bold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? (
           <span className="inline-flex items-center gap-2">

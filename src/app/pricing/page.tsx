@@ -44,6 +44,11 @@ const FAQ = [
     answer:
       "At this time we only deliver within the continental United States. We do not ship to Alaska, Hawaii, US territories, or international addresses. We hope to expand in the future!",
   },
+  {
+    question: "Will you contact me before each gift ships?",
+    answer:
+      "Yes \u2014 about 2 weeks before each scheduled delivery, we will reach out by email (and text if you have added your number) to confirm your delivery details are still correct. If your address has changed or you want to update the gift preferences, just reply to our message and we\u2019ll take care of it. If we do not hear back within 3 days, we will proceed with your gift as originally planned. Nothing falls through the cracks.",
+  },
 ];
 
 export default function PricingPage() {

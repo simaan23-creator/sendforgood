@@ -133,6 +133,9 @@ export default function DashboardPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [managingOrder, setManagingOrder] = useState<Order | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneSaved, setPhoneSaved] = useState(false);
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
@@ -152,6 +155,14 @@ export default function DashboardPage() {
     }
 
     setUserEmail(user.email ?? "");
+
+    // Load phone from profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", user.id)
+      .single();
+    if (profile?.phone) setPhone(profile.phone);
 
     const [ordersResult, refundsResult] = await Promise.all([
       supabase
@@ -184,6 +195,22 @@ export default function DashboardPage() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.push("/");
+  }
+
+  async function handleSavePhone() {
+    setPhoneSaving(true);
+    setPhoneSaved(false);
+    try {
+      const res = await fetch("/api/account/phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      if (res.ok) setPhoneSaved(true);
+    } catch {
+      // silently fail
+    }
+    setPhoneSaving(false);
   }
 
   async function handleCancelOrder(orderId: string) {
@@ -545,6 +572,11 @@ export default function DashboardPage() {
                               </span>
                             </button>
                           )}
+                          {shipment.status === "pending" && (
+                            <p className="mt-1 text-xs text-warm-gray-light">
+                              📬 We will contact you 2 weeks before this ships to confirm delivery details.
+                            </p>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -574,6 +606,64 @@ export default function DashboardPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* Account Settings */}
+        <div className="mt-12 rounded-xl border border-cream-dark bg-white p-6">
+          <h2 className="text-xl font-bold text-navy">Account Settings</h2>
+
+          <div className="mt-5 space-y-4">
+            {/* Email (read-only) */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-navy">
+                Email
+              </label>
+              <p className="rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-warm-gray">
+                {userEmail}
+              </p>
+            </div>
+
+            {/* Phone number */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="mb-1.5 block text-sm font-medium text-navy"
+              >
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                placeholder="e.g. (631) 555-1234"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setPhoneSaved(false);
+                }}
+                className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+              <p className="mt-1.5 text-xs text-warm-gray-light">
+                We will send you a text 2 weeks before each gift ships to
+                confirm your delivery details.
+              </p>
+            </div>
+
+            {/* Save button + success message */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSavePhone}
+                disabled={phoneSaving}
+                className="rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {phoneSaving ? "Saving..." : "Save"}
+              </button>
+              {phoneSaved && (
+                <p className="text-sm font-medium text-forest">
+                  Phone number saved! We will text you before each delivery.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

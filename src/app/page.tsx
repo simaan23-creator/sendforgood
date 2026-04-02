@@ -360,7 +360,7 @@ export default function HomePage() {
                 emoji: "✅",
                 title: "We handle everything, forever",
                 description:
-                  "We select and ship. Every year. On time.",
+                  "We source, select, and ship the gift every year. Two weeks before each delivery we check in with you to confirm the details \u2014 address, preferences, anything that may have changed. No surprises.",
               },
             ].map((item) => (
               <article
