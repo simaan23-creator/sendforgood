@@ -10,17 +10,84 @@ export default function AboutPage() {
     <>
       {/* ───────────────────────────── Founder Section ─────────────────────────── */}
       <section className="bg-white px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-navy sm:text-4xl">
-            Why we built this
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Why I Built SendForGood
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray">
-            SendForGood started with a simple question: what happens to the gifts
-            you planned to give if life gets in the way? We built this so the
-            people you love always know you were thinking of them — no matter
-            what. We are not a big corporation. We personally select every gift
-            and care deeply about getting this right.
-          </p>
+
+          <div className="mx-auto mt-12 max-w-2xl">
+            {/* top divider */}
+            <hr className="mb-10 border-t border-warm-gray/30" />
+
+            <div className="space-y-6 pl-4 sm:pl-8 text-[17px] leading-[1.85] text-warm-gray font-[350]" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+              <p>
+                I work every day. I am an extremely busy businessman. My business
+                takes over my life. But that does not mean I do not love my nieces
+                and nephews.
+              </p>
+
+              <p>
+                I have so many of them that I can never keep track of their
+                birthdays. It keeps happening&nbsp;&mdash; my sister calls me the
+                same day and says,{" "}
+                <em className="text-navy/80">
+                  &ldquo;Hey, are you coming over for Braden&rsquo;s birthday
+                  tonight?&rdquo;
+                </em>{" "}
+                And I say yes, of course, but I feel like a schmuck because I did
+                not know it was his birthday and I did not buy him a present.
+              </p>
+
+              <p>
+                I have so many close friends having kids, and I kept having the
+                same problem. And I kept forgetting my wife&rsquo;s anniversary
+                gift, too.
+              </p>
+
+              <p>
+                Then I remembered a conversation with a friend of mine who is a
+                very successful real estate broker. He told me it is all about
+                client retention&nbsp;&mdash; that is why he always sends his
+                clients a small gift every holiday, just to remind them he is
+                thinking of them.
+              </p>
+
+              <p>
+                My wife is an elementary school special education teacher. She said
+                she loves this idea because she can automate small gifts to all her
+                past students as they grow through life. She has maintained such a
+                close bond with her students that even years after they move on,
+                parents still call her with updates. She almost always ends up
+                going to their high school graduations. She also told me she has
+                always been afraid of forgetting to get someone a gift when they
+                got her one&nbsp;&mdash; and this takes care of that forever.
+              </p>
+
+              <p>
+                My father passed away last year. He was sick, and he used to tell
+                me his time was running out. He always talked about buying
+                something for his grandkids that they could remember him by. He
+                never found the right thing.
+              </p>
+
+              <p>
+                But I know&nbsp;&mdash; if he was around today, he would not even
+                hesitate. He would buy this for every one of his grandchildren, at
+                the highest tier, for as many years as we offered.
+              </p>
+
+              <p className="font-semibold text-navy">
+                That is why I built SendForGood.
+              </p>
+
+              <p className="mt-4 text-right italic text-navy text-lg">
+                &mdash; Simaan
+              </p>
+            </div>
+
+            {/* bottom divider */}
+            <hr className="mt-10 border-t border-warm-gray/30" />
+          </div>
         </div>
       </section>
 
