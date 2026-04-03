@@ -850,7 +850,7 @@ function StepLetter({
   return (
     <div>
       <h2 className="text-2xl font-bold text-navy sm:text-3xl">
-        Would you like to add a letter?
+        Would you like to add a letter? ??
       </h2>
       <p className="mt-2 text-warm-gray">
         Write something meaningful to go along with your gift. We will include it every year &mdash; your words arriving alongside the gift, year after year.
