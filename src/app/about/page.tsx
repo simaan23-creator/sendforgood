@@ -429,6 +429,37 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ──────────────────── Why We Built Legacy Letters ──────────────────── */}
+      <section className="bg-cream px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Why We Built Legacy Letters
+          </h2>
+
+          <div className="mt-12 space-y-6 rounded-2xl bg-white p-8 shadow-md sm:p-10">
+            <p className="text-lg leading-relaxed text-warm-gray">
+              We started SendForGood to make thoughtful gifting effortless. But
+              we realized that the most meaningful gift isn&rsquo;t something you
+              buy &mdash; it&rsquo;s something you say.
+            </p>
+            <p className="text-lg leading-relaxed text-warm-gray">
+              Legacy Letters lets you write the words that matter most, and
+              ensure they&rsquo;re delivered at the perfect moment &mdash; even
+              if you&rsquo;re not there to say them yourself.
+            </p>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              href="/letters"
+              className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            >
+              Start Writing Your Letters &rarr;
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ────────────────────────── CTA Section ─────────────────────────────── */}
       <section className="bg-navy px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">

@@ -190,6 +190,9 @@ export default function HomePage() {
             SendForGood handles the gifting so you never miss a moment that
             matters.
           </p>
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
+            Now introducing Legacy Letters &mdash; words that outlast a lifetime.
+          </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -509,6 +512,57 @@ export default function HomePage() {
               className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               Send Yourself a Gift
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ LEGACY LETTERS ═══════════════════════ */}
+      <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl md:text-5xl">
+            Leave Behind Words That Last Forever
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
+            Write heartfelt letters to your loved ones &mdash; delivered on
+            birthdays, milestones, or even after you&rsquo;re gone. Because some
+            words are too important to leave unsaid.
+          </p>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 max-w-3xl mx-auto">
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Annual Letters">
+                &#x1F4C5;
+              </span>
+              <h3 className="mt-5 text-xl font-semibold text-navy">
+                Annual Letters
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                A letter delivered every year on their birthday or anniversary.
+                Stay present in their life, year after year.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Milestone Letters">
+                &#x1F393;
+              </span>
+              <h3 className="mt-5 text-xl font-semibold text-navy">
+                Milestone Letters
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                For graduations, weddings, first homes, or any moment that
+                matters. Write now, deliver when the time comes.
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/letters"
+              className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            >
+              Start Writing Your Letters &rarr;
             </Link>
           </div>
         </div>
