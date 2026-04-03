@@ -57,6 +57,24 @@ interface RefundRequest {
   status: string;
 }
 
+interface Letter {
+  id: string;
+  letter_type: "annual" | "milestone";
+  title: string;
+  content: string;
+  scheduled_date: string | null;
+  milestone_label: string | null;
+  status: string;
+  amount_paid: number;
+  executor_email: string | null;
+  created_at: string;
+  updated_at: string;
+  recipients: {
+    name: string;
+    relationship: string;
+  };
+}
+
 function formatShipmentDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
   const date = new Date(year, month - 1, day);
@@ -127,6 +145,7 @@ export default function DashboardPage() {
   const supabase = createClient();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [letters, setLetters] = useState<Letter[]>([]);
   const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -164,7 +183,7 @@ export default function DashboardPage() {
       .single();
     if (profile?.phone) setPhone(profile.phone);
 
-    const [ordersResult, refundsResult] = await Promise.all([
+    const [ordersResult, refundsResult, lettersResult] = await Promise.all([
       supabase
         .from("orders")
         .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number, photo_url)")
@@ -175,6 +194,11 @@ export default function DashboardPage() {
         .select("id, order_id, status")
         .eq("user_id", user.id)
         .eq("status", "pending"),
+      supabase
+        .from("letters")
+        .select("*, recipients(name, relationship)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
     ]);
 
     if (!ordersResult.error && ordersResult.data) {
@@ -183,6 +207,10 @@ export default function DashboardPage() {
 
     if (!refundsResult.error && refundsResult.data) {
       setRefundRequests(refundsResult.data as RefundRequest[]);
+    }
+
+    if (!lettersResult.error && lettersResult.data) {
+      setLetters(lettersResult.data as Letter[]);
     }
 
     setLoading(false);
@@ -607,6 +635,134 @@ export default function DashboardPage() {
             );
           })}
         </div>
+
+        {/* Legacy Letters Section */}
+        {letters.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-navy">Your Legacy Letters</h2>
+              <Link
+                href="/letters/write"
+                className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
+              >
+                Write New Letter
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {letters.map((letter) => {
+                const statusColors: Record<string, string> = {
+                  draft: "bg-warm-gray-light/20 text-warm-gray",
+                  scheduled: "bg-navy/10 text-navy",
+                  pending_release: "bg-gold/20 text-gold-dark",
+                  released: "bg-forest/10 text-forest",
+                  printed: "bg-navy/10 text-navy",
+                  delivered: "bg-forest/10 text-forest",
+                };
+
+                return (
+                  <div
+                    key={letter.id}
+                    className="rounded-xl border border-cream-dark bg-white p-6 transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-navy">
+                          {letter.title}
+                        </h3>
+                        <p className="mt-1 text-sm text-warm-gray">
+                          To: {letter.recipients?.name || "Unknown"}{" "}
+                          {letter.recipients?.relationship && (
+                            <span className="text-warm-gray-light">
+                              &middot; {letter.recipients.relationship}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 capitalize">
+                          {letter.letter_type}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                            statusColors[letter.status] || "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {letter.status.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {letter.milestone_label && (
+                      <p className="mt-2 text-sm text-warm-gray">
+                        Milestone: <span className="font-medium text-navy">{letter.milestone_label}</span>
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <span className="text-warm-gray">
+                        {letter.scheduled_date ? (
+                          <>
+                            Delivery:{" "}
+                            <span className="font-medium text-navy">
+                              {formatShipmentDate(letter.scheduled_date)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-warm-gray-light">Delivery date not set</span>
+                        )}
+                      </span>
+                      {letter.executor_email && (
+                        <span className="text-xs text-warm-gray-light">
+                          Executor: {letter.executor_email}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Letter preview */}
+                    {letter.content && (
+                      <div className="mt-4 rounded-lg bg-cream/50 p-4 font-serif text-sm leading-relaxed text-navy max-h-24 overflow-hidden relative">
+                        {letter.content.slice(0, 200)}
+                        {letter.content.length > 200 && "..."}
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-cream/80 to-transparent" />
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    {!["printed", "delivered"].includes(letter.status) && (
+                      <div className="mt-4 flex items-center justify-end border-t border-cream-dark pt-4">
+                        <Link
+                          href={`/letters/edit/${letter.id}`}
+                          className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                        >
+                          Edit Letter
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Write first letter CTA (if no letters yet) */}
+        {letters.length === 0 && (
+          <div className="mt-12 rounded-xl border border-gold/30 bg-gold/5 p-6 text-center">
+            <h2 className="text-lg font-bold text-navy">
+              Write a Legacy Letter
+            </h2>
+            <p className="mt-2 text-sm text-warm-gray">
+              Write letters today that arrive in the future. Birthday letters every year,
+              milestone letters for life&apos;s biggest moments.
+            </p>
+            <Link
+              href="/letters"
+              className="mt-4 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy transition hover:bg-gold-light"
+            >
+              Learn About Legacy Letters
+            </Link>
+          </div>
+        )}
 
         {/* Account Settings */}
         <div className="mt-12 rounded-xl border border-cream-dark bg-white p-6">

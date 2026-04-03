@@ -75,6 +75,24 @@ interface Shipment {
   };
 }
 
+interface AdminLetter {
+  id: string;
+  user_id: string;
+  recipient_id: string;
+  letter_type: "annual" | "milestone";
+  title: string;
+  content: string;
+  scheduled_date: string | null;
+  milestone_label: string | null;
+  status: string;
+  amount_paid: number;
+  executor_email: string | null;
+  created_at: string;
+  updated_at: string;
+  profiles: Profile | null;
+  recipients: Recipient | null;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const ADMIN_PASSWORD = "SendAdmin2026!";
@@ -739,14 +757,229 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ─── Letters Tab ────────────────────────────────────────────────────────────
+
+function LettersTab({
+  letters,
+  onRefresh,
+}: {
+  letters: AdminLetter[];
+  onRefresh: () => void;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filteredLetters = statusFilter === "all"
+    ? letters
+    : letters.filter((l) => l.status === statusFilter);
+
+  async function handleUpdateStatus(letterId: string, newStatus: string) {
+    const res = await fetch("/api/admin/letters", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ letter_id: letterId, status: newStatus }),
+    });
+    if (res.ok) onRefresh();
+  }
+
+  const letterStatusColors: Record<string, string> = {
+    draft: "bg-gray-100 text-gray-700",
+    scheduled: "bg-blue-100 text-blue-700",
+    pending_release: "bg-yellow-100 text-yellow-700",
+    released: "bg-purple-100 text-purple-700",
+    printed: "bg-indigo-100 text-indigo-700",
+    delivered: "bg-green-100 text-green-700",
+  };
+
+  return (
+    <div>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="all">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="pending_release">Pending Release</option>
+          <option value="released">Released</option>
+          <option value="printed">Printed</option>
+          <option value="delivered">Delivered</option>
+        </select>
+        <div className="text-sm text-gray-500 flex items-center">
+          {filteredLetters.length} letter{filteredLetters.length !== 1 ? "s" : ""}
+        </div>
+      </div>
+
+      {filteredLetters.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          No letters found
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="pb-3 pr-4">Scheduled</th>
+                <th className="pb-3 pr-4">Recipient</th>
+                <th className="pb-3 pr-4">Type</th>
+                <th className="pb-3 pr-4">Title</th>
+                <th className="pb-3 pr-4">Status</th>
+                <th className="pb-3 pr-4">Customer</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLetters.map((letter) => {
+                const isExpanded = expandedId === letter.id;
+                return (
+                  <React.Fragment key={letter.id}>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 pr-4 whitespace-nowrap">
+                        {letter.scheduled_date ? (
+                          <span className="font-medium">
+                            {formatDate(letter.scheduled_date)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Not set</span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {letter.recipients?.name || "\u2014"}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                          {letter.letter_type}
+                        </span>
+                        {letter.milestone_label && (
+                          <span className="ml-1 text-xs text-gray-400">
+                            ({letter.milestone_label})
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 max-w-[200px] truncate">
+                        {letter.title}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                            letterStatusColors[letter.status] || "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {letter.status.replace(/_/g, " ")}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                        {letter.profiles?.email || "\u2014"}
+                      </td>
+                      <td className="py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : letter.id)}
+                          className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition mr-1.5"
+                        >
+                          {isExpanded ? "Hide" : "Details"}
+                        </button>
+                        {letter.status === "scheduled" && (
+                          <button
+                            onClick={() => handleUpdateStatus(letter.id, "printed")}
+                            className="rounded bg-indigo-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-indigo-700 transition mr-1.5"
+                          >
+                            Mark Printed
+                          </button>
+                        )}
+                        {letter.status === "printed" && (
+                          <button
+                            onClick={() => handleUpdateStatus(letter.id, "delivered")}
+                            className="rounded bg-green-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-green-700 transition"
+                          >
+                            Mark Delivered
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={7} className="p-0">
+                          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                              {/* Letter Content Preview */}
+                              <div className="md:col-span-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Letter Content
+                                </h4>
+                                <div className="bg-white rounded-lg border border-gray-200 p-4 max-h-48 overflow-y-auto font-serif text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                                  {letter.content || "(empty draft)"}
+                                </div>
+                              </div>
+
+                              {/* Details */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Details
+                                </h4>
+                                <div className="space-y-1">
+                                  <DetailRow label="Customer" value={letter.profiles?.full_name} />
+                                  <DetailRow label="Email" value={letter.profiles?.email} />
+                                  <DetailRow label="Phone" value={letter.profiles?.phone} />
+                                  <DetailRow label="Executor" value={letter.executor_email} />
+                                  <DetailRow label="Paid" value={formatCurrency(letter.amount_paid)} />
+                                  <DetailRow label="Address" value={
+                                    letter.recipients
+                                      ? `${letter.recipients.address_line1 || ""}, ${letter.recipients.city || ""}, ${letter.recipients.state || ""} ${letter.recipients.postal_code || ""}`
+                                      : null
+                                  } />
+                                </div>
+
+                                {/* Status update buttons */}
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    Update Status
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {["scheduled", "pending_release", "released", "printed", "delivered"].map((s) => (
+                                      <button
+                                        key={s}
+                                        onClick={() => handleUpdateStatus(letter.id, s)}
+                                        disabled={letter.status === s}
+                                        className={`rounded px-2 py-1 text-xs font-medium transition ${
+                                          letter.status === s
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        }`}
+                                      >
+                                        {s.replace(/_/g, " ")}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [tab, setTab] = useState<"shipments" | "orders">("shipments");
+  const [tab, setTab] = useState<"shipments" | "orders" | "letters">("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [letters, setLetters] = useState<AdminLetter[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Check existing session
@@ -761,14 +994,17 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [shipmentsRes, ordersRes] = await Promise.all([
+    const [shipmentsRes, ordersRes, lettersRes] = await Promise.all([
       fetch("/api/admin/shipments"),
       fetch("/api/admin/orders"),
+      fetch("/api/admin/letters"),
     ]);
     const shipmentsData = await shipmentsRes.json();
     const ordersData = await ordersRes.json();
+    const lettersData = await lettersRes.json();
     setShipments(shipmentsData.shipments || []);
     setOrders(ordersData.orders || []);
+    setLetters(lettersData.letters || []);
     setLoading(false);
   }, []);
 
@@ -836,6 +1072,21 @@ export default function AdminDashboard() {
               >
                 All Orders
               </button>
+              <button
+                onClick={() => setTab("letters")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "letters"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Legacy Letters
+                {letters.length > 0 && (
+                  <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-100 px-1.5 text-xs font-bold text-indigo-700">
+                    {letters.length}
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Content */}
@@ -843,6 +1094,11 @@ export default function AdminDashboard() {
               {tab === "shipments" ? (
                 <ShipmentsTab
                   shipments={shipments}
+                  onRefresh={fetchData}
+                />
+              ) : tab === "letters" ? (
+                <LettersTab
+                  letters={letters}
                   onRefresh={fetchData}
                 />
               ) : (

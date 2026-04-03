@@ -4,6 +4,7 @@ const FOOTER_LINKS = {
   Product: [
     { href: "/#how-it-works", label: "How It Works" },
     { href: "/gifts", label: "Our Gifts" },
+    { href: "/letters", label: "Legacy Letters" },
     { href: "/pricing", label: "Pricing" },
   ],
   Company: [

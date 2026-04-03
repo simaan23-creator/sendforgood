@@ -26,7 +26,9 @@ export async function POST(request: Request) {
 
     try {
       // Check order type
-      if (metadata.isCartOrder === "true") {
+      if (metadata.isLetterOrder === "true") {
+        await handleLetterOrder(session, metadata);
+      } else if (metadata.isCartOrder === "true") {
         await handleCartOrder(session, metadata);
       } else if (metadata.isBusinessOrder === "true") {
         await handleBusinessOrder(session, metadata);
@@ -828,5 +830,208 @@ async function handleBusinessOrder(
     });
   } catch (emailError) {
     console.error("Failed to send owner notification email:", emailError);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Letter Order Handler
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+async function handleLetterOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  // Reassemble letter content from chunks
+  let letterContent = metadata.content || "";
+  for (let i = 1; i <= 10; i++) {
+    const chunk = metadata[`content_${i}`];
+    if (chunk) letterContent += chunk;
+  }
+
+  // Find or create user
+  let userId = metadata.userId;
+
+  if (!userId) {
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => u.email === metadata.email
+    );
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const { data: newUser, error: userError } = await supabaseAdmin.auth.admin.createUser({
+        email: metadata.email,
+        email_confirm: true,
+        user_metadata: { full_name: metadata.fullName },
+      });
+
+      if (userError) throw userError;
+      userId = newUser.user.id;
+    }
+  }
+
+  // Ensure profile row exists
+  await supabaseAdmin
+    .from("profiles")
+    .upsert({
+      id: userId,
+      email: metadata.email || session.customer_email || "",
+      full_name: metadata.fullName || "",
+    }, { onConflict: "id" });
+
+  // Create recipient
+  const { data: recipient, error: recipientError } = await supabaseAdmin
+    .from("recipients")
+    .insert({
+      user_id: userId,
+      name: metadata.recipientName,
+      relationship: metadata.relationship || null,
+      address_line1: metadata.addressLine1 || null,
+      address_line2: metadata.addressLine2 || null,
+      city: metadata.city || null,
+      state: metadata.state || null,
+      postal_code: metadata.postalCode || null,
+      country: "US",
+    })
+    .select()
+    .single();
+
+  if (recipientError) throw recipientError;
+
+  const letterType = metadata.letterType as "annual" | "milestone";
+  const years = parseInt(metadata.years) || 1;
+  const milestoneQuantity = metadata.milestoneQuantity || "single";
+
+  if (letterType === "annual") {
+    // Create one letter record per year
+    const scheduledDate = metadata.scheduledDate ? new Date(metadata.scheduledDate) : new Date();
+    const currentYear = new Date().getFullYear();
+
+    for (let i = 0; i < years; i++) {
+      const deliveryDate = new Date(scheduledDate);
+      deliveryDate.setFullYear(currentYear + i);
+
+      if (deliveryDate < new Date()) {
+        deliveryDate.setFullYear(deliveryDate.getFullYear() + 1);
+      }
+
+      await supabaseAdmin
+        .from("letters")
+        .insert({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "annual",
+          title: metadata.title,
+          content: letterContent,
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "scheduled",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: Math.round((session.amount_total || 0) / years),
+          executor_email: metadata.executorEmail || null,
+        });
+    }
+  } else {
+    // Milestone letters
+    const count = milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+    const priceEach = Math.round((session.amount_total || 0) / count);
+
+    // Create the first milestone letter with the provided details
+    await supabaseAdmin
+      .from("letters")
+      .insert({
+        user_id: userId,
+        recipient_id: recipient.id,
+        letter_type: "milestone",
+        title: metadata.title,
+        content: letterContent,
+        scheduled_date: metadata.scheduledDate || null,
+        milestone_label: metadata.milestoneLabel || null,
+        status: metadata.scheduledDate ? "scheduled" : "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: priceEach,
+        executor_email: metadata.executorEmail || null,
+      });
+
+    // If it's a bundle, create remaining draft letters
+    if (count > 1) {
+      const draftLetters = [];
+      for (let i = 1; i < count; i++) {
+        draftLetters.push({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "milestone" as const,
+          title: `Milestone Letter ${i + 1}`,
+          content: "",
+          status: "draft" as const,
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: priceEach,
+          executor_email: metadata.executorEmail || null,
+        });
+      }
+      await supabaseAdmin.from("letters").insert(draftLetters);
+    }
+  }
+
+  const customerEmail = metadata.email || session.customer_email!;
+  const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+
+  // Send confirmation email to customer
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: customerEmail,
+      subject: "Your Legacy Letter Is Scheduled! \u{2709}\u{FE0F}",
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+          <h1 style="color: #1a2744;">Your letter is safe with us \u{2764}\u{FE0F}</h1>
+          <p>Thank you for writing a Legacy Letter. Your words will be printed on premium stationery and delivered exactly when they matter most.</p>
+          <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0; font-size: 18px;">Letter Details</h2>
+            <p><strong>Recipient:</strong> ${metadata.recipientName}</p>
+            <p><strong>Type:</strong> ${letterType === "annual" ? `Annual (${years} year${years > 1 ? "s" : ""})` : `Milestone \u2014 ${metadata.milestoneLabel || "TBD"}`}</p>
+            <p><strong>Title:</strong> ${metadata.title}</p>
+            <p><strong>Total paid:</strong> ${amountFormatted}</p>
+          </div>
+          <p>You can edit your letter anytime from your <a href="https://sendforgood.com/dashboard" style="color: #C8A962;">dashboard</a> before it goes to print.</p>
+          <p>About 2 weeks before each letter is scheduled, we'll send you a preview to confirm the final version.</p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send letter confirmation email:", emailError);
+  }
+
+  // Send owner notification email
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: "Simaan23@gmail.com",
+      subject: `\u{2709}\u{FE0F} New Legacy Letter! ${metadata.recipientName} \u2014 ${letterType} \u2014 ${amountFormatted}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <h1 style="color: #1a2744;">New Legacy Letter Order! \u{2709}\u{FE0F}</h1>
+          <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0;">Letter Details</h2>
+            <p><strong>Customer:</strong> ${customerEmail}</p>
+            <p><strong>Recipient:</strong> ${metadata.recipientName} (${metadata.relationship || "N/A"})</p>
+            <p><strong>Type:</strong> ${letterType}</p>
+            ${letterType === "annual" ? `<p><strong>Years:</strong> ${years}</p>` : `<p><strong>Milestone:</strong> ${metadata.milestoneLabel || "N/A"}</p><p><strong>Bundle:</strong> ${milestoneQuantity}</p>`}
+            <p><strong>Amount:</strong> ${amountFormatted}</p>
+            <p><strong>Executor:</strong> ${metadata.executorEmail || "None"}</p>
+          </div>
+          <div style="background: #fff8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0;">Delivery Address</h2>
+            <p>${metadata.recipientName}<br/>
+            ${metadata.addressLine1}${metadata.addressLine2 ? "<br/>" + metadata.addressLine2 : ""}<br/>
+            ${metadata.city}, ${metadata.state} ${metadata.postalCode}</p>
+          </div>
+          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send letter owner notification email:", emailError);
   }
 }

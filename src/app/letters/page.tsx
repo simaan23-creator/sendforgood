@@ -1,0 +1,450 @@
+import { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Legacy Letters — SendForGood",
+  description:
+    "Write letters today that arrive in the future. Birthday letters every year, milestone letters for graduations, weddings, and more. Your words keep arriving — even after you're gone.",
+};
+
+const LETTER_TYPES = [
+  {
+    id: "annual",
+    name: "Annual Letters",
+    price: 10,
+    unit: "/yr per letter",
+    description: "A letter delivered every year on their special day",
+    features: [
+      "Write one letter — delivered every year",
+      "Arrives on their birthday, anniversary, or any date",
+      "Professionally printed on premium stationery",
+      "Sealed and mailed directly to them",
+      "Keeps arriving for up to 25 years",
+      "Continues even if something happens to you",
+    ],
+    cta: "Start Writing",
+    href: "/letters/write?type=annual",
+    popular: true,
+  },
+  {
+    id: "milestone",
+    name: "Milestone Letters",
+    price: 15,
+    unit: " each",
+    description: "Letters for life's biggest moments, written in advance",
+    features: [
+      "Write letters for specific future milestones",
+      "Graduation, wedding, first child, retirement & more",
+      "Each letter delivered at the right moment",
+      "Professionally printed on premium stationery",
+      "Bundle 5 for $60 or 10 for $100",
+      "Your words arrive exactly when they matter most",
+    ],
+    cta: "Write a Milestone Letter",
+    href: "/letters/write?type=milestone",
+    popular: false,
+  },
+];
+
+const USE_CASES = [
+  {
+    icon: "🎂",
+    title: "Birthday Letters",
+    description:
+      "Write your child a letter for every birthday from age 5 to 25. Even if you're not there, your words will be.",
+  },
+  {
+    icon: "🎓",
+    title: "Graduation Day",
+    description:
+      "Write a letter to your grandchild for high school graduation — even if it's 15 years away.",
+  },
+  {
+    icon: "💍",
+    title: "Wedding Day",
+    description:
+      "A letter from a parent, waiting at the altar. Written years before, delivered at exactly the right moment.",
+  },
+  {
+    icon: "👶",
+    title: "First Child",
+    description:
+      "Welcome your future grandchild into the world with words you wrote before they were even born.",
+  },
+  {
+    icon: "🏠",
+    title: "First Home",
+    description:
+      "Congratulate them on a milestone you knew they'd reach — with a letter you wrote years ago.",
+  },
+  {
+    icon: "🎖️",
+    title: "Retirement",
+    description:
+      "A lifetime of work deserves a letter of pride. Write it now, deliver it when the day comes.",
+  },
+];
+
+const HOW_IT_WORKS = [
+  {
+    step: 1,
+    title: "Write Your Letter",
+    description:
+      "Write from the heart. Tell them what you want them to know — on a birthday, a milestone, or just because.",
+  },
+  {
+    step: 2,
+    title: "Choose When It Arrives",
+    description:
+      "Pick a date — a birthday each year, or a specific milestone moment. We'll hold it safe until then.",
+  },
+  {
+    step: 3,
+    title: "We Print & Deliver",
+    description:
+      "Your letter is professionally printed on premium stationery, sealed, and mailed directly to them on the date you chose.",
+  },
+  {
+    step: 4,
+    title: "It Keeps Arriving",
+    description:
+      "Even if something happens to you, your letters arrive as scheduled. Your executor is notified, and your words live on.",
+  },
+];
+
+const FAQ = [
+  {
+    question: "What happens to my letters if something happens to me?",
+    answer:
+      "This is the entire purpose of Legacy Letters. All prepaid letters are stored securely and delivered on their scheduled dates regardless of your account status. When you purchase letters, you can designate an executor — a trusted person who will be notified and can manage your letter deliveries. Your words keep arriving.",
+  },
+  {
+    question: "How are the letters delivered?",
+    answer:
+      "Each letter is professionally printed on premium heavyweight stationery, sealed in a quality envelope with your name as the sender, and mailed via USPS First Class to the recipient's address. It feels personal and intentional — because it is.",
+  },
+  {
+    question: "Can I edit my letters after writing them?",
+    answer:
+      "Yes — you can edit any letter that hasn't been printed yet. Once a letter enters our print queue (about 2 weeks before its delivery date), it can no longer be modified. We'll send you a reminder before each letter is finalized.",
+  },
+  {
+    question: "What's the difference between annual and milestone letters?",
+    answer:
+      "Annual letters are delivered once per year on a recurring date (like a birthday). You write one letter per year for as many years as you choose. Milestone letters are one-time deliveries timed to specific life events — graduation, wedding, first child, retirement, etc.",
+  },
+  {
+    question: "Can I add a letter to an existing gift plan?",
+    answer:
+      "Absolutely! When creating a new gift plan, you'll see the option to add a letter for just $8/year on top of your gift tier. The letter ships alongside the gift each year.",
+  },
+  {
+    question: "What if the recipient moves?",
+    answer:
+      "We'll contact you (or your executor) before each delivery to confirm the address. You can update the recipient's address anytime from your dashboard. If we can't reach anyone, we'll hold the letter and try again.",
+  },
+  {
+    question: "Is there a maximum letter length?",
+    answer:
+      "Letters can be up to 5,000 characters (roughly 2 printed pages). We find that the most meaningful letters are often just one heartfelt page.",
+  },
+  {
+    question: "Can I see a preview before it ships?",
+    answer:
+      "Yes. About 2 weeks before each letter is scheduled to ship, we'll send you (or your executor) a digital preview and a chance to make final edits.",
+  },
+];
+
+export default function LettersPage() {
+  return (
+    <div className="bg-cream">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden px-6 py-20 sm:py-32">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+            Legacy Letters
+          </p>
+          <h1 className="mt-4 text-4xl font-bold tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
+            Your Words,{" "}
+            <span className="text-gold">Delivered Forever</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
+            Write letters today that arrive in the future. Birthday letters
+            every year. Milestone letters for graduations, weddings, and
+            life&apos;s biggest moments. Your words keep arriving &mdash; even
+            after you&apos;re gone.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/letters/write?type=annual"
+              className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            >
+              Write Your First Letter
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream"
+            >
+              How It Works
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-warm-gray-light">
+            From $10/year per letter &middot; No subscriptions &middot;
+            Delivered forever
+          </p>
+        </div>
+      </section>
+
+      {/* Emotional hook */}
+      <section className="bg-navy px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-2xl font-bold leading-relaxed text-cream sm:text-3xl md:text-4xl">
+            &ldquo;The most meaningful thing I ever received was a letter my
+            father wrote before he passed. He wrote it ten years before I
+            opened it.&rdquo;
+          </p>
+          <p className="mt-6 text-sm text-cream/60">
+            This is the kind of moment Legacy Letters creates.
+          </p>
+        </div>
+      </section>
+
+      {/* Use Cases Grid */}
+      <section className="px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+              Letters for Every Moment That Matters
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
+              Write now. Deliver later. Some letters are too important to leave
+              unwritten.
+            </p>
+          </div>
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {USE_CASES.map((uc) => (
+              <div
+                key={uc.title}
+                className="rounded-2xl border border-cream-dark bg-white p-7 transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <span className="text-3xl">{uc.icon}</span>
+                <h3 className="mt-4 text-lg font-bold text-navy">
+                  {uc.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                  {uc.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section
+        id="how-it-works"
+        className="bg-cream-dark px-6 py-16 sm:py-24"
+      >
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+              How Legacy Letters Work
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
+              Four simple steps to make your words immortal.
+            </p>
+          </div>
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {HOW_IT_WORKS.map((step) => (
+              <div key={step.step} className="text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold text-xl font-bold text-white">
+                  {step.step}
+                </div>
+                <h3 className="mt-5 text-lg font-bold text-navy">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Cards */}
+      <section className="px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+              Simple Letter Pricing
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
+              Pay once. Your letters are stored, printed, and delivered &mdash;
+              for as long as you need.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-2">
+            {LETTER_TYPES.map((type) => (
+              <div
+                key={type.id}
+                className={`relative flex flex-col rounded-2xl border bg-white p-8 transition hover:-translate-y-1 hover:shadow-xl ${
+                  type.popular
+                    ? "border-gold shadow-lg ring-2 ring-gold/30"
+                    : "border-cream-dark shadow-md"
+                }`}
+              >
+                {type.popular && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                    Most Popular
+                  </span>
+                )}
+                <h3 className="text-xl font-bold text-navy">{type.name}</h3>
+                <p className="mt-3">
+                  <span className="text-4xl font-extrabold tracking-tight text-navy">
+                    ${type.price}
+                  </span>
+                  <span className="text-sm text-warm-gray">{type.unit}</span>
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                  {type.description}
+                </p>
+                <ul className="mt-6 flex-1 space-y-3">
+                  {type.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2 text-sm"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-forest"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-warm-gray">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={type.href}
+                  className={`mt-8 inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    type.popular
+                      ? "bg-gold text-navy shadow-sm hover:bg-gold-light focus-visible:outline-gold"
+                      : "bg-navy text-cream shadow-sm hover:bg-navy-light focus-visible:outline-navy"
+                  }`}
+                >
+                  {type.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Add-on callout */}
+          <div className="mt-10 rounded-2xl border border-gold/30 bg-gold/5 p-6 text-center sm:p-8">
+            <p className="text-lg font-bold text-navy">
+              Already sending a gift?{" "}
+              <span className="text-gold">Add a letter for just $8/year</span>
+            </p>
+            <p className="mt-2 text-sm text-warm-gray">
+              When you create a gift plan, add a personal letter that ships
+              alongside each gift. The most meaningful $8 you&apos;ll ever
+              spend.
+            </p>
+            <Link
+              href="/send"
+              className="mt-5 inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+            >
+              Create a Gift Plan with Letters
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust / Executor Section */}
+      <section className="bg-navy px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold text-cream sm:text-4xl">
+            Your Letters Are Safe. Forever.
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-cream/70">
+            When you write a Legacy Letter, you can designate an executor
+            &mdash; a trusted person (spouse, child, attorney) who is notified
+            if your account becomes inactive. They can verify delivery
+            addresses and ensure your letters arrive as planned.
+          </p>
+          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                title: "Encrypted & Secure",
+                desc: "Your letters are stored with bank-level encryption until their delivery date.",
+              },
+              {
+                title: "Executor Notified",
+                desc: "Your designated executor is contacted to confirm addresses and manage deliveries.",
+              },
+              {
+                title: "Delivered On Time",
+                desc: "Every letter arrives on its scheduled date, no matter what. That's our promise.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="rounded-xl bg-white/5 p-6">
+                <h3 className="text-lg font-bold text-cream">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-cream/60">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-2xl font-bold sm:text-3xl">
+            Frequently Asked Questions
+          </h2>
+          <dl className="mt-10 space-y-8">
+            {FAQ.map((item) => (
+              <div key={item.question}>
+                <dt className="text-lg font-semibold text-navy">
+                  {item.question}
+                </dt>
+                <dd className="mt-2 leading-relaxed text-warm-gray">
+                  {item.answer}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="bg-cream-dark px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+            Don&apos;t Leave Words Unwritten
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-warm-gray">
+            The best time to write a letter is today. The best time for it to
+            arrive might be years from now.
+          </p>
+          <Link
+            href="/letters/write"
+            className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+          >
+            Write Your First Letter &mdash; From $10
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
