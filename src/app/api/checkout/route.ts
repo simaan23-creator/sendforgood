@@ -26,6 +26,10 @@ export async function POST(request: Request) {
       interests,
       giftNotes,
       cardMessage,
+      executorName,
+      executorEmail,
+      executorPhone,
+      executorAddress,
     } = body;
 
     // Validate required fields
@@ -86,6 +90,10 @@ export async function POST(request: Request) {
         interests: interests || "",
         giftNotes: giftNotes || "",
         cardMessage: cardMessage || "",
+        executorName: executorName || "",
+        executorEmail: executorEmail || "",
+        executorPhone: executorPhone || "",
+        executorAddress: executorAddress || "",
       },
     });
 

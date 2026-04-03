@@ -23,6 +23,10 @@ interface CartItemPayload {
   giftNotes: string;
   cardMessage: string;
   petType: string;
+  executorName: string;
+  executorEmail: string;
+  executorPhone: string;
+  executorAddress: string;
   unitPrice: number;
   totalPrice: number;
 }

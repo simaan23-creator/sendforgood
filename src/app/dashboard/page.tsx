@@ -26,6 +26,10 @@ interface Order {
   created_at: string;
   stripe_payment_intent_id: string;
   recipient_id: string;
+  executor_name?: string | null;
+  executor_email?: string | null;
+  executor_phone?: string | null;
+  executor_address?: string | null;
   recipients: {
     name: string;
     relationship: string;

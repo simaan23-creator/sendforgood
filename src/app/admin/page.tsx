@@ -69,6 +69,10 @@ interface Shipment {
     user_id: string;
     recipient_id: string;
     occasion_id: string;
+    executor_name: string | null;
+    executor_email: string | null;
+    executor_phone: string | null;
+    executor_address: string | null;
     recipients: Recipient | null;
     occasions: Occasion | null;
     profiles: Profile | null;
@@ -607,6 +611,21 @@ function ShipmentsTab({
                                   <DetailRow label="Phone" value={s.orders.profiles?.phone} />
                                   <DetailRow label="Name" value={s.orders.profiles?.full_name} />
                                 </div>
+
+                                {/* Executor Info */}
+                                {s.orders.executor_name && (
+                                  <div className="mt-4">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                      Executor
+                                    </h4>
+                                    <div className="space-y-1">
+                                      <DetailRow label="Name" value={s.orders.executor_name} />
+                                      <DetailRow label="Email" value={s.orders.executor_email} />
+                                      <DetailRow label="Phone" value={s.orders.executor_phone} />
+                                      <DetailRow label="Address" value={s.orders.executor_address} />
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
 

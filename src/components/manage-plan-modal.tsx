@@ -71,6 +71,10 @@ interface Order {
   created_at: string;
   stripe_payment_intent_id: string;
   recipient_id: string;
+  executor_name?: string | null;
+  executor_email?: string | null;
+  executor_phone?: string | null;
+  executor_address?: string | null;
   recipients: {
     name: string;
     relationship: string;
@@ -857,6 +861,9 @@ function PlanTab({
           </p>
         </div>
       </div>
+
+      {/* Executor */}
+      <ExecutorSection order={order} onUpdated={onUpdated} />
     </div>
   );
 }
@@ -984,6 +991,127 @@ function RefundTab({
       >
         {submitting ? "Submitting..." : "Submit Refund Request"}
       </button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Executor Section (used inside PlanTab)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function ExecutorSection({
+  order,
+  onUpdated,
+}: {
+  order: Order;
+  onUpdated: () => void;
+}) {
+  const [name, setName] = useState(order.executor_name ?? "");
+  const [email, setEmail] = useState(order.executor_email ?? "");
+  const [phone, setPhone] = useState(order.executor_phone ?? "");
+  const [address, setAddress] = useState(order.executor_address ?? "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+
+    const res = await fetch(`/api/orders/${order.id}/executor`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        executor_name: name || null,
+        executor_email: email || null,
+        executor_phone: phone || null,
+        executor_address: address || null,
+      }),
+    });
+
+    setSaving(false);
+    if (res.ok) {
+      setSaved(true);
+      onUpdated();
+    }
+  }
+
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-semibold text-navy">
+        Trusted Executor
+      </h3>
+      <div className="rounded-lg border border-cream-dark bg-white p-4 space-y-4">
+        <p className="text-xs text-warm-gray">
+          Name someone who can manage this gift plan on your behalf &mdash; update
+          addresses, confirm deliveries, or continue the plan if something
+          happens to you.
+        </p>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy">
+            Full Name
+          </label>
+          <input
+            value={name}
+            onChange={(e) => { setName(e.target.value); setSaved(false); }}
+            placeholder="e.g. Jane Smith"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy">
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setSaved(false); }}
+            placeholder="e.g. jane@example.com"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy">
+            Phone{" "}
+            <span className="font-normal text-warm-gray-light">Optional</span>
+          </label>
+          <input
+            value={phone}
+            onChange={(e) => { setPhone(e.target.value); setSaved(false); }}
+            placeholder="e.g. (555) 123-4567"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy">
+            Address{" "}
+            <span className="font-normal text-warm-gray-light">Optional</span>
+          </label>
+          <textarea
+            rows={2}
+            value={address}
+            onChange={(e) => { setAddress(e.target.value); setSaved(false); }}
+            placeholder="e.g. 123 Main St, New York, NY 10001"
+            className={inputClass}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="rounded-lg bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Executor"}
+          </button>
+          {saved && (
+            <span className="text-sm font-medium text-forest">Saved!</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

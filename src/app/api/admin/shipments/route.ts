@@ -18,6 +18,10 @@ export async function GET() {
           user_id,
           recipient_id,
           occasion_id,
+          executor_name,
+          executor_email,
+          executor_phone,
+          executor_address,
           recipients (
             id,
             name,

@@ -79,6 +79,10 @@ interface FormData {
   interests: string[];
   giftNotes: string;
   petType: string;
+  executorName: string;
+  executorEmail: string;
+  executorPhone: string;
+  executorAddress: string;
 }
 
 const initialFormData: FormData = {
@@ -102,6 +106,10 @@ const initialFormData: FormData = {
   interests: [],
   giftNotes: "",
   petType: "",
+  executorName: "",
+  executorEmail: "",
+  executorPhone: "",
+  executorAddress: "",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -192,7 +200,16 @@ export default function SendPage() {
       }
     }
 
-    // Step 4 = About Them — no validation required (all optional)
+    // Step 4 = About Them — executor fields validated if provided
+    if (s === 4) {
+      if (form.executorName || form.executorEmail) {
+        if (!form.executorName.trim()) errs.executorName = "Executor name is required";
+        if (!form.executorEmail.trim()) errs.executorEmail = "Executor email is required";
+        if (form.executorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.executorEmail.trim())) {
+          errs.executorEmail = "Please enter a valid email";
+        }
+      }
+    }
 
     if (s === 5) {
       if (!isLoggedIn) {
@@ -244,6 +261,10 @@ export default function SendPage() {
       giftNotes: form.giftNotes,
       cardMessage: "",
       petType: form.petType,
+      executorName: form.executorName,
+      executorEmail: form.executorEmail,
+      executorPhone: form.executorPhone,
+      executorAddress: form.executorAddress,
       unitPrice: selectedTier.price,
       totalPrice: totalPrice,
     });
@@ -409,7 +430,7 @@ export default function SendPage() {
           {step === 1 && <StepOccasion form={form} errors={errors} update={update} currentYear={currentYear} />}
           {step === 2 && <StepTier form={form} errors={errors} update={update} totalPrice={totalPrice} />}
           {step === 3 && <StepAddress form={form} errors={errors} update={update} />}
-          {step === 4 && <StepAboutThem form={form} update={update} />}
+          {step === 4 && <StepAboutThem form={form} errors={errors} update={update} />}
           {step === 5 && (
             <StepReview
               form={form}
@@ -863,11 +884,17 @@ const GENDER_OPTIONS = ["Female", "Male", "Non-binary"] as const;
 
 function StepAboutThem({
   form,
+  errors,
   update,
 }: {
   form: FormData;
+  errors: Partial<Record<keyof FormData, string>>;
   update: (field: keyof FormData, value: string | number | string[]) => void;
 }) {
+  const [showExecutor, setShowExecutor] = useState(
+    !!(form.executorName || form.executorEmail)
+  );
+
   function toggleInterest(interest: string) {
     const current = form.interests;
     const next = current.includes(interest)
@@ -965,6 +992,100 @@ function StepAboutThem({
             className={inputClass}
           />
         </div>
+
+        {/* Executor section (collapsible) */}
+        {!showExecutor ? (
+          <button
+            type="button"
+            onClick={() => setShowExecutor(true)}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-cream-dark px-4 py-3 text-sm font-medium text-warm-gray transition hover:border-gold/40 hover:text-navy"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            Add an Executor (optional)
+          </button>
+        ) : (
+          <div className="rounded-xl border border-cream-dark bg-cream/30 p-5 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-navy">Trusted Executor</h3>
+                <p className="mt-1 text-xs leading-relaxed text-warm-gray">
+                  Name someone who can manage this gift plan on your behalf &mdash; update addresses, confirm deliveries, or continue the plan if something happens to you.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExecutor(false);
+                  update("executorName", "");
+                  update("executorEmail", "");
+                  update("executorPhone", "");
+                  update("executorAddress", "");
+                }}
+                className="shrink-0 ml-3 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-cream-dark hover:text-navy"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div>
+              <Label htmlFor="executorName" required>Full Name</Label>
+              <input
+                id="executorName"
+                type="text"
+                placeholder="e.g. Jane Smith"
+                value={form.executorName}
+                onChange={(e) => update("executorName", e.target.value)}
+                className={inputClass}
+              />
+              <FieldError message={errors.executorName} />
+            </div>
+
+            <div>
+              <Label htmlFor="executorEmail" required>Email</Label>
+              <input
+                id="executorEmail"
+                type="email"
+                placeholder="e.g. jane@example.com"
+                value={form.executorEmail}
+                onChange={(e) => update("executorEmail", e.target.value)}
+                className={inputClass}
+              />
+              <FieldError message={errors.executorEmail} />
+            </div>
+
+            <div>
+              <label htmlFor="executorPhone" className="mb-1.5 block text-sm font-medium text-navy">
+                Phone <span className="text-warm-gray-light font-normal">Optional</span>
+              </label>
+              <input
+                id="executorPhone"
+                type="text"
+                placeholder="e.g. (555) 123-4567"
+                value={form.executorPhone}
+                onChange={(e) => update("executorPhone", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="executorAddress" className="mb-1.5 block text-sm font-medium text-navy">
+                Address <span className="text-warm-gray-light font-normal">Optional</span>
+              </label>
+              <textarea
+                id="executorAddress"
+                rows={2}
+                placeholder="e.g. 123 Main St, New York, NY 10001"
+                value={form.executorAddress}
+                onChange={(e) => update("executorAddress", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

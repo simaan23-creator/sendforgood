@@ -139,6 +139,10 @@ async function handleIndividualOrder(
       amount_paid: session.amount_total,
       stripe_payment_intent_id: session.payment_intent as string,
       status: "active",
+      executor_name: metadata.executorName || null,
+      executor_email: metadata.executorEmail || null,
+      executor_phone: metadata.executorPhone || null,
+      executor_address: metadata.executorAddress || null,
     })
     .select()
     .single();
@@ -270,6 +274,10 @@ interface CartItemMeta {
   giftNotes: string;
   cardMessage: string;
   petType: string;
+  executorName: string;
+  executorEmail: string;
+  executorPhone: string;
+  executorAddress: string;
   unitPrice: number;
   totalPrice: number;
 }
@@ -379,6 +387,10 @@ async function handleCartOrder(
         amount_paid: itemAmount,
         stripe_payment_intent_id: session.payment_intent as string,
         status: "active",
+        executor_name: item.executorName || null,
+        executor_email: item.executorEmail || null,
+        executor_phone: item.executorPhone || null,
+        executor_address: item.executorAddress || null,
       })
       .select()
       .single();
