@@ -87,6 +87,8 @@ interface AdminLetter {
   status: string;
   amount_paid: number;
   executor_email: string | null;
+  executor_can_view: boolean;
+  executor_can_edit: boolean;
   created_at: string;
   updated_at: string;
   profiles: Profile | null;
@@ -924,6 +926,16 @@ function LettersTab({
                                   <DetailRow label="Email" value={letter.profiles?.email} />
                                   <DetailRow label="Phone" value={letter.profiles?.phone} />
                                   <DetailRow label="Executor" value={letter.executor_email} />
+                                  {letter.executor_email && (
+                                    <DetailRow
+                                      label="Executor Permissions"
+                                      value={[
+                                        letter.executor_can_view ? "Can view" : null,
+                                        letter.executor_can_edit ? "Can edit" : null,
+                                        !letter.executor_can_view && !letter.executor_can_edit ? "Release only (cannot view or edit)" : null,
+                                      ].filter(Boolean).join(", ")}
+                                    />
+                                  )}
                                   <DetailRow label="Paid" value={formatCurrency(letter.amount_paid)} />
                                   <DetailRow label="Address" value={
                                     letter.recipients
