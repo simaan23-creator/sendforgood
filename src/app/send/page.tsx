@@ -651,20 +651,6 @@ function StepOccasion({
   update,
   currentYear,
 }: StepProps & { currentYear: number }) {
-  const isBirthday = form.occasionType === "birthday";
-  const [untilEighteen, setUntilEighteen] = useState(false);
-
-  function handleUntilEighteenToggle(checked: boolean) {
-    setUntilEighteen(checked);
-    if (checked && form.occasionDate) {
-      // Calculate years until they turn 18 based on the occasion date year
-      // We assume the occasion date year indicates the child's birth year or current year
-      // Since we only have month/day, calculate from the current year
-      const yearsUntil18 = 18;
-      update("years", Math.min(Math.max(yearsUntil18, 1), 25));
-    }
-  }
-
   return (
     <div>
       <h2 className="text-2xl font-bold text-navy sm:text-3xl">
@@ -723,10 +709,7 @@ function StepOccasion({
             min={1}
             max={25}
             value={form.years}
-            onChange={(e) => {
-              update("years", parseInt(e.target.value, 10));
-              setUntilEighteen(false);
-            }}
+            onChange={(e) => update("years", parseInt(e.target.value, 10))}
             className="mt-4 w-full cursor-pointer accent-gold"
           />
           <div className="mt-1 flex justify-between text-xs text-warm-gray-light">
@@ -736,28 +719,6 @@ function StepOccasion({
 
           <FieldError message={errors.years} />
         </div>
-
-        {/* Until 18 toggle (birthday only) */}
-        {isBirthday && (
-          <div>
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-cream-dark bg-cream/50 p-4 transition hover:border-gold/50">
-              <input
-                type="checkbox"
-                checked={untilEighteen}
-                onChange={(e) => handleUntilEighteenToggle(e.target.checked)}
-                className="h-5 w-5 rounded border-cream-dark accent-gold"
-              />
-              <span className="text-sm font-medium text-navy">
-                Until they turn 18
-              </span>
-            </label>
-            {untilEighteen && (
-              <p className="mt-2 text-xs text-warm-gray-light">
-                Plans are currently limited to up to 25 years.
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Summary note */}
         <div className="rounded-lg bg-cream/80 p-4 text-center">
@@ -935,15 +896,6 @@ function StepLetter({
         </button>
       </div>
 
-      {/* Info box shown when addLetter is true */}
-      {form.addLetter && (
-        <div className="mt-6 rounded-lg border-2 border-gold bg-gold/5 px-5 py-4">
-          <h3 className="text-sm font-bold text-navy">Letter add-on included</h3>
-          <p className="mt-1 text-sm leading-relaxed text-warm-gray">
-            After checkout, head to your dashboard to write your letter whenever you are ready. No rush &mdash; write it today or come back to it later.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
