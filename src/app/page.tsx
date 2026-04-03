@@ -78,6 +78,15 @@ const USE_CASES = [
     quote:
       "My dog gets a birthday box every year. The look on his face when it arrives never gets old.",
   },
+  {
+    emoji: "\u2709\uFE0F",
+    label: "Legacy Letters",
+    headline: "Say what you have always meant to say",
+    description:
+      "Write letters to the people you love. We keep them safe and deliver them on birthdays, milestones, or any moment you choose \u2014 even after you are gone.",
+    quote:
+      "My grandfather wrote me a letter for my wedding day before he passed. I did not know it existed until the envelope arrived. It was the greatest gift I have ever received.",
+  },
 ];
 
 const BUSINESS_CARDS = [
