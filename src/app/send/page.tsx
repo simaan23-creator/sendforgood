@@ -85,7 +85,6 @@ interface FormData {
   executorPhone: string;
   executorAddress: string;
   addLetter: boolean;
-  letterContent: string;
 }
 
 const initialFormData: FormData = {
@@ -114,7 +113,6 @@ const initialFormData: FormData = {
   executorPhone: "",
   executorAddress: "",
   addLetter: false,
-  letterContent: "",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -275,7 +273,6 @@ export default function SendPage() {
       executorPhone: hasExecutor ? form.executorPhone : "",
       executorAddress: hasExecutor ? form.executorAddress : "",
       addLetter: form.addLetter,
-      letterContent: form.addLetter ? form.letterContent : "",
       unitPrice: selectedTier.price,
       totalPrice: totalPrice,
     });
@@ -938,21 +935,12 @@ function StepLetter({
         </button>
       </div>
 
-      {/* Textarea — shown when addLetter is true */}
+      {/* Info box shown when addLetter is true */}
       {form.addLetter && (
-        <div className="mt-6">
-          <Label htmlFor="letterContent">Write your letter</Label>
-          <textarea
-            id="letterContent"
-            rows={6}
-            maxLength={5000}
-            placeholder={`Dear ${form.recipientName || "[name]"}, ...`}
-            value={form.letterContent}
-            onChange={(e) => update("letterContent", e.target.value)}
-            className={inputClass}
-          />
-          <p className="mt-1.5 text-right text-xs text-warm-gray-light">
-            {form.letterContent.length.toLocaleString()} / 5,000 characters
+        <div className="mt-6 rounded-lg border-2 border-gold bg-gold/5 px-5 py-4">
+          <h3 className="text-sm font-bold text-navy">Letter add-on included</h3>
+          <p className="mt-1 text-sm leading-relaxed text-warm-gray">
+            After checkout, head to your dashboard to write your letter whenever you are ready. No rush &mdash; write it today or come back to it later.
           </p>
         </div>
       )}
