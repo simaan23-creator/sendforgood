@@ -47,7 +47,7 @@ const FAQ = [
   {
     question: "Will you contact me before each gift ships?",
     answer:
-      "Yes \u2014 about 2 weeks before each scheduled delivery, we will reach out by email (and text if you have added your number) to confirm your delivery details are still correct. If your address has changed or you want to update the gift preferences, just reply to our message and we\u2019ll take care of it. If we do not hear back within 3 days, we will proceed with your gift as originally planned. Nothing falls through the cracks.",
+      "Yes \u2014 about 2 weeks before each scheduled delivery, we will reach out by email (and text if you have added your number) to confirm your delivery details are still correct. If your address has changed or you want to update the gift preferences, just reply to our message and we will take care of it. If we do not hear back within 3 days, we will proceed with your gift as originally planned. If a gift is undeliverable due to an incorrect address and we were unable to reach you, we will attempt to contact your executor if one is on file. If we still cannot reach anyone, that year\u2019s delivery will be skipped \u2014 we do not offer refunds for failed deliveries due to outdated address information. We will attempt delivery again the following year once the address is updated.",
   },
 ];
 
