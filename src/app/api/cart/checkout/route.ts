@@ -27,6 +27,8 @@ interface CartItemPayload {
   executorEmail: string;
   executorPhone: string;
   executorAddress: string;
+  addLetter: boolean;
+  letterContent: string;
   unitPrice: number;
   totalPrice: number;
 }
@@ -61,14 +63,17 @@ export async function POST(request: Request) {
         );
       }
 
-      const itemTotal = tierInfo.price * item.years;
+      const LETTER_ADDON_CENTS = 800; // $8/yr in cents
+      const giftTotal = tierInfo.price * item.years;
+      const letterTotal = item.addLetter ? LETTER_ADDON_CENTS * item.years : 0;
+      const itemTotal = giftTotal + letterTotal;
       totalAmount += itemTotal;
 
       lineItems.push({
         price_data: {
           currency: "usd",
           product_data: {
-            name: `${tierInfo.name} Gift Plan — ${item.recipientName} (${item.years} yr${item.years > 1 ? "s" : ""})`,
+            name: `${tierInfo.name} Gift Plan — ${item.recipientName} (${item.years} yr${item.years > 1 ? "s" : ""})${item.addLetter ? " + Letter" : ""}`,
             description: `${tierInfo.description} for ${item.recipientName} (${item.occasionType})`,
           },
           unit_amount: itemTotal,

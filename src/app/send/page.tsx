@@ -39,6 +39,7 @@ const STEP_LABELS = [
   "Occasion",
   "Gift Tier",
   "Address",
+  "Add a Letter",
   "About Them",
   "Review",
 ];
@@ -83,6 +84,8 @@ interface FormData {
   executorEmail: string;
   executorPhone: string;
   executorAddress: string;
+  addLetter: boolean;
+  letterContent: string;
 }
 
 const initialFormData: FormData = {
@@ -110,6 +113,8 @@ const initialFormData: FormData = {
   executorEmail: "",
   executorPhone: "",
   executorAddress: "",
+  addLetter: false,
+  letterContent: "",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -154,7 +159,7 @@ export default function SendPage() {
 
   /* ────────────────────────── Helpers ──────────────────────────── */
 
-  const update = (field: keyof FormData, value: string | number | string[]) => {
+  const update = (field: keyof FormData, value: string | number | string[] | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -163,8 +168,11 @@ export default function SendPage() {
     });
   };
 
+  const LETTER_ADDON_PRICE = 8; // per year
   const selectedTier = TIERS.find((t) => t.id === form.tier);
-  const totalPrice = selectedTier ? selectedTier.price * form.years : 0;
+  const giftPrice = selectedTier ? selectedTier.price * form.years : 0;
+  const letterPrice = form.addLetter ? LETTER_ADDON_PRICE * form.years : 0;
+  const totalPrice = giftPrice + letterPrice;
   const currentYear = new Date().getFullYear();
 
   /* ────────────────────────── Validation ───────────────────────── */
@@ -200,18 +208,16 @@ export default function SendPage() {
       }
     }
 
-    // Step 4 = About Them — executor fields validated if provided
-    if (s === 4) {
-      if (form.executorName || form.executorEmail) {
-        if (!form.executorName.trim()) errs.executorName = "Executor name is required";
-        if (!form.executorEmail.trim()) errs.executorEmail = "Executor email is required";
-        if (form.executorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.executorEmail.trim())) {
+    // Step 5 = About Them — executor email format validated only if both name+email provided
+    if (s === 5) {
+      if (form.executorName.trim() && form.executorEmail.trim()) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.executorEmail.trim())) {
           errs.executorEmail = "Please enter a valid email";
         }
       }
     }
 
-    if (s === 5) {
+    if (s === 6) {
       if (!isLoggedIn) {
         if (!form.email.trim()) errs.email = "Email is required";
         if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -227,7 +233,7 @@ export default function SendPage() {
 
   function handleNext() {
     if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, 5));
+      setStep((s) => Math.min(s + 1, 6));
     }
   }
 
@@ -238,8 +244,11 @@ export default function SendPage() {
   /* ────────────────────────── Add to Cart ─────────────────────── */
 
   function handleAddToCart() {
-    if (!validateStep(5)) return;
+    if (!validateStep(6)) return;
     if (!selectedTier) return;
+
+    // Only save executor if BOTH name and email are provided
+    const hasExecutor = form.executorName.trim() && form.executorEmail.trim();
 
     addToCart({
       recipientName: form.recipientName,
@@ -261,10 +270,12 @@ export default function SendPage() {
       giftNotes: form.giftNotes,
       cardMessage: "",
       petType: form.petType,
-      executorName: form.executorName,
-      executorEmail: form.executorEmail,
-      executorPhone: form.executorPhone,
-      executorAddress: form.executorAddress,
+      executorName: hasExecutor ? form.executorName : "",
+      executorEmail: hasExecutor ? form.executorEmail : "",
+      executorPhone: hasExecutor ? form.executorPhone : "",
+      executorAddress: hasExecutor ? form.executorAddress : "",
+      addLetter: form.addLetter,
+      letterContent: form.addLetter ? form.letterContent : "",
       unitPrice: selectedTier.price,
       totalPrice: totalPrice,
     });
@@ -428,16 +439,19 @@ export default function SendPage() {
         <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8">
           {step === 0 && <StepRecipient form={form} errors={errors} update={update} />}
           {step === 1 && <StepOccasion form={form} errors={errors} update={update} currentYear={currentYear} />}
-          {step === 2 && <StepTier form={form} errors={errors} update={update} totalPrice={totalPrice} />}
+          {step === 2 && <StepTier form={form} errors={errors} update={update} totalPrice={totalPrice} letterPrice={letterPrice} />}
           {step === 3 && <StepAddress form={form} errors={errors} update={update} />}
-          {step === 4 && <StepAboutThem form={form} errors={errors} update={update} />}
-          {step === 5 && (
+          {step === 4 && <StepLetter form={form} errors={errors} update={update} letterAddonPrice={LETTER_ADDON_PRICE} />}
+          {step === 5 && <StepAboutThem form={form} errors={errors} update={update} />}
+          {step === 6 && (
             <StepReview
               form={form}
               errors={errors}
               update={update}
               selectedTier={selectedTier}
               totalPrice={totalPrice}
+              letterPrice={letterPrice}
+              letterAddonPrice={LETTER_ADDON_PRICE}
               currentYear={currentYear}
               isLoggedIn={isLoggedIn}
               userEmail={userEmail}
@@ -464,7 +478,7 @@ export default function SendPage() {
               <div />
             )}
 
-            {step < 5 ? (
+            {step < 6 ? (
               <button
                 type="button"
                 onClick={handleNext}
@@ -517,7 +531,7 @@ const selectClass =
 interface StepProps {
   form: FormData;
   errors: Partial<Record<keyof FormData, string>>;
-  update: (field: keyof FormData, value: string | number | string[]) => void;
+  update: (field: keyof FormData, value: string | number | string[] | boolean) => void;
 }
 
 function StepRecipient({ form, errors, update }: StepProps) {
@@ -772,7 +786,8 @@ function StepTier({
   errors,
   update,
   totalPrice,
-}: StepProps & { totalPrice: number }) {
+  letterPrice,
+}: StepProps & { totalPrice: number; letterPrice: number }) {
   const selectedTier = TIERS.find((t) => t.id === form.tier);
 
   return (
@@ -850,6 +865,9 @@ function StepTier({
         <div className="mt-6 rounded-lg bg-navy/5 p-4 text-center">
           <p className="text-sm text-warm-gray">
             <span className="font-bold text-navy">${selectedTier.price}/yr</span>
+            {letterPrice > 0 && (
+              <span className="font-bold text-navy"> + $8/yr letter</span>
+            )}
             {" "}&times;{" "}
             <span className="font-bold text-navy">{form.years} {form.years === 1 ? "year" : "years"}</span>
             {" "}={" "}
@@ -862,7 +880,88 @@ function StepTier({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Step 5 — About Them (Recipient Profile)
+   Step 5 — Add a Letter
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function StepLetter({
+  form,
+  errors,
+  update,
+  letterAddonPrice,
+}: StepProps & { letterAddonPrice: number }) {
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-navy sm:text-3xl">
+        Would you like to add a letter?
+      </h2>
+      <p className="mt-2 text-warm-gray">
+        Write something meaningful to go along with your gift. We will include it every year &mdash; your words arriving alongside the gift, year after year.
+      </p>
+
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Card 1 — Yes, add a letter */}
+        <button
+          type="button"
+          onClick={() => update("addLetter", true)}
+          className={`flex flex-col items-center rounded-xl border-2 p-6 text-center transition-all ${
+            form.addLetter
+              ? "border-gold bg-gold/5 shadow-lg ring-2 ring-gold/30"
+              : "border-cream-dark bg-white hover:border-gold/40 hover:shadow-md"
+          }`}
+        >
+          <span className="text-4xl">&#9993;&#65039;</span>
+          <h3 className="mt-3 text-base font-bold text-navy">
+            Yes, add a letter (+${letterAddonPrice}/yr)
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+            Write a personal letter that arrives with every gift. Annual letters are included at a small additional cost per year.
+          </p>
+        </button>
+
+        {/* Card 2 — No thanks */}
+        <button
+          type="button"
+          onClick={() => update("addLetter", false)}
+          className={`flex flex-col items-center rounded-xl border-2 p-6 text-center transition-all ${
+            !form.addLetter
+              ? "border-gold bg-gold/5 shadow-lg ring-2 ring-gold/30"
+              : "border-cream-dark bg-white hover:border-gold/40 hover:shadow-md"
+          }`}
+        >
+          <span className="text-4xl">&#127873;</span>
+          <h3 className="mt-3 text-base font-bold text-navy">
+            No thanks, just the gift
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+            Skip the letter for now. You can always add one later from your dashboard.
+          </p>
+        </button>
+      </div>
+
+      {/* Textarea — shown when addLetter is true */}
+      {form.addLetter && (
+        <div className="mt-6">
+          <Label htmlFor="letterContent">Write your letter</Label>
+          <textarea
+            id="letterContent"
+            rows={6}
+            maxLength={5000}
+            placeholder={`Dear ${form.recipientName || "[name]"}, ...`}
+            value={form.letterContent}
+            onChange={(e) => update("letterContent", e.target.value)}
+            className={inputClass}
+          />
+          <p className="mt-1.5 text-right text-xs text-warm-gray-light">
+            {form.letterContent.length.toLocaleString()} / 5,000 characters
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Step 6 — About Them (Recipient Profile)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const INTEREST_OPTIONS = [
@@ -889,7 +988,7 @@ function StepAboutThem({
 }: {
   form: FormData;
   errors: Partial<Record<keyof FormData, string>>;
-  update: (field: keyof FormData, value: string | number | string[]) => void;
+  update: (field: keyof FormData, value: string | number | string[] | boolean) => void;
 }) {
   const [showExecutor, setShowExecutor] = useState(
     !!(form.executorName || form.executorEmail)
@@ -1003,7 +1102,7 @@ function StepAboutThem({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
               <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
             </svg>
-            Add an Executor (optional)
+            Add a Trusted Executor (optional — you can do this later)
           </button>
         ) : (
           <div className="rounded-xl border border-cream-dark bg-cream/30 p-5 space-y-4">
@@ -1023,16 +1122,21 @@ function StepAboutThem({
                   update("executorPhone", "");
                   update("executorAddress", "");
                 }}
-                className="shrink-0 ml-3 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-cream-dark hover:text-navy"
+                className="shrink-0 ml-3 rounded-lg p-2 bg-cream-dark/60 text-navy transition hover:bg-red-100 hover:text-red-600"
+                title="Close executor section"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
+            <p className="text-xs text-warm-gray italic">
+              You can skip this for now and add or change your executor anytime from your dashboard after purchase.
+            </p>
+
             <div>
-              <Label htmlFor="executorName" required>Full Name</Label>
+              <Label htmlFor="executorName">Full Name</Label>
               <input
                 id="executorName"
                 type="text"
@@ -1045,7 +1149,7 @@ function StepAboutThem({
             </div>
 
             <div>
-              <Label htmlFor="executorEmail" required>Email</Label>
+              <Label htmlFor="executorEmail">Email</Label>
               <input
                 id="executorEmail"
                 type="email"
@@ -1218,6 +1322,8 @@ function StepReview({
   update,
   selectedTier,
   totalPrice,
+  letterPrice,
+  letterAddonPrice,
   currentYear,
   isLoggedIn,
   userEmail,
@@ -1227,6 +1333,8 @@ function StepReview({
 }: StepProps & {
   selectedTier: (typeof TIERS)[number] | undefined;
   totalPrice: number;
+  letterPrice: number;
+  letterAddonPrice: number;
   currentYear: number;
   isLoggedIn: boolean;
   userEmail: string | null;
@@ -1263,17 +1371,31 @@ function StepReview({
           label="Delivery address"
           value={`${form.addressLine1}${form.addressLine2 ? ", " + form.addressLine2 : ""}, ${form.city}, ${form.state} ${form.postalCode}`}
         />
+        {form.addLetter && (
+          <SummaryRow label="Letter add-on" value={`+$${letterAddonPrice}/yr`} />
+        )}
 
-        <div className="border-t border-cream-dark pt-4">
+        <div className="border-t border-cream-dark pt-4 space-y-2">
           <div className="flex items-center justify-between">
+            <span className="text-sm text-warm-gray">Gift</span>
+            <span className="text-sm font-medium text-navy">
+              ${selectedTier?.price}/yr &times; {form.years} {form.years === 1 ? "year" : "years"} = ${(selectedTier ? selectedTier.price * form.years : 0).toLocaleString()}
+            </span>
+          </div>
+          {form.addLetter && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-warm-gray">Letter add-on</span>
+              <span className="text-sm font-medium text-navy">
+                +${letterAddonPrice}/yr &times; {form.years} {form.years === 1 ? "year" : "years"} = ${letterPrice.toLocaleString()}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-cream-dark pt-2">
             <span className="text-sm font-medium text-warm-gray">Total</span>
             <span className="text-2xl font-extrabold text-forest">
               ${totalPrice.toLocaleString()}
             </span>
           </div>
-          <p className="mt-0.5 text-right text-xs text-warm-gray-light">
-            ${selectedTier?.price}/yr &times; {form.years} {form.years === 1 ? "year" : "years"}
-          </p>
         </div>
       </div>
 

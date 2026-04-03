@@ -25,6 +25,8 @@ export interface CartItem {
   executorEmail: string;
   executorPhone: string;
   executorAddress: string;
+  addLetter: boolean;
+  letterContent: string;
   unitPrice: number;
   totalPrice: number;
 }
