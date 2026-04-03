@@ -87,6 +87,9 @@ interface AdminLetter {
   status: string;
   amount_paid: number;
   executor_email: string | null;
+  executor_name: string | null;
+  executor_phone: string | null;
+  executor_address: string | null;
   executor_can_view: boolean;
   executor_can_edit: boolean;
   created_at: string;
@@ -925,7 +928,10 @@ function LettersTab({
                                   <DetailRow label="Customer" value={letter.profiles?.full_name} />
                                   <DetailRow label="Email" value={letter.profiles?.email} />
                                   <DetailRow label="Phone" value={letter.profiles?.phone} />
-                                  <DetailRow label="Executor" value={letter.executor_email} />
+                                  <DetailRow label="Executor Name" value={letter.executor_name} />
+                                  <DetailRow label="Executor Email" value={letter.executor_email} />
+                                  <DetailRow label="Executor Phone" value={letter.executor_phone} />
+                                  <DetailRow label="Executor Address" value={letter.executor_address} />
                                   {letter.executor_email && (
                                     <DetailRow
                                       label="Executor Permissions"

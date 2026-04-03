@@ -32,6 +32,9 @@ interface FormData {
   milestoneLabel: string;
   years: number;
   executorEmail: string;
+  executorName: string;
+  executorPhone: string;
+  executorAddress: string;
   executorCanView: boolean;
   executorCanEdit: boolean;
   addressLine1: string;
@@ -63,6 +66,9 @@ export default function WriteLetterPage() {
     milestoneLabel: "",
     years: 5,
     executorEmail: "",
+    executorName: "",
+    executorPhone: "",
+    executorAddress: "",
     executorCanView: false,
     executorCanEdit: false,
     addressLine1: "",
@@ -579,6 +585,49 @@ export default function WriteLetterPage() {
               <p className="mt-1.5 text-xs text-warm-gray-light">
                 Your executor will be notified to manage letter deliveries if your account becomes inactive.
               </p>
+              {form.executorEmail && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-navy">
+                      Executor Full Name{" "}
+                      <span className="text-warm-gray-light font-normal">(required)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.executorName}
+                      onChange={(e) => update("executorName", e.target.value)}
+                      placeholder="Jane Smith"
+                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-navy">
+                      Executor Phone{" "}
+                      <span className="text-warm-gray-light font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={form.executorPhone}
+                      onChange={(e) => update("executorPhone", e.target.value)}
+                      placeholder="(555) 555-5555"
+                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-navy">
+                      Executor Address{" "}
+                      <span className="text-warm-gray-light font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      value={form.executorAddress}
+                      onChange={(e) => update("executorAddress", e.target.value)}
+                      placeholder="123 Main St, City, State ZIP"
+                      rows={2}
+                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                    />
+                  </div>
+                </div>
+              )}
               {form.executorEmail && (
                 <div className="mt-4 space-y-3 rounded-lg border border-cream-dark bg-cream/50 p-4">
                   <p className="text-sm font-medium text-navy">Executor permissions:</p>
