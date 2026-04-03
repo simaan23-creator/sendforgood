@@ -141,7 +141,7 @@ const FAQ = [
   {
     question: "What if the recipient moves?",
     answer:
-      "We'll contact you (or your executor) before each delivery to confirm the address. You can update the recipient's address anytime from your dashboard. If we can't reach anyone, we'll hold the letter and try again.",
+      "We reach out before every delivery to confirm the address is still current. You can update it anytime from your dashboard. If we are unable to reach you or your executor, we will attempt to verify the address on file and if necessary, try to locate a current address using the name and last known address on record. If we are still unable to deliver, your letter will be held securely on our servers — protected and waiting — until the intended recipient comes forward, verifies their identity, and claims it.",
   },
   {
     question: "Is there a maximum letter length?",

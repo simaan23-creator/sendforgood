@@ -32,6 +32,8 @@ interface FormData {
   milestoneLabel: string;
   years: number;
   executorEmail: string;
+  executorCanView: boolean;
+  executorCanEdit: boolean;
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -61,6 +63,8 @@ export default function WriteLetterPage() {
     milestoneLabel: "",
     years: 5,
     executorEmail: "",
+    executorCanView: false,
+    executorCanEdit: false,
     addressLine1: "",
     addressLine2: "",
     city: "",
@@ -82,7 +86,7 @@ export default function WriteLetterPage() {
     });
   }, []);
 
-  function update(field: keyof FormData, value: string | number) {
+  function update(field: keyof FormData, value: string | number | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -573,9 +577,32 @@ export default function WriteLetterPage() {
                 className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
               <p className="mt-1.5 text-xs text-warm-gray-light">
-                Your executor will be notified to manage letter deliveries if
-                your account becomes inactive. They cannot read your letters.
+                Your executor will be notified to manage letter deliveries if your account becomes inactive.
               </p>
+              {form.executorEmail && (
+                <div className="mt-4 space-y-3 rounded-lg border border-cream-dark bg-cream/50 p-4">
+                  <p className="text-sm font-medium text-navy">Executor permissions:</p>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.executorCanView}
+                      onChange={(e) => update("executorCanView", e.target.checked)}
+                      className="h-4 w-4 rounded border-cream-dark accent-gold"
+                    />
+                    <span className="text-sm text-warm-gray">Allow executor to <strong>view</strong> my letters</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.executorCanEdit}
+                      onChange={(e) => update("executorCanEdit", e.target.checked)}
+                      className="h-4 w-4 rounded border-cream-dark accent-gold"
+                    />
+                    <span className="text-sm text-warm-gray">Allow executor to <strong>edit</strong> my letters</span>
+                  </label>
+                  <p className="text-xs text-warm-gray-light">By default, executors can only release letters — not read or change them.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
