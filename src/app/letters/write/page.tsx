@@ -188,7 +188,7 @@ export default function WriteLetterPage() {
             &larr; Back to Legacy Letters
           </Link>
           <h1 className="mt-4 text-3xl font-bold text-navy">
-            Create Your Legacy Letter
+            Create Your Legacy Letters
           </h1>
           <p className="mt-2 text-warm-gray">
             Step {step} of {totalSteps}
@@ -424,7 +424,7 @@ export default function WriteLetterPage() {
         {step === 3 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
-              Where should we deliver {form.recipientName}&apos;s letter?
+              Where should we deliver {form.recipientName}&apos;s letters?
             </h2>
             <p className="text-sm text-warm-gray">
               Continental US only. You can update this anytime from your
