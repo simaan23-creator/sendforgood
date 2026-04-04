@@ -176,6 +176,28 @@ async function handleIndividualOrder(
 
   if (shipmentError) throw shipmentError;
 
+  // Create letter records if letter add-on was purchased
+  if (metadata.addLetter === "true") {
+    const letterRecords = [];
+    for (let i = 0; i < years; i++) {
+      const letterDate = new Date(occasionDate);
+      letterDate.setFullYear(currentYear + i);
+      if (letterDate < new Date()) {
+        letterDate.setFullYear(letterDate.getFullYear() + 1);
+      }
+      letterRecords.push({
+        user_id: userId,
+        recipient_id: recipient.id,
+        letter_type: "annual",
+        title: `Letter for ${metadata.recipientName} — Year ${i + 1}`,
+        content: "",
+        scheduled_date: letterDate.toISOString().split("T")[0],
+        status: "draft",
+      });
+    }
+    await supabaseAdmin.from("letters").insert(letterRecords);
+  }
+
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 
