@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — SendForGood",
+  title: "About — SendForGood & Legacy Letters",
 };
 
 export default function AboutPage() {
@@ -78,6 +78,74 @@ export default function AboutPage() {
 
               <p className="font-semibold text-navy">
                 That is why I built SendForGood.
+              </p>
+
+              <p className="mt-4 text-right italic text-navy text-lg">
+                &mdash; Simaan
+              </p>
+            </div>
+
+            {/* bottom divider */}
+            <hr className="mt-10 border-t border-warm-gray/30" />
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────────── Why Legacy Letters (Founder Story) ──────────────── */}
+      <section className="bg-cream px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Why Legacy Letters
+          </h2>
+
+          <div className="mx-auto mt-12 max-w-2xl">
+            {/* top divider */}
+            <hr className="mb-10 border-t border-warm-gray/30" />
+
+            <div className="space-y-6 pl-4 sm:pl-8 text-[17px] leading-[1.85] text-warm-gray font-[350]" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+              <p>
+                My father passed away last year. He was a first-generation
+                immigrant&nbsp;&mdash; one of the first people in my family to come
+                to the United States. He did not speak a word of English when he
+                arrived. He built a successful business, raised a great family, and
+                became one of the most intelligent businessmen I have ever known.
+              </p>
+
+              <p>
+                Before he passed, he used to tell me that he wanted to leave his
+                grandchildren with more than just money. He wanted to pass on his
+                experience. His knowledge. The things he had learned the hard way,
+                so they would not have to.
+              </p>
+
+              <p>
+                He never found a way to do that.
+              </p>
+
+              <p>
+                My father will not be around to see my first child. But if I could
+                receive a letter that he wrote to me for that moment&nbsp;&mdash; a
+                letter that he sealed and set aside years ago, just waiting for the
+                right day&nbsp;&mdash; I cannot even put into words what that would
+                mean to me.
+              </p>
+
+              <p>
+                Any words of wisdom from my father would be worth far more than any
+                price we could put on them.
+              </p>
+
+              <p>
+                That is what Legacy Letters is really about. To the person writing
+                the letter, eight dollars might feel like a lot. But to the person
+                receiving it&nbsp;&mdash; especially if the writer is no longer
+                here&nbsp;&mdash; that letter could be priceless.
+              </p>
+
+              <p className="font-semibold text-navy">
+                We built this so that no one has to wonder what their father, their
+                grandmother, their mentor would have said. Write it down. We will
+                make sure they read it.
               </p>
 
               <p className="mt-4 text-right italic text-navy text-lg">
@@ -429,27 +497,18 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ──────────────────── Why We Built Legacy Letters ──────────────────── */}
-      <section className="bg-cream px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Why We Built Legacy Letters
+      {/* ──────────────────── Legacy Letters CTA ──────────────────── */}
+      <section className="bg-cream px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+            Write the Words That Matter Most
           </h2>
-
-          <div className="mt-12 space-y-6 rounded-2xl bg-white p-8 shadow-md sm:p-10">
-            <p className="text-lg leading-relaxed text-warm-gray">
-              We started SendForGood to make thoughtful gifting effortless. But
-              we realized that the most meaningful gift isn&rsquo;t something you
-              buy &mdash; it&rsquo;s something you say.
-            </p>
-            <p className="text-lg leading-relaxed text-warm-gray">
-              Legacy Letters lets you write the words that matter most, and
-              ensure they&rsquo;re delivered at the perfect moment &mdash; even
-              if you&rsquo;re not there to say them yourself.
-            </p>
-          </div>
-
-          <div className="mt-10 text-center">
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-warm-gray">
+            Legacy Letters lets you write to the people you love&nbsp;&mdash;
+            and ensure they receive your words at the perfect moment, even if
+            you&rsquo;re not there to say them yourself.
+          </p>
+          <div className="mt-10">
             <Link
               href="/letters"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
