@@ -886,8 +886,8 @@ function RefundTab({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(hasExisting);
 
-  const currentTier = TIERS.find((t) => t.id === order.tier);
-  const refundEstimate = (order.years_remaining ?? 0) * (currentTier?.price ?? 0);
+  const perYearCost = order.years_purchased > 0 ? order.amount_paid / order.years_purchased : 0;
+  const refundEstimate = perYearCost * (order.years_remaining ?? 0);
 
   async function handleSubmit() {
     if (!reason) return;
@@ -969,7 +969,7 @@ function RefundTab({
             <p className="text-xs text-warm-gray-light">
               {order.years_remaining} remaining year
               {order.years_remaining !== 1 ? "s" : ""} x $
-              {currentTier?.price ?? 0}/year
+              {perYearCost.toFixed(2)}/year
             </p>
           </div>
           <p className="text-2xl font-bold text-navy">

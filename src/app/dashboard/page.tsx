@@ -640,28 +640,40 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Legacy Letters Section */}
-        {letters.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-navy">Your Legacy Letters</h2>
-              <Link
-                href="/letters/write"
-                className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-              >
-                Write New Letter
-              </Link>
+        {/* My Letters Section */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-navy">My Letters</h2>
+            <Link
+              href="/letters"
+              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
+            >
+              + Add Letter
+            </Link>
+          </div>
+
+          {letters.length === 0 ? (
+            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
+              <p className="text-warm-gray">
+                No letters yet. Add a letter add-on to any gift plan, or purchase letters standalone.{" "}
+                <Link href="/letters" className="font-medium text-navy underline hover:text-gold">
+                  Browse letters
+                </Link>
+              </p>
             </div>
+          ) : (
             <div className="space-y-4">
               {letters.map((letter) => {
-                const statusColors: Record<string, string> = {
-                  draft: "bg-warm-gray-light/20 text-warm-gray",
-                  scheduled: "bg-navy/10 text-navy",
-                  pending_release: "bg-gold/20 text-gold-dark",
-                  released: "bg-forest/10 text-forest",
-                  printed: "bg-navy/10 text-navy",
-                  delivered: "bg-forest/10 text-forest",
+                const statusMap: Record<string, { label: string; classes: string }> = {
+                  draft: { label: "Not written yet", classes: "bg-yellow-100 text-yellow-800" },
+                  scheduled: { label: "Scheduled", classes: "bg-green-100 text-green-800" },
+                  pending_release: { label: "In Vault", classes: "bg-blue-100 text-blue-800" },
+                  released: { label: "Released", classes: "bg-purple-100 text-purple-800" },
+                  printed: { label: "Being prepared", classes: "bg-orange-100 text-orange-800" },
+                  delivered: { label: "Delivered", classes: "bg-green-100 text-green-800" },
                 };
+                const statusInfo = statusMap[letter.status] ?? { label: letter.status, classes: "bg-gray-100 text-gray-700" };
+                const hasContent = !!letter.content;
 
                 return (
                   <div
@@ -671,7 +683,7 @@ export default function DashboardPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-lg font-semibold text-navy">
-                          {letter.title}
+                          {letter.title || "Untitled Letter"}
                         </h3>
                         <p className="mt-1 text-sm text-warm-gray">
                           To: {letter.recipients?.name || "Unknown"}{" "}
@@ -683,90 +695,43 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 capitalize">
-                          {letter.letter_type}
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                          letter.letter_type === "annual"
+                            ? "bg-navy/10 text-navy"
+                            : "bg-gold/20 text-gold-dark"
+                        }`}>
+                          {letter.letter_type === "annual" ? "Annual" : "Milestone"}
                         </span>
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                            statusColors[letter.status] || "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {letter.status.replace(/_/g, " ")}
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
+                          {statusInfo.label}
                         </span>
                       </div>
                     </div>
-
-                    {letter.milestone_label && (
-                      <p className="mt-2 text-sm text-warm-gray">
-                        Milestone: <span className="font-medium text-navy">{letter.milestone_label}</span>
-                      </p>
-                    )}
-
-                    <div className="mt-4 flex items-center justify-between text-sm">
-                      <span className="text-warm-gray">
-                        {letter.scheduled_date ? (
-                          <>
-                            Delivery:{" "}
-                            <span className="font-medium text-navy">
-                              {formatShipmentDate(letter.scheduled_date)}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-warm-gray-light">Delivery date not set</span>
-                        )}
-                      </span>
-                      {letter.executor_email && (
-                        <span className="text-xs text-warm-gray-light">
-                          Executor: {letter.executor_email}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Letter preview */}
-                    {letter.content && (
-                      <div className="mt-4 rounded-lg bg-cream/50 p-4 font-serif text-sm leading-relaxed text-navy max-h-24 overflow-hidden relative">
-                        {letter.content.slice(0, 200)}
-                        {letter.content.length > 200 && "..."}
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-cream/80 to-transparent" />
-                      </div>
-                    )}
 
                     {/* Actions */}
-                    {!["printed", "delivered"].includes(letter.status) && (
-                      <div className="mt-4 flex items-center justify-end border-t border-cream-dark pt-4">
+                    <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                      {hasContent ? (
                         <Link
                           href={`/letters/edit/${letter.id}`}
                           className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                         >
-                          Edit Letter
+                          Edit
                         </Link>
-                      </div>
-                    )}
+                      ) : (
+                        <Link
+                          href={`/letters/edit/${letter.id}`}
+                          className="rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-light"
+                        >
+                          Write Letter
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Write first letter CTA (if no letters yet) */}
-        {letters.length === 0 && (
-          <div className="mt-12 rounded-xl border border-gold/30 bg-gold/5 p-6 text-center">
-            <h2 className="text-lg font-bold text-navy">
-              Write a Legacy Letter
-            </h2>
-            <p className="mt-2 text-sm text-warm-gray">
-              Write letters today that arrive in the future. Birthday letters every year,
-              milestone letters for life&apos;s biggest moments.
-            </p>
-            <Link
-              href="/letters"
-              className="mt-4 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy transition hover:bg-gold-light"
-            >
-              Learn About Legacy Letters
-            </Link>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Account Settings */}
         <div className="mt-12 rounded-xl border border-cream-dark bg-white p-6">
