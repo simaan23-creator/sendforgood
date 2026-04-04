@@ -31,7 +31,11 @@ export async function GET() {
             city,
             state,
             postal_code,
-            country
+            country,
+            age,
+            gender,
+            interests,
+            gift_notes
           ),
           occasions (
             id,
