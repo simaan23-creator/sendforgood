@@ -596,7 +596,7 @@ function ShipmentsTab({
                                   <DetailRow label="Age" value={r?.age} />
                                   <DetailRow label="Gender" value={r?.gender} />
                                   <DetailRow label="Interests" value={r?.interests} />
-                                  <DetailRow label="Card Message" value={r?.card_message} />
+
                                   <DetailRow label="Gift Notes" value={r?.gift_notes} />
                                 </div>
                               </div>
