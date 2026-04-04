@@ -15,7 +15,6 @@ interface LetterData {
   scheduled_date: string | null;
   milestone_label: string | null;
   status: string;
-  executor_email: string | null;
   recipients: {
     name: string;
     relationship: string;
@@ -31,7 +30,6 @@ export default function EditLetterPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
-  const [executorEmail, setExecutorEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -66,7 +64,6 @@ export default function EditLetterPage() {
       setTitle(data.title);
       setContent(data.content || "");
       setScheduledDate(data.scheduled_date || "");
-      setExecutorEmail(data.executor_email || "");
       setLoading(false);
     }
 
@@ -87,7 +84,6 @@ export default function EditLetterPage() {
           title,
           content,
           scheduledDate: scheduledDate || null,
-          executorEmail: executorEmail || null,
         }),
       });
 
@@ -224,28 +220,6 @@ export default function EditLetterPage() {
               disabled={isLocked}
               className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
             />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-navy">
-              Executor Email{" "}
-              <span className="text-warm-gray-light font-normal">(optional)</span>
-            </label>
-            <input
-              type="email"
-              value={executorEmail}
-              onChange={(e) => {
-                setExecutorEmail(e.target.value);
-                setSaved(false);
-              }}
-              disabled={isLocked}
-              placeholder="spouse@email.com"
-              className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-            />
-            <p className="mt-1.5 text-xs text-warm-gray-light">
-              Your executor will be notified to manage deliveries if your
-              account becomes inactive.
-            </p>
           </div>
 
           {error && (
