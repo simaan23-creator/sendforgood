@@ -70,7 +70,7 @@ export async function POST(request: Request) {
         ? `5 Milestone Letters — ${recipientName}`
         : milestoneQuantity === "bundle10"
           ? `10 Milestone Letters — ${recipientName}`
-          : `Milestone Letter for ${recipientName} — ${milestoneLabel}`;
+          : `Milestone Letter for ${recipientName}${milestoneLabel ? ` — ${milestoneLabel}` : ""}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

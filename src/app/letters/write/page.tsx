@@ -5,34 +5,11 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-const MILESTONE_SUGGESTIONS = [
-  "High School Graduation",
-  "College Graduation",
-  "Wedding Day",
-  "First Child Born",
-  "18th Birthday",
-  "21st Birthday",
-  "30th Birthday",
-  "40th Birthday",
-  "50th Birthday",
-  "Retirement",
-  "First Home",
-  "First Job",
-];
-
 interface FormData {
   recipientName: string;
   relationship: string;
   letterType: "annual" | "milestone";
-  scheduledDate: string;
-  milestoneLabel: string;
   years: number;
-  executorEmail: string;
-  executorName: string;
-  executorPhone: string;
-  executorAddress: string;
-  executorCanView: boolean;
-  executorCanEdit: boolean;
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -55,15 +32,7 @@ export default function WriteLetterPage() {
     recipientName: "",
     relationship: "",
     letterType: initialType,
-    scheduledDate: "",
-    milestoneLabel: "",
     years: 5,
-    executorEmail: "",
-    executorName: "",
-    executorPhone: "",
-    executorAddress: "",
-    executorCanView: false,
-    executorCanEdit: false,
     addressLine1: "",
     addressLine2: "",
     city: "",
@@ -107,13 +76,13 @@ export default function WriteLetterPage() {
     return 1500;
   }
 
-  function getPriceLabel(): string {
+  function getQuantityLabel(): string {
     if (form.letterType === "annual") {
-      return `$10/yr × ${form.years} year${form.years > 1 ? "s" : ""} = $${getPrice()}`;
+      return `${form.years} year${form.years > 1 ? "s" : ""} ($10/yr)`;
     }
-    if (milestoneQuantity === "bundle5") return "5 Milestone Letters — $60";
-    if (milestoneQuantity === "bundle10") return "10 Milestone Letters — $100";
-    return "1 Milestone Letter — $15";
+    if (milestoneQuantity === "bundle5") return "5 Milestone Letters";
+    if (milestoneQuantity === "bundle10") return "10 Milestone Letters";
+    return "1 Milestone Letter";
   }
 
   function canAdvance(): boolean {
@@ -121,18 +90,13 @@ export default function WriteLetterPage() {
       case 1:
         return form.recipientName.trim().length > 0 && form.relationship.trim().length > 0;
       case 2:
-        if (form.letterType === "annual") {
-          return form.scheduledDate.length > 0;
-        }
-        return form.milestoneLabel.trim().length > 0;
-      case 3:
         return (
           form.addressLine1.trim().length > 0 &&
           form.city.trim().length > 0 &&
           form.state.trim().length > 0 &&
           form.postalCode.trim().length > 0
         );
-      case 4:
+      case 3:
         return !user ? email.trim().length > 0 : true;
       default:
         return true;
@@ -173,7 +137,7 @@ export default function WriteLetterPage() {
     }
   }
 
-  const totalSteps = 4;
+  const totalSteps = 3;
   const progressPercent = (step / totalSteps) * 100;
 
   return (
@@ -207,7 +171,7 @@ export default function WriteLetterPage() {
         {step === 1 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
-              Who is this letter for?
+              Who are you writing to?
             </h2>
 
             <div>
@@ -274,154 +238,77 @@ export default function WriteLetterPage() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Step 2: Schedule */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-navy">
-              {form.letterType === "annual"
-                ? "When should it arrive each year?"
-                : "What milestone is this for?"}
-            </h2>
-
+            {/* Quantity selection inline with step 1 */}
             {form.letterType === "annual" ? (
-              <>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Delivery Date (month & day each year)
-                  </label>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  How many years?
+                </label>
+                <div className="flex items-center gap-4">
                   <input
-                    type="date"
-                    value={form.scheduledDate}
-                    onChange={(e) => update("scheduledDate", e.target.value)}
-                    className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                    autoFocus
+                    type="range"
+                    min={1}
+                    max={25}
+                    value={form.years}
+                    onChange={(e) => update("years", parseInt(e.target.value))}
+                    className="flex-1 accent-gold"
                   />
-                  <p className="mt-1.5 text-xs text-warm-gray-light">
-                    The first letter will go out on this date (or the next
-                    occurrence if in the past).
-                  </p>
+                  <span className="w-16 text-center text-lg font-bold text-navy">
+                    {form.years} yr{form.years > 1 ? "s" : ""}
+                  </span>
                 </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    How many years?
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="range"
-                      min={1}
-                      max={25}
-                      value={form.years}
-                      onChange={(e) => update("years", parseInt(e.target.value))}
-                      className="flex-1 accent-gold"
-                    />
-                    <span className="w-16 text-center text-lg font-bold text-navy">
-                      {form.years} yr{form.years > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-sm text-warm-gray">
-                    Total: <span className="font-semibold text-navy">${form.years * 10}</span>{" "}
-                    ($10/yr &times; {form.years} years)
-                  </p>
-                </div>
-              </>
+                <p className="mt-1.5 text-sm text-warm-gray">
+                  Total: <span className="font-semibold text-navy">${form.years * 10}</span>{" "}
+                  ($10/yr &times; {form.years} years)
+                </p>
+              </div>
             ) : (
-              <>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Milestone
-                  </label>
-                  <input
-                    type="text"
-                    value={form.milestoneLabel}
-                    onChange={(e) => update("milestoneLabel", e.target.value)}
-                    placeholder="e.g. College Graduation"
-                    className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                    autoFocus
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {MILESTONE_SUGGESTIONS.map((ms) => (
-                      <button
-                        key={ms}
-                        type="button"
-                        onClick={() => update("milestoneLabel", ms)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                          form.milestoneLabel === ms
-                            ? "border-gold bg-gold/10 text-gold-dark"
-                            : "border-cream-dark bg-white text-warm-gray hover:border-gold/50"
-                        }`}
-                      >
-                        {ms}
-                      </button>
-                    ))}
-                  </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Pricing
+                </label>
+                <div className="space-y-2">
+                  {(
+                    [
+                      { id: "single" as const, label: "1 Milestone Letter", price: "$15" },
+                      { id: "bundle5" as const, label: "5 Milestone Letters", price: "$60", save: "Save $15" },
+                      { id: "bundle10" as const, label: "10 Milestone Letters", price: "$100", save: "Save $50" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setMilestoneQuantity(opt.id)}
+                      className={`w-full rounded-lg border-2 p-4 text-left transition ${
+                        milestoneQuantity === opt.id
+                          ? "border-gold bg-gold/5"
+                          : "border-cream-dark bg-white hover:border-gold/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-navy">
+                          {opt.label}
+                        </span>
+                        <span className="font-bold text-navy">
+                          {opt.price}
+                        </span>
+                      </div>
+                      {"save" in opt && opt.save && (
+                        <span className="mt-1 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-medium text-forest">
+                          {opt.save}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Estimated delivery date (optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={form.scheduledDate}
-                    onChange={(e) => update("scheduledDate", e.target.value)}
-                    className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                  />
-                  <p className="mt-1.5 text-xs text-warm-gray-light">
-                    Don&apos;t know yet? That&apos;s fine &mdash; you or your executor
-                    can set this later.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Pricing
-                  </label>
-                  <div className="space-y-2">
-                    {(
-                      [
-                        { id: "single" as const, label: "1 Milestone Letter", price: "$15" },
-                        { id: "bundle5" as const, label: "5 Milestone Letters", price: "$60", save: "Save $15" },
-                        { id: "bundle10" as const, label: "10 Milestone Letters", price: "$100", save: "Save $50" },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setMilestoneQuantity(opt.id)}
-                        className={`w-full rounded-lg border-2 p-4 text-left transition ${
-                          milestoneQuantity === opt.id
-                            ? "border-gold bg-gold/5"
-                            : "border-cream-dark bg-white hover:border-gold/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-navy">
-                            {opt.label}
-                          </span>
-                          <span className="font-bold text-navy">
-                            {opt.price}
-                          </span>
-                        </div>
-                        {"save" in opt && opt.save && (
-                          <span className="mt-1 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-medium text-forest">
-                            {opt.save}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
           </div>
         )}
 
-        {/* Step 3: Delivery Address */}
-        {step === 3 && (
+        {/* Step 2: Delivery Address */}
+        {step === 2 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
               Where should we deliver {form.recipientName}&apos;s letters?
@@ -498,95 +385,11 @@ export default function WriteLetterPage() {
                 />
               </div>
             </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Executor Email{" "}
-                <span className="text-warm-gray-light font-normal">(optional but recommended)</span>
-              </label>
-              <input
-                type="email"
-                value={form.executorEmail}
-                onChange={(e) => update("executorEmail", e.target.value)}
-                placeholder="spouse@email.com"
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-              />
-              <p className="mt-1.5 text-xs text-warm-gray-light">
-                Your executor will be notified to manage letter deliveries if your account becomes inactive.
-              </p>
-              {form.executorEmail && (
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-navy">
-                      Executor Full Name{" "}
-                      <span className="text-warm-gray-light font-normal">(required)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.executorName}
-                      onChange={(e) => update("executorName", e.target.value)}
-                      placeholder="Jane Smith"
-                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-navy">
-                      Executor Phone{" "}
-                      <span className="text-warm-gray-light font-normal">(optional)</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={form.executorPhone}
-                      onChange={(e) => update("executorPhone", e.target.value)}
-                      placeholder="(555) 555-5555"
-                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-navy">
-                      Executor Address{" "}
-                      <span className="text-warm-gray-light font-normal">(optional)</span>
-                    </label>
-                    <textarea
-                      value={form.executorAddress}
-                      onChange={(e) => update("executorAddress", e.target.value)}
-                      placeholder="123 Main St, City, State ZIP"
-                      rows={2}
-                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                    />
-                  </div>
-                </div>
-              )}
-              {form.executorEmail && (
-                <div className="mt-4 space-y-3 rounded-lg border border-cream-dark bg-cream/50 p-4">
-                  <p className="text-sm font-medium text-navy">Executor permissions:</p>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.executorCanView}
-                      onChange={(e) => update("executorCanView", e.target.checked)}
-                      className="h-4 w-4 rounded border-cream-dark accent-gold"
-                    />
-                    <span className="text-sm text-warm-gray">Allow executor to <strong>view</strong> my letters</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.executorCanEdit}
-                      onChange={(e) => update("executorCanEdit", e.target.checked)}
-                      className="h-4 w-4 rounded border-cream-dark accent-gold"
-                    />
-                    <span className="text-sm text-warm-gray">Allow executor to <strong>edit</strong> my letters</span>
-                  </label>
-                  <p className="text-xs text-warm-gray-light">By default, executors can only release letters — not read or change them.</p>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
-        {/* Step 4: Review & Pay */}
-        {step === 4 && (
+        {/* Step 3: Review & Pay */}
+        {step === 3 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
               Review & Pay
@@ -605,28 +408,12 @@ export default function WriteLetterPage() {
                   {form.letterType}
                 </span>
               </div>
-              {form.letterType === "annual" && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-warm-gray">Delivery Date</span>
-                  <span className="text-sm font-medium text-navy">
-                    {form.scheduledDate
-                      ? new Date(form.scheduledDate + "T00:00:00").toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "Not set"}
-                    , every year for {form.years} year{form.years > 1 ? "s" : ""}
-                  </span>
-                </div>
-              )}
-              {form.letterType === "milestone" && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-warm-gray">Milestone</span>
-                  <span className="text-sm font-medium text-navy">
-                    {form.milestoneLabel}
-                  </span>
-                </div>
-              )}
+              <div className="flex justify-between">
+                <span className="text-sm text-warm-gray">Quantity</span>
+                <span className="text-sm font-medium text-navy">
+                  {getQuantityLabel()}
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-sm text-warm-gray">Delivery Address</span>
                 <span className="text-sm font-medium text-navy text-right">
@@ -636,24 +423,13 @@ export default function WriteLetterPage() {
                   {form.city}, {form.state} {form.postalCode}
                 </span>
               </div>
-              {form.executorEmail && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-warm-gray">Executor</span>
-                  <span className="text-sm font-medium text-navy">
-                    {form.executorEmail}
-                  </span>
-                </div>
-              )}
 
               <div className="border-t border-cream-dark pt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-navy">Total</span>
-                  <div className="text-right">
-                    <p className="text-2xl font-extrabold text-navy">
-                      ${getPrice()}
-                    </p>
-                    <p className="text-xs text-warm-gray">{getPriceLabel()}</p>
-                  </div>
+                  <span className="text-2xl font-extrabold text-navy">
+                    ${getPrice()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -707,14 +483,14 @@ export default function WriteLetterPage() {
 
             <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
               <p className="text-sm text-navy">
-                After purchase, you can write your letter anytime from your dashboard.
+                After purchase, you&apos;ll configure delivery dates, write your letters, and set up your executor from your dashboard.
               </p>
             </div>
           </div>
         )}
 
         {/* Navigation buttons */}
-        {step < 4 && (
+        {step < 3 && (
           <div className="mt-10 flex items-center justify-between">
             <button
               onClick={() => setStep(Math.max(1, step - 1))}
