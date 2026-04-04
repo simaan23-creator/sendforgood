@@ -220,7 +220,6 @@ function RecipientTab({
   const [interests, setInterests] = useState<string[]>(
     r?.interests ? r.interests.split(",").map((s) => s.trim()).filter(Boolean) : []
   );
-  const [cardMessage, setCardMessage] = useState(r?.card_message ?? "");
   const [giftNotes, setGiftNotes] = useState(r?.gift_notes ?? "");
   const [petType, setPetType] = useState(r?.pet_type ?? "");
   const [saving, setSaving] = useState(false);
@@ -248,7 +247,6 @@ function RecipientTab({
         age: age || null,
         gender: gender || null,
         interests: interests.length > 0 ? interests.join(", ") : null,
-        card_message: cardMessage || null,
         gift_notes: giftNotes || null,
         pet_type: isPet ? petType : null,
       }),
@@ -381,21 +379,6 @@ function RecipientTab({
             );
           })}
         </div>
-      </div>
-
-      {/* Card message */}
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-navy">
-          Card Message{" "}
-          <span className="font-normal text-warm-gray-light">Optional</span>
-        </label>
-        <textarea
-          rows={3}
-          value={cardMessage}
-          onChange={(e) => { setCardMessage(e.target.value); setSaved(false); }}
-          placeholder="e.g. Happy Birthday! Wishing you all the joy..."
-          className={inputClass}
-        />
       </div>
 
       {/* Gift notes */}
@@ -1054,7 +1037,7 @@ function ExecutorSection({
           <input
             value={name}
             onChange={(e) => { setName(e.target.value); setSaved(false); }}
-            placeholder="e.g. Jane Smith"
+            placeholder="Jane Smith"
             className={inputClass}
           />
         </div>
@@ -1067,7 +1050,7 @@ function ExecutorSection({
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setSaved(false); }}
-            placeholder="e.g. jane@example.com"
+            placeholder="spouse@email.com"
             className={inputClass}
           />
         </div>
@@ -1080,7 +1063,7 @@ function ExecutorSection({
           <input
             value={phone}
             onChange={(e) => { setPhone(e.target.value); setSaved(false); }}
-            placeholder="e.g. (555) 123-4567"
+            placeholder="(555) 555-1234"
             className={inputClass}
           />
         </div>
@@ -1094,7 +1077,7 @@ function ExecutorSection({
             rows={2}
             value={address}
             onChange={(e) => { setAddress(e.target.value); setSaved(false); }}
-            placeholder="e.g. 123 Main St, New York, NY 10001"
+            placeholder="123 Main St, City, State ZIP"
             className={inputClass}
           />
         </div>
