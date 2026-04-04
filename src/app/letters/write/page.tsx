@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,14 +20,10 @@ const MILESTONE_SUGGESTIONS = [
   "First Job",
 ];
 
-const MAX_LETTER_LENGTH = 5000;
-
 interface FormData {
   recipientName: string;
   relationship: string;
   letterType: "annual" | "milestone";
-  title: string;
-  content: string;
   scheduledDate: string;
   milestoneLabel: string;
   years: number;
@@ -45,7 +41,6 @@ interface FormData {
 }
 
 export default function WriteLetterPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialType = searchParams.get("type") === "milestone" ? "milestone" : "annual";
 
@@ -60,8 +55,6 @@ export default function WriteLetterPage() {
     recipientName: "",
     relationship: "",
     letterType: initialType,
-    title: "",
-    content: "",
     scheduledDate: "",
     milestoneLabel: "",
     years: 5,
@@ -133,15 +126,13 @@ export default function WriteLetterPage() {
         }
         return form.milestoneLabel.trim().length > 0;
       case 3:
-        return form.title.trim().length > 0 && form.content.trim().length >= 20;
-      case 4:
         return (
           form.addressLine1.trim().length > 0 &&
           form.city.trim().length > 0 &&
           form.state.trim().length > 0 &&
           form.postalCode.trim().length > 0
         );
-      case 5:
+      case 4:
         return !user ? email.trim().length > 0 : true;
       default:
         return true;
@@ -182,7 +173,7 @@ export default function WriteLetterPage() {
     }
   }
 
-  const totalSteps = 5;
+  const totalSteps = 4;
   const progressPercent = (step / totalSteps) * 100;
 
   return (
@@ -197,7 +188,7 @@ export default function WriteLetterPage() {
             &larr; Back to Legacy Letters
           </Link>
           <h1 className="mt-4 text-3xl font-bold text-navy">
-            Write Your Letter
+            Create Your Legacy Letter
           </h1>
           <p className="mt-2 text-warm-gray">
             Step {step} of {totalSteps}
@@ -429,70 +420,8 @@ export default function WriteLetterPage() {
           </div>
         )}
 
-        {/* Step 3: Write the letter */}
+        {/* Step 3: Delivery Address */}
         {step === 3 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-navy">
-              Write your letter to {form.recipientName}
-            </h2>
-            <p className="text-sm text-warm-gray">
-              Write from the heart. This letter will be printed on premium
-              stationery and sealed with care.
-            </p>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Letter Title
-              </label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
-                placeholder={
-                  form.letterType === "annual"
-                    ? `e.g. Happy Birthday, ${form.recipientName}`
-                    : `e.g. For Your ${form.milestoneLabel || "Graduation"}`
-                }
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Your Letter
-              </label>
-              <textarea
-                value={form.content}
-                onChange={(e) => {
-                  if (e.target.value.length <= MAX_LETTER_LENGTH) {
-                    update("content", e.target.value);
-                  }
-                }}
-                rows={14}
-                placeholder={`Dear ${form.recipientName},\n\nI'm writing this letter because...`}
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 font-serif text-base leading-relaxed"
-              />
-              <div className="mt-1.5 flex items-center justify-between">
-                <p className="text-xs text-warm-gray-light">
-                  Minimum 20 characters. You can edit this later before it prints.
-                </p>
-                <p
-                  className={`text-xs font-medium ${
-                    form.content.length > MAX_LETTER_LENGTH * 0.9
-                      ? "text-red-500"
-                      : "text-warm-gray-light"
-                  }`}
-                >
-                  {form.content.length.toLocaleString()}/{MAX_LETTER_LENGTH.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Delivery Address */}
-        {step === 4 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
               Where should we deliver {form.recipientName}&apos;s letter?
@@ -656,8 +585,8 @@ export default function WriteLetterPage() {
           </div>
         )}
 
-        {/* Step 5: Review & Pay */}
-        {step === 5 && (
+        {/* Step 4: Review & Pay */}
+        {step === 4 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
               Review & Pay
@@ -699,12 +628,6 @@ export default function WriteLetterPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-sm text-warm-gray">Title</span>
-                <span className="text-sm font-medium text-navy">
-                  {form.title}
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-sm text-warm-gray">Delivery Address</span>
                 <span className="text-sm font-medium text-navy text-right">
                   {form.addressLine1}
@@ -721,25 +644,6 @@ export default function WriteLetterPage() {
                   </span>
                 </div>
               )}
-
-              <div className="border-t border-cream-dark pt-4">
-                <div className="flex justify-between">
-                  <span className="text-sm text-warm-gray">Letter Preview</span>
-                  <button
-                    onClick={() => setStep(3)}
-                    className="text-xs font-medium text-gold hover:text-gold-dark transition"
-                  >
-                    Edit Letter
-                  </button>
-                </div>
-                <div className="mt-2 rounded-lg bg-cream/50 p-4 font-serif text-sm leading-relaxed text-navy max-h-40 overflow-y-auto">
-                  {form.content.split("\n").map((line, i) => (
-                    <p key={i} className={line.trim() === "" ? "h-4" : ""}>
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              </div>
 
               <div className="border-t border-cream-dark pt-4">
                 <div className="flex justify-between items-center">
@@ -798,18 +702,19 @@ export default function WriteLetterPage() {
               disabled={loading || !canAdvance()}
               className="w-full rounded-lg bg-forest px-6 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Creating checkout..." : `Pay $${getPrice()} & Schedule Letter`}
+              {loading ? "Creating checkout..." : `Pay $${getPrice()}`}
             </button>
 
-            <p className="text-center text-xs text-warm-gray-light">
-              Your letter will be stored securely and delivered on schedule.
-              You can edit it anytime before it prints.
-            </p>
+            <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
+              <p className="text-sm text-navy">
+                After purchase, you can write your letter anytime from your dashboard.
+              </p>
+            </div>
           </div>
         )}
 
         {/* Navigation buttons */}
-        {step < 5 && (
+        {step < 4 && (
           <div className="mt-10 flex items-center justify-between">
             <button
               onClick={() => setStep(Math.max(1, step - 1))}

@@ -9,8 +9,6 @@ export async function POST(request: Request) {
       recipientName,
       relationship,
       letterType,
-      title,
-      content,
       scheduledDate,
       milestoneLabel,
       years,
@@ -25,7 +23,7 @@ export async function POST(request: Request) {
       fullName,
     } = body;
 
-    if (!recipientName || !letterType || !title || !content) {
+    if (!recipientName || !letterType) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -101,18 +99,6 @@ export async function POST(request: Request) {
         recipientName,
         relationship: relationship || "",
         letterType,
-        title,
-        content: content.slice(0, 490),
-        content_1: content.slice(490, 980),
-        content_2: content.slice(980, 1470),
-        content_3: content.slice(1470, 1960),
-        content_4: content.slice(1960, 2450),
-        content_5: content.slice(2450, 2940),
-        content_6: content.slice(2940, 3430),
-        content_7: content.slice(3430, 3920),
-        content_8: content.slice(3920, 4410),
-        content_9: content.slice(4410, 4900),
-        content_10: content.slice(4900, 5000),
         scheduledDate: scheduledDate || "",
         milestoneLabel: milestoneLabel || "",
         years: (years || 1).toString(),
