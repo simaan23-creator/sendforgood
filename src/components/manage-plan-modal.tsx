@@ -100,12 +100,13 @@ interface Order {
   shipments: Shipment[];
 }
 
-type TabId = "recipient" | "address" | "plan" | "refund";
+type TabId = "recipient" | "address" | "plan" | "executor" | "refund";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "recipient", label: "Recipient" },
   { id: "address", label: "Address" },
   { id: "plan", label: "Plan" },
+  { id: "executor", label: "Executor" },
   { id: "refund", label: "Refund" },
 ];
 
@@ -187,6 +188,9 @@ export default function ManagePlanModal({
           )}
           {activeTab === "plan" && (
             <PlanTab order={order} onUpdated={onOrderUpdated} />
+          )}
+          {activeTab === "executor" && (
+            <ExecutorTab order={order} onUpdated={onOrderUpdated} />
           )}
           {activeTab === "refund" && (
             <RefundTab
@@ -845,14 +849,12 @@ function PlanTab({
         </div>
       </div>
 
-      {/* Executor */}
-      <ExecutorSection order={order} onUpdated={onUpdated} />
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Tab D — Refund Request
+   Tab E — Refund Request
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function RefundTab({
@@ -979,10 +981,10 @@ function RefundTab({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Executor Section (used inside PlanTab)
+   Tab D — Executor
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function ExecutorSection({
+function ExecutorTab({
   order,
   onUpdated,
 }: {
@@ -993,6 +995,8 @@ function ExecutorSection({
   const [email, setEmail] = useState(order.executor_email ?? "");
   const [phone, setPhone] = useState(order.executor_phone ?? "");
   const [address, setAddress] = useState(order.executor_address ?? "");
+  const [canView, setCanView] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -1019,81 +1023,107 @@ function ExecutorSection({
   }
 
   return (
-    <div>
-      <h3 className="mb-3 text-sm font-semibold text-navy">
-        Trusted Executor
-      </h3>
-      <div className="rounded-lg border border-cream-dark bg-white p-4 space-y-4">
-        <p className="text-xs text-warm-gray">
-          Name someone who can manage this gift plan on your behalf &mdash; update
+    <div className="space-y-5">
+      <div>
+        <h3 className="text-lg font-bold text-navy">Trusted Executor</h3>
+        <p className="mt-1 text-sm text-warm-gray">
+          Your executor can manage your gift plan on your behalf &mdash; update
           addresses, confirm deliveries, or continue the plan if something
-          happens to you.
+          happens to you. You can add or change your executor at any time.
         </p>
+      </div>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy">
-            Full Name
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-navy">
+          Full Name
+        </label>
+        <input
+          value={name}
+          onChange={(e) => { setName(e.target.value); setSaved(false); }}
+          placeholder="Jane Smith"
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-navy">
+          Email
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setSaved(false); }}
+          placeholder="spouse@email.com"
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-navy">
+          Phone{" "}
+          <span className="font-normal text-warm-gray-light">Optional</span>
+        </label>
+        <input
+          value={phone}
+          onChange={(e) => { setPhone(e.target.value); setSaved(false); }}
+          placeholder="(555) 555-1234"
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-navy">
+          Address{" "}
+          <span className="font-normal text-warm-gray-light">Optional</span>
+        </label>
+        <textarea
+          rows={2}
+          value={address}
+          onChange={(e) => { setAddress(e.target.value); setSaved(false); }}
+          placeholder="123 Main St, City, State ZIP"
+          className={inputClass}
+        />
+      </div>
+
+      {/* Permissions — only show when email is filled */}
+      {email.trim() && (
+        <div className="rounded-lg border border-cream-dark bg-cream/30 p-4 space-y-3">
+          <p className="text-sm font-semibold text-navy">Permissions</p>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={canView}
+              onChange={(e) => { setCanView(e.target.checked); setSaved(false); }}
+              className="h-4 w-4 rounded border-cream-dark text-navy accent-navy"
+            />
+            <span className="text-sm text-navy">Allow executor to view my letters</span>
           </label>
-          <input
-            value={name}
-            onChange={(e) => { setName(e.target.value); setSaved(false); }}
-            placeholder="Jane Smith"
-            className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy">
-            Email
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={canEdit}
+              onChange={(e) => { setCanEdit(e.target.checked); setSaved(false); }}
+              className="h-4 w-4 rounded border-cream-dark text-navy accent-navy"
+            />
+            <span className="text-sm text-navy">Allow executor to edit my letters</span>
           </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setSaved(false); }}
-            placeholder="spouse@email.com"
-            className={inputClass}
-          />
+          <p className="text-xs text-warm-gray">
+            By default executors can only release letters and manage gift deliveries.
+          </p>
         </div>
+      )}
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy">
-            Phone{" "}
-            <span className="font-normal text-warm-gray-light">Optional</span>
-          </label>
-          <input
-            value={phone}
-            onChange={(e) => { setPhone(e.target.value); setSaved(false); }}
-            placeholder="(555) 555-1234"
-            className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy">
-            Address{" "}
-            <span className="font-normal text-warm-gray-light">Optional</span>
-          </label>
-          <textarea
-            rows={2}
-            value={address}
-            onChange={(e) => { setAddress(e.target.value); setSaved(false); }}
-            placeholder="123 Main St, City, State ZIP"
-            className={inputClass}
-          />
-        </div>
-
-        <div className="flex items-center gap-3 pt-1">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-lg bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save Executor"}
-          </button>
-          {saved && (
-            <span className="text-sm font-medium text-forest">Saved!</span>
-          )}
-        </div>
+      <div className="flex items-center gap-3 pt-2">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Executor"}
+        </button>
+        {saved && (
+          <span className="text-sm font-medium text-forest">Saved!</span>
+        )}
       </div>
     </div>
   );
