@@ -961,7 +961,11 @@ function LettersTab({
                                       ].filter(Boolean).join(", ")}
                                     />
                                   )}
-                                  <DetailRow label="Paid" value={formatCurrency(letter.amount_paid)} />
+                                  <DetailRow label="Paid" value={
+                                    letter.amount_paid > 0
+                                      ? formatCurrency(letter.amount_paid)
+                                      : "Included with gift plan"
+                                  } />
                                   <DetailRow label="Address" value={
                                     letter.recipients
                                       ? `${letter.recipients.address_line1 || ""}, ${letter.recipients.city || ""}, ${letter.recipients.state || ""} ${letter.recipients.postal_code || ""}`
