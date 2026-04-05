@@ -31,7 +31,7 @@ export async function GET() {
   }
 }
 
-// PATCH /api/letters — update a letter (content, title, scheduled_date, executor_email)
+// PATCH /api/letters — update a letter
 export async function PATCH(request: Request) {
   try {
     const supabase = await createClient();
@@ -44,7 +44,16 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { letterId, title, content, scheduledDate, executorEmail } = body;
+    const {
+      letterId,
+      title,
+      content,
+      scheduledDate,
+      executorName,
+      executorEmail,
+      executorPhone,
+      executorAddress,
+    } = body;
 
     if (!letterId) {
       return NextResponse.json(
@@ -79,7 +88,10 @@ export async function PATCH(request: Request) {
     if (title !== undefined) updates.title = title;
     if (content !== undefined) updates.content = content;
     if (scheduledDate !== undefined) updates.scheduled_date = scheduledDate;
+    if (executorName !== undefined) updates.executor_name = executorName;
     if (executorEmail !== undefined) updates.executor_email = executorEmail;
+    if (executorPhone !== undefined) updates.executor_phone = executorPhone;
+    if (executorAddress !== undefined) updates.executor_address = executorAddress;
 
     const { data: updated, error } = await supabase
       .from("letters")

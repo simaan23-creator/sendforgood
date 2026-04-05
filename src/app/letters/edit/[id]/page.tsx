@@ -15,10 +15,21 @@ interface LetterData {
   scheduled_date: string | null;
   milestone_label: string | null;
   status: string;
+  executor_name: string | null;
+  executor_email: string | null;
+  executor_phone: string | null;
+  executor_address: string | null;
   recipients: {
     name: string;
     relationship: string;
   };
+}
+
+interface GiftExecutor {
+  executor_name: string;
+  executor_email: string;
+  executor_phone: string;
+  executor_address: string;
 }
 
 export default function EditLetterPage() {
@@ -30,6 +41,12 @@ export default function EditLetterPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
+  const [executorName, setExecutorName] = useState("");
+  const [executorEmail, setExecutorEmail] = useState("");
+  const [executorPhone, setExecutorPhone] = useState("");
+  const [executorAddress, setExecutorAddress] = useState("");
+  const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
+  const [useGiftExecutor, setUseGiftExecutor] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -60,10 +77,38 @@ export default function EditLetterPage() {
         return;
       }
 
-      setLetter(data as LetterData);
+      const letterData = data as LetterData;
+      setLetter(letterData);
       setTitle(data.title);
       setContent(data.content || "");
       setScheduledDate(data.scheduled_date || "");
+      setExecutorName(data.executor_name || "");
+      setExecutorEmail(data.executor_email || "");
+      setExecutorPhone(data.executor_phone || "");
+      setExecutorAddress(data.executor_address || "");
+
+      // Fetch gift order executor
+      try {
+        const res = await fetch(`/api/letters/${letterId}/gift-executor`);
+        if (res.ok) {
+          const { giftExecutor: ge } = await res.json();
+          if (ge) {
+            setGiftExecutor(ge);
+            // Default to checked if letter has no executor set but gift order does
+            const letterHasExecutor = !!(data.executor_email);
+            if (!letterHasExecutor) {
+              setUseGiftExecutor(true);
+              setExecutorName(ge.executor_name);
+              setExecutorEmail(ge.executor_email);
+              setExecutorPhone(ge.executor_phone);
+              setExecutorAddress(ge.executor_address);
+            }
+          }
+        }
+      } catch {
+        // Gift executor fetch is non-critical
+      }
+
       setLoading(false);
     }
 
@@ -84,6 +129,10 @@ export default function EditLetterPage() {
           title,
           content,
           scheduledDate: scheduledDate || null,
+          executorName: executorName || null,
+          executorEmail: executorEmail || null,
+          executorPhone: executorPhone || null,
+          executorAddress: executorAddress || null,
         }),
       });
 
@@ -220,6 +269,111 @@ export default function EditLetterPage() {
               disabled={isLocked}
               className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
             />
+          </div>
+
+          {/* Executor Section */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-navy">
+              Executor
+            </label>
+            <p className="mb-3 text-xs text-warm-gray">
+              The person responsible for releasing this letter when the time comes.
+            </p>
+
+            {giftExecutor && (
+              <>
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useGiftExecutor}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setUseGiftExecutor(checked);
+                      setSaved(false);
+                      if (checked && giftExecutor) {
+                        setExecutorName(giftExecutor.executor_name);
+                        setExecutorEmail(giftExecutor.executor_email);
+                        setExecutorPhone(giftExecutor.executor_phone);
+                        setExecutorAddress(giftExecutor.executor_address);
+                      }
+                    }}
+                    disabled={isLocked}
+                    className="h-4 w-4 rounded border-cream-dark text-forest focus:ring-forest/30 disabled:opacity-60"
+                  />
+                  <span className="text-sm text-navy">
+                    Same as gift plan executor
+                  </span>
+                </label>
+                <div className="mt-3 mb-4 border-b border-cream-dark" />
+              </>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-warm-gray">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={executorName}
+                  onChange={(e) => {
+                    setExecutorName(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isLocked || useGiftExecutor}
+                  placeholder="Executor name"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-cream/50"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-warm-gray">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={executorEmail}
+                  onChange={(e) => {
+                    setExecutorEmail(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isLocked || useGiftExecutor}
+                  placeholder="executor@example.com"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-cream/50"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-warm-gray">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={executorPhone}
+                  onChange={(e) => {
+                    setExecutorPhone(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isLocked || useGiftExecutor}
+                  placeholder="(555) 123-4567"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-cream/50"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-warm-gray">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={executorAddress}
+                  onChange={(e) => {
+                    setExecutorAddress(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isLocked || useGiftExecutor}
+                  placeholder="123 Main St, City, State 12345"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-cream/50"
+                />
+              </div>
+            </div>
           </div>
 
           {error && (
