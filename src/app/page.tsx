@@ -219,9 +219,15 @@ export default function HomePage() {
             >
               Send Your First Gift &mdash; From $20
             </Link>
+            <Link
+              href="/letters/write"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
+            >
+              Send Your First Letter &mdash; From $1
+            </Link>
             <a
               href="#for-businesses"
-              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
+              className="inline-flex w-full items-center justify-center rounded-lg border border-navy/30 px-6 py-3 text-base font-medium text-navy/70 transition hover:border-navy hover:text-navy sm:w-auto"
             >
               For Businesses
             </a>
