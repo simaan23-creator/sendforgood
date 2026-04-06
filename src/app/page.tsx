@@ -215,7 +215,7 @@ export default function HomePage() {
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/send"
-              className="inline-flex w-full items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
               Send Your First Gift &mdash; From $20
             </Link>
@@ -225,9 +225,13 @@ export default function HomePage() {
             >
               Send Your First Letter &mdash; From $1
             </Link>
+          </div>
+
+          {/* For Businesses — centered below */}
+          <div className="mt-4 flex justify-center">
             <a
               href="#for-businesses"
-              className="inline-flex w-full items-center justify-center rounded-lg border border-navy/30 px-6 py-3 text-base font-medium text-navy/70 transition hover:border-navy hover:text-navy sm:w-auto"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-navy/30 px-8 py-3 text-base font-semibold text-navy/70 transition hover:border-navy hover:text-navy"
             >
               For Businesses
             </a>
