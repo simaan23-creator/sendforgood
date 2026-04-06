@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 
 const MAX_LETTER_LENGTH = 5000;
 
+type DeliveryType = "digital" | "physical" | "physical_photo";
+
 interface LetterData {
   id: string;
   title: string;
@@ -15,6 +17,9 @@ interface LetterData {
   scheduled_date: string | null;
   milestone_label: string | null;
   status: string;
+  delivery_type: DeliveryType;
+  recipient_email: string | null;
+  photo_url: string | null;
   executor_name: string | null;
   executor_email: string | null;
   executor_phone: string | null;
@@ -45,6 +50,10 @@ export default function EditLetterPage() {
   const [executorEmail, setExecutorEmail] = useState("");
   const [executorPhone, setExecutorPhone] = useState("");
   const [executorAddress, setExecutorAddress] = useState("");
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("physical");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
   const [useGiftExecutor, setUseGiftExecutor] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -86,6 +95,9 @@ export default function EditLetterPage() {
       setExecutorEmail(data.executor_email || "");
       setExecutorPhone(data.executor_phone || "");
       setExecutorAddress(data.executor_address || "");
+      setDeliveryType(data.delivery_type || "physical");
+      setRecipientEmail(data.recipient_email || "");
+      setPhotoUrl(data.photo_url || "");
 
       // Fetch gift order executor
       try {
@@ -133,6 +145,9 @@ export default function EditLetterPage() {
           executorEmail: executorEmail || null,
           executorPhone: executorPhone || null,
           executorAddress: executorAddress || null,
+          deliveryType,
+          recipientEmail: recipientEmail || null,
+          photoUrl: photoUrl || null,
         }),
       });
 
@@ -207,6 +222,178 @@ export default function EditLetterPage() {
         )}
 
         <div className="space-y-6">
+          {/* Delivery Type Selection */}
+          <div>
+            <label className="mb-3 block text-sm font-medium text-navy">
+              Delivery Type
+            </label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {/* Digital */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLocked) {
+                    setDeliveryType("digital");
+                    setSaved(false);
+                  }
+                }}
+                disabled={isLocked}
+                className={`relative rounded-xl border-2 p-4 text-left transition ${
+                  deliveryType === "digital"
+                    ? "border-gold bg-gold/5"
+                    : "border-cream-dark bg-white hover:border-gold/50"
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <div className="text-2xl mb-2">&#9993;</div>
+                <p className="font-semibold text-navy text-sm">Digital Letter</p>
+                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
+                  Delivered by email on the scheduled date. Instant, reliable, costs less.
+                </p>
+                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
+                  $1/year
+                </span>
+              </button>
+
+              {/* Physical */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLocked) {
+                    setDeliveryType("physical");
+                    setSaved(false);
+                  }
+                }}
+                disabled={isLocked}
+                className={`relative rounded-xl border-2 p-4 text-left transition ${
+                  deliveryType === "physical"
+                    ? "border-gold bg-gold/5"
+                    : "border-cream-dark bg-white hover:border-gold/50"
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <div className="text-2xl mb-2">&#128236;</div>
+                <p className="font-semibold text-navy text-sm">Physical Letter</p>
+                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
+                  Printed on quality paper and mailed to their address. A real keepsake they can hold.
+                </p>
+                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
+                  $10/year
+                </span>
+              </button>
+
+              {/* Physical + Photo */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLocked) {
+                    setDeliveryType("physical_photo");
+                    setSaved(false);
+                  }
+                }}
+                disabled={isLocked}
+                className={`relative rounded-xl border-2 p-4 text-left transition ${
+                  deliveryType === "physical_photo"
+                    ? "border-gold bg-gold/5"
+                    : "border-cream-dark bg-white hover:border-gold/50"
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <span className="absolute -top-2.5 right-3 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  Most Popular
+                </span>
+                <div className="text-2xl mb-2">&#128247;</div>
+                <p className="font-semibold text-navy text-sm">Physical Letter + Photo</p>
+                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
+                  Everything in Physical, plus a wallet-sized photo printed and included in the envelope.
+                </p>
+                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
+                  $15/year
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Recipient Email (for digital delivery) */}
+          {deliveryType === "digital" && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-navy">
+                Recipient Email Address
+              </label>
+              <input
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => {
+                  setRecipientEmail(e.target.value);
+                  setSaved(false);
+                }}
+                disabled={isLocked}
+                placeholder="recipient@example.com"
+                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+              <p className="mt-1.5 text-xs text-warm-gray-light">
+                We will send the letter to this email on the scheduled date.
+              </p>
+            </div>
+          )}
+
+          {/* Photo Upload (for physical+photo delivery) */}
+          {deliveryType === "physical_photo" && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-navy">
+                Upload Photo
+              </label>
+              <p className="mb-3 text-xs text-warm-gray">
+                A wallet-sized copy of this photo will be printed and included with your letter.
+              </p>
+              {photoUrl && (
+                <div className="mb-3">
+                  <img
+                    src={photoUrl}
+                    alt="Letter photo"
+                    className="h-32 w-32 rounded-lg border border-cream-dark object-cover"
+                  />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                disabled={isLocked || uploadingPhoto}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  setUploadingPhoto(true);
+                  setError("");
+
+                  try {
+                    const supabase = createClient();
+                    const ext = file.name.split(".").pop();
+                    const path = `${letterId}/${Date.now()}.${ext}`;
+
+                    const { error: uploadError } = await supabase.storage
+                      .from("letter-photos")
+                      .upload(path, file, { upsert: true });
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                      .from("letter-photos")
+                      .getPublicUrl(path);
+
+                    setPhotoUrl(urlData.publicUrl);
+                    setSaved(false);
+                  } catch {
+                    setError("Failed to upload photo. Please try again.");
+                  }
+
+                  setUploadingPhoto(false);
+                }}
+                className="text-sm text-warm-gray file:mr-4 file:rounded-lg file:border-0 file:bg-navy/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-navy hover:file:bg-navy/20 disabled:opacity-60"
+              />
+              {uploadingPhoto && (
+                <p className="mt-2 text-xs text-warm-gray">Uploading...</p>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-navy">
               Letter Title

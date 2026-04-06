@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe, LETTER_PRICES } from "@/lib/stripe";
+import { stripe, DELIVERY_TYPE_PRICES, type DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -21,7 +21,13 @@ export async function POST(request: Request) {
       postalCode,
       email,
       fullName,
+      deliveryType: rawDeliveryType,
+      recipientEmail,
     } = body;
+
+    const deliveryType: DeliveryType = (rawDeliveryType && rawDeliveryType in DELIVERY_TYPE_PRICES)
+      ? rawDeliveryType
+      : "physical";
 
     if (!recipientName || !letterType) {
       return NextResponse.json(
@@ -37,26 +43,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine price
-    let priceInfo;
+    // Determine price based on delivery type
+    const unitPrice = DELIVERY_TYPE_PRICES[deliveryType].price;
     let quantity = 1;
 
     if (letterType === "annual") {
-      priceInfo = LETTER_PRICES.standalone_annual;
       quantity = years || 1;
     } else {
-      if (milestoneQuantity === "bundle5") {
-        priceInfo = LETTER_PRICES.milestone_bundle_5;
-      } else if (milestoneQuantity === "bundle10") {
-        priceInfo = LETTER_PRICES.milestone_bundle_10;
-      } else {
-        priceInfo = LETTER_PRICES.milestone_single;
-      }
+      if (milestoneQuantity === "bundle5") quantity = 5;
+      else if (milestoneQuantity === "bundle10") quantity = 10;
+      else quantity = 1;
     }
 
-    const totalAmount = letterType === "annual"
-      ? priceInfo.price * quantity
-      : priceInfo.price;
+    const totalAmount = unitPrice * quantity;
+    const deliveryLabel = DELIVERY_TYPE_PRICES[deliveryType].label;
 
     // Check if user is authenticated
     const supabase = await createClient();
@@ -65,12 +65,12 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     const productName = letterType === "annual"
-      ? `Legacy Letter for ${recipientName} (${years} yr${years > 1 ? "s" : ""})`
+      ? `${deliveryLabel} for ${recipientName} (${years} yr${years > 1 ? "s" : ""})`
       : milestoneQuantity === "bundle5"
-        ? `5 Milestone Letters — ${recipientName}`
+        ? `5 ${deliveryLabel}s — ${recipientName}`
         : milestoneQuantity === "bundle10"
-          ? `10 Milestone Letters — ${recipientName}`
-          : `Milestone Letter for ${recipientName}${milestoneLabel ? ` — ${milestoneLabel}` : ""}`;
+          ? `10 ${deliveryLabel}s — ${recipientName}`
+          : `${deliveryLabel} for ${recipientName}${milestoneLabel ? ` — ${milestoneLabel}` : ""}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
             currency: "usd",
             product_data: {
               name: productName,
-              description: priceInfo.description,
+              description: `${deliveryLabel} — ${letterType === "annual" ? "delivered annually" : "milestone delivery"}`,
             },
             unit_amount: totalAmount,
           },
@@ -99,6 +99,8 @@ export async function POST(request: Request) {
         recipientName,
         relationship: relationship || "",
         letterType,
+        deliveryType,
+        recipientEmail: recipientEmail || "",
         scheduledDate: scheduledDate || "",
         milestoneLabel: milestoneLabel || "",
         years: (years || 1).toString(),

@@ -7,42 +7,63 @@ export const metadata: Metadata = {
     "Write letters today that arrive in the future. Birthday letters every year, milestone letters for graduations, weddings, and more. Your words keep arriving — even after you're gone.",
 };
 
-const LETTER_TYPES = [
+const DELIVERY_TIERS = [
   {
-    id: "annual",
-    name: "Annual Letters",
-    price: 10,
+    id: "digital",
+    name: "Digital Letter",
+    icon: "\u2709",
+    price: 1,
     unit: "/yr per letter",
-    description: "A letter delivered every year on their special day",
+    description: "Delivered by email on the scheduled date. Instant, reliable, costs less.",
     features: [
-      "Write one letter — delivered every year",
-      "Arrives on their birthday, anniversary, or any date",
-      "Professionally printed on premium stationery",
-      "Sealed and mailed directly to them",
+      "Delivered via email on the scheduled date",
+      "Beautiful, styled HTML letter with your words",
+      "Instant delivery — no printing delays",
+      "Annual or milestone letter types",
       "Keeps arriving for up to 25 years",
       "Continues even if something happens to you",
     ],
-    cta: "Start Writing",
+    cta: "Write a Digital Letter",
     href: "/letters/write?type=annual",
-    popular: true,
+    popular: false,
   },
   {
-    id: "milestone",
-    name: "Milestone Letters",
-    price: 15,
-    unit: " each",
-    description: "Letters for life's biggest moments, written in advance",
+    id: "physical",
+    name: "Physical Letter",
+    icon: "\uD83D\uDCEC",
+    price: 10,
+    unit: "/yr per letter",
+    description: "Printed on quality paper and mailed to their address. A real keepsake they can hold.",
     features: [
-      "Write letters for specific future milestones",
-      "Graduation, wedding, first child, retirement & more",
-      "Each letter delivered at the right moment",
       "Professionally printed on premium stationery",
-      "Bundle 5 for $60 or 10 for $100",
-      "Your words arrive exactly when they matter most",
+      "Sealed and mailed directly to them via USPS",
+      "Annual or milestone letter types",
+      "A real keepsake they can hold onto",
+      "Keeps arriving for up to 25 years",
+      "Continues even if something happens to you",
     ],
-    cta: "Write a Milestone Letter",
-    href: "/letters/write?type=milestone",
+    cta: "Write a Physical Letter",
+    href: "/letters/write?type=annual",
     popular: false,
+  },
+  {
+    id: "physical_photo",
+    name: "Physical + Photo",
+    icon: "\uD83D\uDCF7",
+    price: 15,
+    unit: "/yr per letter",
+    description: "Everything in Physical, plus a wallet-sized photo printed and included in the envelope.",
+    features: [
+      "Everything in Physical Letter, plus:",
+      "Upload any photo — printed wallet-sized",
+      "Photo included in the envelope with your letter",
+      "Annual or milestone letter types",
+      "Keeps arriving for up to 25 years",
+      "The most personal keepsake you can send",
+    ],
+    cta: "Write a Letter + Photo",
+    href: "/letters/write?type=annual",
+    popular: true,
   },
 ];
 
@@ -121,7 +142,7 @@ const FAQ = [
   {
     question: "How are the letters delivered?",
     answer:
-      "Each letter is professionally printed on premium heavyweight stationery, sealed in a quality envelope with your name as the sender, and mailed via USPS First Class to the recipient's address. It feels personal and intentional — because it is.",
+      "You choose your delivery type: Digital ($1/yr) — delivered by email on the scheduled date. Physical ($10/yr) — printed on premium stationery and mailed via USPS. Physical + Photo ($15/yr) — same as Physical, plus a wallet-sized photo included in the envelope. You can change the delivery type from your dashboard.",
   },
   {
     question: "Can I edit my letters after writing them?",
@@ -189,7 +210,7 @@ export default function LettersPage() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-warm-gray-light">
-            From $10/year per letter &middot; No subscriptions &middot;
+            From $1/year (digital) &middot; No subscriptions &middot;
             Delivered forever
           </p>
         </div>
@@ -274,44 +295,46 @@ export default function LettersPage() {
 
       {/* Pricing Cards */}
       <section className="px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-navy sm:text-4xl">
-              Simple Letter Pricing
+              Choose How Your Letter Is Delivered
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
-              Pay once. Your letters are stored, printed, and delivered &mdash;
-              for as long as you need.
+              Three delivery options. All per-letter, per-year pricing. Pay once
+              &mdash; your letters are stored and delivered for as long as you
+              need.
             </p>
           </div>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2">
-            {LETTER_TYPES.map((type) => (
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            {DELIVERY_TIERS.map((tier) => (
               <div
-                key={type.id}
+                key={tier.id}
                 className={`relative flex flex-col rounded-2xl border bg-white p-8 transition hover:-translate-y-1 hover:shadow-xl ${
-                  type.popular
+                  tier.popular
                     ? "border-gold shadow-lg ring-2 ring-gold/30"
                     : "border-cream-dark shadow-md"
                 }`}
               >
-                {type.popular && (
+                {tier.popular && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
                     Most Popular
                   </span>
                 )}
-                <h3 className="text-xl font-bold text-navy">{type.name}</h3>
+                <span className="text-3xl">{tier.icon}</span>
+                <h3 className="mt-3 text-xl font-bold text-navy">{tier.name}</h3>
                 <p className="mt-3">
                   <span className="text-4xl font-extrabold tracking-tight text-navy">
-                    ${type.price}
+                    ${tier.price}
                   </span>
-                  <span className="text-sm text-warm-gray">{type.unit}</span>
+                  <span className="text-sm text-warm-gray">{tier.unit}</span>
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-warm-gray">
-                  {type.description}
+                  {tier.description}
                 </p>
                 <ul className="mt-6 flex-1 space-y-3">
-                  {type.features.map((feature) => (
+                  {tier.features.map((feature) => (
                     <li
                       key={feature}
                       className="flex items-start gap-2 text-sm"
@@ -334,14 +357,14 @@ export default function LettersPage() {
                   ))}
                 </ul>
                 <Link
-                  href={type.href}
+                  href={tier.href}
                   className={`mt-8 inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                    type.popular
+                    tier.popular
                       ? "bg-gold text-navy shadow-sm hover:bg-gold-light focus-visible:outline-gold"
                       : "bg-navy text-cream shadow-sm hover:bg-navy-light focus-visible:outline-navy"
                   }`}
                 >
-                  {type.cta}
+                  {tier.cta}
                 </Link>
               </div>
             ))}
@@ -441,7 +464,7 @@ export default function LettersPage() {
             href="/letters/write"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Write Your First Letter &mdash; From $10
+            Write Your First Letter &mdash; From $1/yr
           </Link>
         </div>
       </section>

@@ -936,6 +936,8 @@ async function handleLetterOrder(
   const letterType = metadata.letterType as "annual" | "milestone";
   const years = parseInt(metadata.years) || 1;
   const milestoneQuantity = metadata.milestoneQuantity || "single";
+  const deliveryType = metadata.deliveryType || "physical";
+  const letterRecipientEmail = metadata.recipientEmail || null;
 
   if (letterType === "annual") {
     // Create one letter record per year
@@ -963,6 +965,8 @@ async function handleLetterOrder(
           stripe_payment_intent_id: session.payment_intent as string,
           amount_paid: Math.round((session.amount_total || 0) / years),
           executor_email: metadata.executorEmail || null,
+          delivery_type: deliveryType,
+          recipient_email: letterRecipientEmail,
         });
     }
   } else {
@@ -985,6 +989,8 @@ async function handleLetterOrder(
         stripe_payment_intent_id: session.payment_intent as string,
         amount_paid: priceEach,
         executor_email: metadata.executorEmail || null,
+        delivery_type: deliveryType,
+        recipient_email: letterRecipientEmail,
       });
 
     // If it's a bundle, create remaining draft letters
@@ -1001,6 +1007,8 @@ async function handleLetterOrder(
           stripe_payment_intent_id: session.payment_intent as string,
           amount_paid: priceEach,
           executor_email: metadata.executorEmail || null,
+          delivery_type: deliveryType,
+          recipient_email: letterRecipientEmail,
         });
       }
       await supabaseAdmin.from("letters").insert(draftLetters);

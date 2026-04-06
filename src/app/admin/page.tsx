@@ -90,6 +90,9 @@ interface AdminLetter {
   milestone_label: string | null;
   status: string;
   amount_paid: number;
+  delivery_type: "digital" | "physical" | "physical_photo";
+  recipient_email: string | null;
+  photo_url: string | null;
   executor_email: string | null;
   executor_name: string | null;
   executor_phone: string | null;
@@ -849,6 +852,7 @@ function LettersTab({
                 <th className="pb-3 pr-4">Scheduled</th>
                 <th className="pb-3 pr-4">Recipient</th>
                 <th className="pb-3 pr-4">Type</th>
+                <th className="pb-3 pr-4">Delivery</th>
                 <th className="pb-3 pr-4">Title</th>
                 <th className="pb-3 pr-4">Status</th>
                 <th className="pb-3 pr-4">Customer</th>
@@ -882,6 +886,17 @@ function LettersTab({
                             ({letter.milestone_label})
                           </span>
                         )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          letter.delivery_type === "digital"
+                            ? "bg-cyan-100 text-cyan-700"
+                            : letter.delivery_type === "physical_photo"
+                              ? "bg-violet-100 text-violet-700"
+                              : "bg-orange-100 text-orange-700"
+                        }`}>
+                          {letter.delivery_type === "digital" ? "Digital" : letter.delivery_type === "physical_photo" ? "Physical+Photo" : "Physical"}
+                        </span>
                       </td>
                       <td className="py-3 pr-4 max-w-[200px] truncate">
                         {letter.title}
@@ -925,7 +940,7 @@ function LettersTab({
                     </tr>
                     {isExpanded && (
                       <tr>
-                        <td colSpan={7} className="p-0">
+                        <td colSpan={8} className="p-0">
                           <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                               {/* Letter Content Preview */}
@@ -936,6 +951,20 @@ function LettersTab({
                                 <div className="bg-white rounded-lg border border-gray-200 p-4 max-h-48 overflow-y-auto font-serif text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
                                   {letter.content || "(empty draft)"}
                                 </div>
+
+                                {/* Photo preview for physical+photo */}
+                                {letter.delivery_type === "physical_photo" && letter.photo_url && (
+                                  <div className="mt-4">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                      Attached Photo
+                                    </h4>
+                                    <img
+                                      src={letter.photo_url}
+                                      alt="Letter photo"
+                                      className="h-32 w-32 rounded-lg border border-gray-200 object-cover"
+                                    />
+                                  </div>
+                                )}
                               </div>
 
                               {/* Details */}
@@ -947,6 +976,14 @@ function LettersTab({
                                   <DetailRow label="Customer" value={letter.profiles?.full_name} />
                                   <DetailRow label="Email" value={letter.profiles?.email} />
                                   <DetailRow label="Phone" value={letter.profiles?.phone} />
+                                  <DetailRow label="Delivery" value={
+                                    letter.delivery_type === "digital" ? "Digital (Email)"
+                                      : letter.delivery_type === "physical_photo" ? "Physical + Photo"
+                                        : "Physical (Mailed)"
+                                  } />
+                                  {letter.delivery_type === "digital" && (
+                                    <DetailRow label="Recipient Email" value={letter.recipient_email} />
+                                  )}
                                   <DetailRow label="Executor Name" value={letter.executor_name} />
                                   <DetailRow label="Executor Email" value={letter.executor_email} />
                                   <DetailRow label="Executor Phone" value={letter.executor_phone} />

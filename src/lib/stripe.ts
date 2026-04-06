@@ -4,6 +4,14 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
+export const DELIVERY_TYPE_PRICES = {
+  digital: { label: "Digital Letter", price: 100 },
+  physical: { label: "Physical Letter", price: 1000 },
+  physical_photo: { label: "Physical Letter + Photo", price: 1500 },
+} as const;
+
+export type DeliveryType = keyof typeof DELIVERY_TYPE_PRICES;
+
 export const LETTER_PRICES = {
   addon_annual: {
     name: "Letter Add-on",
