@@ -198,9 +198,9 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
-            Send a gift once.
+            Gifts that arrive every year.
             <br />
-            <span className="text-gold">Deliver joy forever.</span>
+            <span className="text-gold">Letters that outlast a lifetime.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
