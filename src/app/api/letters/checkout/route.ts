@@ -88,7 +88,7 @@ export async function POST(request: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/letters/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/letters/success?session_id={CHECKOUT_SESSION_ID}&delivery_type=${deliveryType}&quantity=${quantity}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/letters/write?type=${letterType}`,
       customer_email: user?.email || email,
       metadata: {
