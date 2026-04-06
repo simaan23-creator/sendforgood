@@ -74,3 +74,78 @@ export function getCartTotal(): number {
 export function getCartCount(): number {
   return getCart().length;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Letter Cart
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface LetterCartItem {
+  id: string;
+  itemType: "letter";
+  recipientName: string;
+  recipientEmail: string;
+  letterType: "annual" | "milestone";
+  deliveryType: "digital" | "physical" | "physical_photo";
+  quantity: number;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+const LETTER_CART_KEY = "sfg_letter_cart";
+
+export function getLetterCart(): LetterCartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LETTER_CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addLetterToCart(item: Omit<LetterCartItem, "id">): LetterCartItem {
+  const cart = getLetterCart();
+  const newItem: LetterCartItem = { ...item, id: generateId() };
+  cart.push(newItem);
+  localStorage.setItem(LETTER_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+  return newItem;
+}
+
+export function removeLetterFromCart(id: string): void {
+  const cart = getLetterCart().filter((item) => item.id !== id);
+  localStorage.setItem(LETTER_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function clearLetterCart(): void {
+  localStorage.removeItem(LETTER_CART_KEY);
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function getLetterCartTotal(): number {
+  return getLetterCart().reduce((sum, item) => sum + item.totalPrice, 0);
+}
+
+export function getLetterCartCount(): number {
+  return getLetterCart().length;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Combined Cart helpers
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export function getCombinedCartCount(): number {
+  return getCartCount() + getLetterCartCount();
+}
+
+export function getCombinedCartTotal(): number {
+  // Gift cart totals are in dollars; letter cart totals are in cents
+  return getCartTotal() + getLetterCartTotal() / 100;
+}

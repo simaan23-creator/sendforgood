@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { addLetterToCart } from "@/lib/cart";
 
 type DeliveryType = "digital" | "physical" | "physical_photo";
 
@@ -23,14 +23,10 @@ interface FormData {
 
 export default function WriteLetterPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialType = searchParams.get("type") === "milestone" ? "milestone" : "annual";
 
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
 
   const [form, setForm] = useState<FormData>({
     recipientName: "",
@@ -48,17 +44,6 @@ export default function WriteLetterPage() {
 
   // Pricing
   const [milestoneQuantity, setMilestoneQuantity] = useState<"single" | "bundle5" | "bundle10">("single");
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUser({ id: user.id, email: user.email || "" });
-        setEmail(user.email || "");
-        setFullName(user.user_metadata?.full_name || "");
-      }
-    });
-  }, []);
 
   function update(field: keyof FormData, value: string | number | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -122,46 +107,40 @@ export default function WriteLetterPage() {
           form.postalCode.trim().length > 0
         );
       case 3:
-        return !user ? email.trim().length > 0 : true;
+        return true;
       default:
         return true;
     }
   }
 
-  async function handleCheckout() {
-    setLoading(true);
-    setError("");
+  function handleAddToCart() {
+    const quantity =
+      form.letterType === "annual"
+        ? form.years
+        : milestoneQuantity === "bundle10"
+          ? 10
+          : milestoneQuantity === "bundle5"
+            ? 5
+            : 1;
 
-    try {
-      const res = await fetch("/api/letters/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          milestoneQuantity,
-          priceCents: getPriceCents(),
-          email: email || user?.email || "",
-          fullName,
-          deliveryType: form.deliveryType,
-          recipientEmail: form.recipientEmail,
-        }),
-      });
+    addLetterToCart({
+      itemType: "letter",
+      recipientName: form.recipientName,
+      recipientEmail: form.recipientEmail,
+      letterType: form.letterType,
+      deliveryType: form.deliveryType,
+      quantity,
+      addressLine1: form.addressLine1,
+      addressLine2: form.addressLine2,
+      city: form.city,
+      state: form.state,
+      postalCode: form.postalCode,
+      country: "US",
+      unitPrice: getPerYearCents(),
+      totalPrice: getPriceCents(),
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Something went wrong");
-        setLoading(false);
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
-    }
+    router.push("/cart");
   }
 
   const totalSteps = 3;
@@ -514,7 +493,7 @@ export default function WriteLetterPage() {
         {step === 3 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-navy">
-              Review & Pay
+              Review & Add to Cart
             </h2>
 
             <div className="rounded-xl border border-cream-dark bg-white p-6 space-y-4">
@@ -571,51 +550,12 @@ export default function WriteLetterPage() {
               </div>
             </div>
 
-            {/* Email/Name if not logged in */}
-            {!user && (
-              <div className="rounded-xl border border-cream-dark bg-white p-6 space-y-4">
-                <h3 className="text-sm font-semibold text-navy">
-                  Your Information
-                </h3>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                    className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-navy">
-                    Your Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@email.com"
-                    className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                  />
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
             <button
-              onClick={handleCheckout}
-              disabled={loading || !canAdvance()}
+              onClick={handleAddToCart}
+              disabled={!canAdvance()}
               className="w-full rounded-lg bg-forest px-6 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Creating checkout..." : `Pay $${getPrice()}`}
+              Add to Cart &mdash; ${getPrice()}
             </button>
 
             <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">

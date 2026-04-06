@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { getCartCount } from "@/lib/cart";
+import { getCombinedCartCount } from "@/lib/cart";
 import type { User } from "@supabase/supabase-js";
 
 const NAV_LINKS = [
@@ -39,8 +39,8 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    setCartCount(getCartCount());
-    const onCartUpdate = () => setCartCount(getCartCount());
+    setCartCount(getCombinedCartCount());
+    const onCartUpdate = () => setCartCount(getCombinedCartCount());
     window.addEventListener("cart-updated", onCartUpdate);
     window.addEventListener("storage", onCartUpdate);
     return () => {

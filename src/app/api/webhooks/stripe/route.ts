@@ -304,6 +304,24 @@ interface CartItemMeta {
   totalPrice: number;
 }
 
+interface LetterItemMeta {
+  id: string;
+  itemType: "letter";
+  recipientName: string;
+  recipientEmail: string;
+  letterType: "annual" | "milestone";
+  deliveryType: "digital" | "physical" | "physical_photo";
+  quantity: number;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 async function handleCartOrder(
   session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
   metadata: Record<string, string>
@@ -316,7 +334,17 @@ async function handleCartOrder(
     chunkIndex++;
   }
 
-  const cartItems: CartItemMeta[] = JSON.parse(cartJson);
+  const cartItems: CartItemMeta[] = cartJson ? JSON.parse(cartJson) : [];
+
+  // Reassemble letter items JSON from chunks
+  let letterJson = "";
+  let letterChunkIndex = 0;
+  while (metadata[`letter_items_${letterChunkIndex}`] !== undefined) {
+    letterJson += metadata[`letter_items_${letterChunkIndex}`];
+    letterChunkIndex++;
+  }
+
+  const letterItems: LetterItemMeta[] = letterJson ? JSON.parse(letterJson) : [];
 
   // Find or create user
   let userId = metadata.userId;
@@ -454,6 +482,94 @@ async function handleCartOrder(
     });
   }
 
+  // Process letter items
+  const processedLetters: Array<{ recipientName: string; letterType: string; deliveryType: string; quantity: number; totalPrice: number }> = [];
+
+  for (const letter of letterItems) {
+    // Create recipient for letter
+    const { data: letterRecipient, error: lrError } = await supabaseAdmin
+      .from("recipients")
+      .insert({
+        user_id: userId,
+        name: letter.recipientName,
+        address_line1: letter.addressLine1 || null,
+        address_line2: letter.addressLine2 || null,
+        city: letter.city || null,
+        state: letter.state || null,
+        postal_code: letter.postalCode || null,
+        country: letter.country || "US",
+      })
+      .select()
+      .single();
+
+    if (lrError) throw lrError;
+
+    const pricePerUnit = letter.unitPrice;
+
+    if (letter.letterType === "annual") {
+      for (let i = 0; i < letter.quantity; i++) {
+        const deliveryDate = new Date();
+        deliveryDate.setFullYear(currentYear + i);
+
+        await supabaseAdmin.from("letters").insert({
+          user_id: userId,
+          recipient_id: letterRecipient.id,
+          letter_type: "annual",
+          title: `Letter for ${letter.recipientName} — Year ${i + 1}`,
+          content: "",
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: pricePerUnit,
+          delivery_type: letter.deliveryType,
+          recipient_email: letter.recipientEmail || null,
+        });
+      }
+    } else {
+      // Milestone letters
+      await supabaseAdmin.from("letters").insert({
+        user_id: userId,
+        recipient_id: letterRecipient.id,
+        letter_type: "milestone",
+        title: `Milestone Letter for ${letter.recipientName}`,
+        content: "",
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: pricePerUnit,
+        delivery_type: letter.deliveryType,
+        recipient_email: letter.recipientEmail || null,
+      });
+
+      // If it's a bundle, create remaining draft letters
+      if (letter.quantity > 1) {
+        const draftLetters = [];
+        for (let i = 1; i < letter.quantity; i++) {
+          draftLetters.push({
+            user_id: userId,
+            recipient_id: letterRecipient.id,
+            letter_type: "milestone" as const,
+            title: `Milestone Letter ${i + 1} for ${letter.recipientName}`,
+            content: "",
+            status: "draft" as const,
+            stripe_payment_intent_id: session.payment_intent as string,
+            amount_paid: pricePerUnit,
+            delivery_type: letter.deliveryType,
+            recipient_email: letter.recipientEmail || null,
+          });
+        }
+        await supabaseAdmin.from("letters").insert(draftLetters);
+      }
+    }
+
+    processedLetters.push({
+      recipientName: letter.recipientName,
+      letterType: letter.letterType,
+      deliveryType: letter.deliveryType,
+      quantity: letter.quantity,
+      totalPrice: letter.totalPrice,
+    });
+  }
+
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 
@@ -470,21 +586,40 @@ async function handleCartOrder(
     )
     .join("");
 
+  const letterRows = processedLetters
+    .map(
+      (l) =>
+        `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${l.recipientName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${l.letterType}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${l.deliveryType === "digital" ? "Digital" : l.deliveryType === "physical_photo" ? "Physical + Photo" : "Physical"}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${l.quantity}</td>
+        </tr>`
+    )
+    .join("");
+
   // Send customer confirmation email
   try {
+    const totalItemCount = cartItems.length + letterItems.length;
+    const subjectParts = [];
+    if (cartItems.length > 0) subjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
+    if (letterItems.length > 0) subjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
+
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
       to: customerEmail,
-      subject: `Your Gift Plans are Confirmed! \u{1F381} ${cartItems.length} gift${cartItems.length > 1 ? "s" : ""} set up`,
+      subject: `Your Order is Confirmed! \u{1F381} ${subjectParts.join(" + ")} set up`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
-          <h1 style="color: #1a2744;">Your gift plans are all set! \u{1F389}</h1>
-          <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful to ${cartItems.length} ${cartItems.length === 1 ? "person" : "people"}.</p>
+          <h1 style="color: #1a2744;">Your order is all set! \u{1F389}</h1>
+          <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful.</p>
           <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
-            <p><strong>Total gifts:</strong> ${cartItems.length}</p>
+            ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
+            ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
+          ${cartItems.length > 0 ? `
           <div style="margin: 24px 0;">
             <h2 style="font-size: 18px;">Your Gifts</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
@@ -496,8 +631,21 @@ async function handleCartOrder(
               </tr>
               ${itemRows}
             </table>
-          </div>
-          <p>We'll take care of everything from here. Each recipient will receive their gift on time, every year.</p>
+          </div>` : ""}
+          ${letterItems.length > 0 ? `
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">Your Legacy Letters</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr style="background: #f5ede0;">
+                <th style="padding: 8px; text-align: left;">Recipient</th>
+                <th style="padding: 8px; text-align: left;">Type</th>
+                <th style="padding: 8px; text-align: left;">Delivery</th>
+                <th style="padding: 8px; text-align: left;">Qty</th>
+              </tr>
+              ${letterRows}
+            </table>
+          </div>` : ""}
+          <p>We'll take care of everything from here. Each recipient will receive their gift or letter on time.</p>
           <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
           <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
         </div>
@@ -523,21 +671,40 @@ async function handleCartOrder(
       )
       .join("");
 
+    const ownerLetterRows = letterItems
+      .map(
+        (l) =>
+          `<tr>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${l.recipientName}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${l.letterType}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${l.deliveryType}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${l.quantity}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${(l.totalPrice / 100).toFixed(0)}</td>
+          </tr>`
+      )
+      .join("");
+
+    const ownerSubjectParts = [];
+    if (cartItems.length > 0) ownerSubjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
+    if (letterItems.length > 0) ownerSubjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
+
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
-      subject: `\u{1F6D2} New Cart Order! ${cartItems.length} gift${cartItems.length > 1 ? "s" : ""} \u2014 ${amountFormatted}`,
+      subject: `\u{1F6D2} New Cart Order! ${ownerSubjectParts.join(" + ")} \u2014 ${amountFormatted}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px;">
           <h1 style="color: #1a2744;">New Cart Order! \u{1F389}</h1>
           <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0;">Order Details</h2>
             <p><strong>Customer:</strong> ${metadata.fullName} (${customerEmail})</p>
-            <p><strong>Total Gifts:</strong> ${cartItems.length}</p>
+            ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
+            ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
             <p><strong>Total Amount:</strong> ${amountFormatted}</p>
           </div>
+          ${cartItems.length > 0 ? `
           <div style="margin: 24px 0;">
-            <h2 style="font-size: 18px;">All Gifts</h2>
+            <h2 style="font-size: 18px;">Gifts</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
               <tr style="background: #e8f0ff;">
                 <th style="padding: 6px 8px; text-align: left;">Recipient</th>
@@ -549,7 +716,21 @@ async function handleCartOrder(
               </tr>
               ${ownerItemRows}
             </table>
-          </div>
+          </div>` : ""}
+          ${letterItems.length > 0 ? `
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">Legacy Letters</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr style="background: #fff3e0;">
+                <th style="padding: 6px 8px; text-align: left;">Recipient</th>
+                <th style="padding: 6px 8px; text-align: left;">Type</th>
+                <th style="padding: 6px 8px; text-align: left;">Delivery</th>
+                <th style="padding: 6px 8px; text-align: left;">Qty</th>
+                <th style="padding: 6px 8px; text-align: left;">Price</th>
+              </tr>
+              ${ownerLetterRows}
+            </table>
+          </div>` : ""}
           <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { stripe, TIER_PRICES } from "@/lib/stripe";
+import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
+import type { DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 interface CartItemPayload {
@@ -33,16 +34,38 @@ interface CartItemPayload {
   totalPrice: number;
 }
 
+interface LetterItemPayload {
+  id: string;
+  itemType: "letter";
+  recipientName: string;
+  recipientEmail: string;
+  letterType: "annual" | "milestone";
+  deliveryType: DeliveryType;
+  quantity: number;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { items, email, fullName } = body as {
+    const { items, letterItems, email, fullName } = body as {
       items: CartItemPayload[];
+      letterItems?: LetterItemPayload[];
       email: string;
       fullName: string;
     };
 
-    if (!items || items.length === 0) {
+    const hasGifts = items && items.length > 0;
+    const hasLetters = letterItems && letterItems.length > 0;
+
+    if (!hasGifts && !hasLetters) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -50,36 +73,67 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Validate all items and calculate total
+    // Validate all items and build Stripe line items
     const lineItems = [];
-    let totalAmount = 0;
 
-    for (const item of items) {
-      const tierInfo = TIER_PRICES[item.tier];
-      if (!tierInfo) {
-        return NextResponse.json(
-          { error: `Invalid tier: ${item.tier}` },
-          { status: 400 }
-        );
-      }
+    // Gift line items
+    if (hasGifts) {
+      for (const item of items) {
+        const tierInfo = TIER_PRICES[item.tier];
+        if (!tierInfo) {
+          return NextResponse.json(
+            { error: `Invalid tier: ${item.tier}` },
+            { status: 400 }
+          );
+        }
 
-      const LETTER_ADDON_CENTS = 800; // $8/yr in cents
-      const giftTotal = tierInfo.price * item.years;
-      const letterTotal = item.addLetter ? LETTER_ADDON_CENTS * item.years : 0;
-      const itemTotal = giftTotal + letterTotal;
-      totalAmount += itemTotal;
+        const LETTER_ADDON_CENTS = 800; // $8/yr in cents
+        const giftTotal = tierInfo.price * item.years;
+        const letterTotal = item.addLetter ? LETTER_ADDON_CENTS * item.years : 0;
+        const itemTotal = giftTotal + letterTotal;
 
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: `${tierInfo.name} Gift Plan — ${item.recipientName} (${item.years} yr${item.years > 1 ? "s" : ""})${item.addLetter ? " + Letter" : ""}`,
-            description: `${tierInfo.description} for ${item.recipientName} (${item.occasionType})`,
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${tierInfo.name} Gift Plan — ${item.recipientName} (${item.years} yr${item.years > 1 ? "s" : ""})${item.addLetter ? " + Letter" : ""}`,
+              description: `${tierInfo.description} for ${item.recipientName} (${item.occasionType})`,
+            },
+            unit_amount: itemTotal,
           },
-          unit_amount: itemTotal,
-        },
-        quantity: 1,
-      });
+          quantity: 1,
+        });
+      }
+    }
+
+    // Letter line items
+    if (hasLetters) {
+      for (const letter of letterItems) {
+        const deliveryInfo = DELIVERY_TYPE_PRICES[letter.deliveryType];
+        if (!deliveryInfo) {
+          return NextResponse.json(
+            { error: `Invalid delivery type: ${letter.deliveryType}` },
+            { status: 400 }
+          );
+        }
+
+        const quantityLabel =
+          letter.letterType === "annual"
+            ? `${letter.quantity} yr${letter.quantity > 1 ? "s" : ""}`
+            : `${letter.quantity} letter${letter.quantity > 1 ? "s" : ""}`;
+
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Legacy Letter — ${letter.recipientName} (${quantityLabel})`,
+              description: `${deliveryInfo.label} for ${letter.recipientName}`,
+            },
+            unit_amount: letter.totalPrice,
+          },
+          quantity: 1,
+        });
+      }
     }
 
     // Check if user is authenticated
@@ -89,11 +143,20 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     // Serialize cart items to metadata (chunked for Stripe's 500-char limit)
-    const cartJson = JSON.stringify(items);
+    const cartJson = JSON.stringify(items || []);
     const metadataChunks: Record<string, string> = {};
     const CHUNK_SIZE = 490;
     for (let i = 0; i < cartJson.length; i += CHUNK_SIZE) {
       metadataChunks[`cart_items_${Math.floor(i / CHUNK_SIZE)}`] = cartJson.slice(
+        i,
+        i + CHUNK_SIZE
+      );
+    }
+
+    // Serialize letter items to metadata (chunked)
+    const letterJson = JSON.stringify(letterItems || []);
+    for (let i = 0; i < letterJson.length; i += CHUNK_SIZE) {
+      metadataChunks[`letter_items_${Math.floor(i / CHUNK_SIZE)}`] = letterJson.slice(
         i,
         i + CHUNK_SIZE
       );
@@ -111,7 +174,8 @@ export async function POST(request: Request) {
         userId: user?.id || "",
         email: email || user?.email || "",
         fullName: fullName || "",
-        itemCount: items.length.toString(),
+        itemCount: (items?.length || 0).toString(),
+        letterItemCount: (letterItems?.length || 0).toString(),
         ...metadataChunks,
       },
     });

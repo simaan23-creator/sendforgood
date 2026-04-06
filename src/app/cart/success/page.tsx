@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCart, clearCart } from "@/lib/cart";
+import { getCart, clearCart, getLetterCart, clearLetterCart } from "@/lib/cart";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
-import type { CartItem } from "@/lib/cart";
+import type { CartItem, LetterCartItem } from "@/lib/cart";
 
 export default function CartSuccessPage() {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [letterItems, setLetterItems] = useState<LetterCartItem[]>([]);
   const [cleared, setCleared] = useState(false);
 
   useEffect(() => {
     // Grab items before clearing
     if (!cleared) {
       const cartItems = getCart();
+      const cartLetters = getLetterCart();
       setItems(cartItems);
+      setLetterItems(cartLetters);
       clearCart();
+      clearLetterCart();
       setCleared(true);
     }
   }, [cleared]);
@@ -29,7 +33,9 @@ export default function CartSuccessPage() {
     return TIERS.find((t) => t.id === tierId)?.name ?? tierId;
   }
 
-  const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const giftTotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const letterTotal = letterItems.reduce((sum, l) => sum + l.totalPrice / 100, 0);
+  const total = giftTotal + letterTotal;
 
   return (
     <section className="bg-gradient-to-b from-cream to-cream-dark min-h-[80vh] py-16 sm:py-24">
@@ -53,17 +59,23 @@ export default function CartSuccessPage() {
 
         {/* Heading */}
         <h1 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight">
-          Your gifts are on their way! 🎉
+          Your order is confirmed! 🎉
         </h1>
 
         <p className="mt-4 text-lg text-warm-gray max-w-lg mx-auto leading-relaxed">
-          Thank you for choosing SendForGood. We&rsquo;ve received your order for{" "}
-          <span className="font-semibold text-navy">{items.length}</span>{" "}
-          {items.length === 1 ? "gift" : "gifts"} and will take care of everything from here.
+          Thank you for choosing SendForGood. We&rsquo;ve received your order
+          {items.length > 0 && (
+            <> for <span className="font-semibold text-navy">{items.length}</span>{" "}{items.length === 1 ? "gift" : "gifts"}</>
+          )}
+          {items.length > 0 && letterItems.length > 0 && " and"}
+          {letterItems.length > 0 && (
+            <> <span className="font-semibold text-navy">{letterItems.length}</span>{" "}{letterItems.length === 1 ? "letter" : "letters"}</>
+          )}
+          {" "}and will take care of everything from here.
         </p>
 
         {/* Order summary */}
-        {items.length > 0 && (
+        {(items.length > 0 || letterItems.length > 0) && (
           <div className="mt-10 rounded-xl border border-cream-dark bg-white p-6 sm:p-8 text-left shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gold mb-5">
               Order Summary
@@ -84,6 +96,24 @@ export default function CartSuccessPage() {
                   </div>
                   <span className="font-medium text-navy">
                     ${item.totalPrice.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+              {letterItems.map((letter) => (
+                <div
+                  key={letter.id}
+                  className="flex items-center justify-between border-b border-cream-dark pb-3"
+                >
+                  <div>
+                    <p className="font-medium text-navy">{letter.recipientName}</p>
+                    <p className="text-xs text-warm-gray">
+                      Legacy Letter &middot; {letter.letterType} &middot;{" "}
+                      {letter.deliveryType === "digital" ? "Digital" : letter.deliveryType === "physical_photo" ? "Physical + Photo" : "Physical"} &middot;{" "}
+                      {letter.quantity} {letter.letterType === "annual" ? (letter.quantity === 1 ? "year" : "years") : (letter.quantity === 1 ? "letter" : "letters")}
+                    </p>
+                  </div>
+                  <span className="font-medium text-navy">
+                    ${(letter.totalPrice / 100).toFixed(0)}
                   </span>
                 </div>
               ))}

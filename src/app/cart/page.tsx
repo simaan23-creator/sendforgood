@@ -5,12 +5,24 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
-import { getCart, removeFromCart, clearCart, getCartTotal, getCartCount } from "@/lib/cart";
-import type { CartItem } from "@/lib/cart";
+import {
+  getCart,
+  removeFromCart,
+  getCartTotal,
+  getCartCount,
+  getLetterCart,
+  removeLetterFromCart,
+  getLetterCartTotal,
+  getLetterCartCount,
+  getCombinedCartCount,
+  getCombinedCartTotal,
+} from "@/lib/cart";
+import type { CartItem, LetterCartItem } from "@/lib/cart";
 
 export default function CartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
+  const [letterItems, setLetterItems] = useState<LetterCartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [count, setCount] = useState(0);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -24,8 +36,9 @@ export default function CartPage() {
 
   function refreshCart() {
     setItems(getCart());
-    setTotal(getCartTotal());
-    setCount(getCartCount());
+    setLetterItems(getLetterCart());
+    setTotal(getCombinedCartTotal());
+    setCount(getCombinedCartCount());
   }
 
   useEffect(() => {
@@ -51,6 +64,11 @@ export default function CartPage() {
     refreshCart();
   }
 
+  function handleRemoveLetter(id: string) {
+    removeLetterFromCart(id);
+    refreshCart();
+  }
+
   async function handleCheckout() {
     if (!isLoggedIn && (!email.trim() || !fullName.trim())) {
       setCheckoutError("Please enter your name and email to proceed.");
@@ -66,6 +84,7 @@ export default function CartPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items,
+          letterItems,
           email: email || userEmail,
           fullName,
         }),
@@ -107,17 +126,25 @@ export default function CartPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your cart is empty</h1>
           <p className="mt-3 text-warm-gray">
-            Start adding gifts to surprise your loved ones year after year.
+            Start adding gifts or letters to surprise your loved ones year after year.
           </p>
-          <Link
-            href="/send"
-            className="mt-8 inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-navy-light"
-          >
-            Start Adding Gifts
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-            </svg>
-          </Link>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href="/send"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-navy-light"
+            >
+              Start Adding Gifts
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+              </svg>
+            </Link>
+            <Link
+              href="/letters/write"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+            >
+              Add a Legacy Letter
+            </Link>
+          </div>
         </div>
       </main>
     );
@@ -130,20 +157,32 @@ export default function CartPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your Cart</h1>
-          <Link
-            href="/send"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-            </svg>
-            Add Another Gift
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/send"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+              </svg>
+              Add Gift
+            </Link>
+            <Link
+              href="/letters/write"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+              </svg>
+              Add Letter
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* ──────────── Cart Items ──────────── */}
           <div className="space-y-4 lg:col-span-2">
+            {/* Gift items */}
             {items.map((item) => (
               <div
                 key={item.id}
@@ -197,6 +236,73 @@ export default function CartPage() {
                 </div>
               </div>
             ))}
+
+            {/* Letter items */}
+            {letterItems.map((letter) => (
+              <div
+                key={letter.id}
+                className="rounded-xl border border-gold/30 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-navy truncate">
+                        {letter.recipientName}
+                      </h3>
+                      <span className="shrink-0 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold">
+                        Letter
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-warm-gray capitalize">
+                      {letter.letterType} &middot;{" "}
+                      {letter.deliveryType === "digital"
+                        ? "Digital (Email)"
+                        : letter.deliveryType === "physical_photo"
+                          ? "Physical + Photo"
+                          : "Physical (Mailed)"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLetter(letter.id)}
+                    className="shrink-0 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-red-50 hover:text-red-500"
+                    aria-label={`Remove letter for ${letter.recipientName}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                      <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
+                  <div>
+                    <span className="text-warm-gray-light">Type</span>
+                    <p className="font-medium text-navy capitalize">{letter.letterType}</p>
+                  </div>
+                  <div>
+                    <span className="text-warm-gray-light">Quantity</span>
+                    <p className="font-medium text-navy">
+                      {letter.quantity} {letter.letterType === "annual" ? (letter.quantity === 1 ? "year" : "years") : (letter.quantity === 1 ? "letter" : "letters")}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-warm-gray-light">Per Unit</span>
+                    <p className="font-medium text-navy">${(letter.unitPrice / 100).toFixed(0)}</p>
+                  </div>
+                  <div>
+                    <span className="text-warm-gray-light">Total</span>
+                    <p className="font-bold text-forest">${(letter.totalPrice / 100).toFixed(0)}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-xs text-warm-gray-light">
+                  {letter.deliveryType === "digital"
+                    ? letter.recipientEmail
+                    : `${letter.city}, ${letter.state} ${letter.postalCode}`}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* ──────────── Order Summary Sidebar ──────────── */}
@@ -213,6 +319,14 @@ export default function CartPage() {
                     <span className="font-medium text-navy">${item.totalPrice.toLocaleString()}</span>
                   </div>
                 ))}
+                {letterItems.map((letter) => (
+                  <div key={letter.id} className="flex items-center justify-between text-sm">
+                    <span className="text-warm-gray truncate max-w-[60%]">
+                      Letter &mdash; {letter.recipientName}
+                    </span>
+                    <span className="font-medium text-navy">${(letter.totalPrice / 100).toFixed(0)}</span>
+                  </div>
+                ))}
               </div>
 
               <div className="mt-4 border-t border-cream-dark pt-4">
@@ -225,7 +339,9 @@ export default function CartPage() {
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-warm-gray-light">
-                  📦 Delivers to continental US only
+                  {letterItems.some((l) => l.deliveryType === "digital")
+                    ? "Digital letters via email; physical items ship to continental US"
+                    : "Ships to continental US only"}
                 </p>
               </div>
 
