@@ -83,9 +83,18 @@ const USE_CASES = [
     label: "Legacy Letters",
     headline: "Say what you have always meant to say",
     description:
-      "Write letters to the people you love. We keep them safe and deliver them on birthdays, milestones, or any moment you choose \u2014 even after you are gone.",
+      "Write letters to the people you love. Digital delivery starts at just $1/year \u2014 or choose physical mail for a lasting keepsake.",
     quote:
       "My grandfather wrote me a letter for my wedding day before he passed. I did not know it existed until the envelope arrived. It was the greatest gift I have ever received.",
+  },
+  {
+    emoji: "\uD83D\uDCB2",
+    label: "Starting at $1/Year",
+    headline: "The most affordable legacy you can leave",
+    description:
+      "Digital letters delivered automatically by email. Write once, we send it every year on their birthday, anniversary, or any day you choose. Starting at just $1 per year.",
+    quote:
+      "I set up digital letters for all 6 grandkids for their birthdays. $6 a year total. Best money I ever spent.",
   },
 ];
 
@@ -486,7 +495,8 @@ export default function HomePage() {
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
             You buy gifts for everyone else. Who buys gifts for you? Set up a
             birthday or holiday gift for yourself &mdash; something you actually
-            want, arriving every year automatically.
+            want, arriving every year automatically. Or write yourself a digital
+            letter for just $1/year &mdash; the cheapest way to leave a legacy.
           </p>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-3">
@@ -530,38 +540,52 @@ export default function HomePage() {
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl md:text-5xl">
-            Leave Behind Words That Last Forever
+            Leave more than a gift. Leave your words.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            Write heartfelt letters to your loved ones &mdash; delivered on
-            birthdays, milestones, or even after you&rsquo;re gone. Because some
-            words are too important to leave unsaid.
+            Write letters to the people you love. Choose how they arrive &mdash;
+            by email for as little as $1 a year, or printed and mailed for a
+            more personal touch. We keep them safe and deliver them when the time
+            comes.
           </p>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 max-w-3xl mx-auto">
+          <div className="mt-14 grid gap-8 sm:grid-cols-3 max-w-4xl mx-auto">
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-5xl" role="img" aria-label="Annual Letters">
-                &#x1F4C5;
+              <span className="text-5xl" role="img" aria-label="Digital Letters">
+                📧
               </span>
               <h3 className="mt-5 text-xl font-semibold text-navy">
-                Annual Letters
+                Digital Letters &mdash; $1/year
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                A letter delivered every year on their birthday or anniversary.
-                Stay present in their life, year after year.
+                Delivered by email on the scheduled date. Automated, reliable,
+                and starts at just $1 per year.
               </p>
             </article>
 
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-5xl" role="img" aria-label="Milestone Letters">
-                &#x1F393;
+              <span className="text-5xl" role="img" aria-label="Physical Letters">
+                ✉️
               </span>
               <h3 className="mt-5 text-xl font-semibold text-navy">
-                Milestone Letters
+                Physical Letters &mdash; $10/year
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                For graduations, weddings, first homes, or any moment that
-                matters. Write now, deliver when the time comes.
+                Printed on quality paper and mailed to their address. A real
+                keepsake they can hold and keep forever.
+              </p>
+            </article>
+
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Physical + Photo Letters">
+                📸
+              </span>
+              <h3 className="mt-5 text-xl font-semibold text-navy">
+                Physical + Photo &mdash; $15/year
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Everything in Physical, plus a wallet-sized photo printed and
+                mailed with the letter. Our most popular letter option.
               </p>
             </article>
           </div>
@@ -627,7 +651,7 @@ export default function HomePage() {
             As little as <span className="text-gold">$1.67/month</span> — gifts delivered every year.
           </h2>
           <p className="mt-3 text-base font-medium text-navy/80">
-            Most popular: Premium plan at just $6.67/month
+            Legacy Letters from $1/year &mdash; Digital, Physical, or Physical + Photo
           </p>
           <p className="mt-4 text-lg text-warm-gray">
             One payment. Up to 25 years of joy. No subscriptions.

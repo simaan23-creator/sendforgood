@@ -104,6 +104,12 @@ const USE_CASES = [
     description:
       "A lifetime of work deserves a letter of pride. Write it now, deliver it when the day comes.",
   },
+  {
+    icon: "💸",
+    title: "Anyone on a Budget",
+    description:
+      "At $1/year, there is no reason not to. Send a digital letter to everyone you love \u2014 children, grandchildren, friends, pets. Start today.",
+  },
 ];
 
 const HOW_IT_WORKS = [
@@ -121,9 +127,9 @@ const HOW_IT_WORKS = [
   },
   {
     step: 3,
-    title: "We Print & Deliver",
+    title: "We Deliver It",
     description:
-      "Your letter is professionally printed on premium stationery, sealed, and mailed directly to them on the date you chose.",
+      "Digital? We email it automatically on the scheduled date \u2014 no stamps, no waiting, no effort. Physical? We print it on premium stationery, seal it, and mail it directly to them.",
   },
   {
     step: 4,
@@ -186,14 +192,13 @@ export default function LettersPage() {
             Legacy Letters
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
-            Your Words,{" "}
-            <span className="text-gold">Delivered Forever</span>
+            Your words.{" "}
+            <span className="text-gold">Delivered when it matters most.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Write letters today that arrive in the future. Birthday letters
-            every year. Milestone letters for graduations, weddings, and
-            life&apos;s biggest moments. Your words keep arriving &mdash; even
-            after you&apos;re gone.
+            Write letters to the people you love. Starting at just $1 per year.
+            Choose email delivery for instant automation, or physical mail for a
+            lasting keepsake.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -230,12 +235,109 @@ export default function LettersPage() {
         </div>
       </section>
 
+      {/* Pricing Comparison */}
+      <section className="px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+              Choose How Your Letter Is Delivered
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
+              Three delivery options. Simple per-letter, per-year pricing.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            {/* Digital */}
+            <div className="relative flex flex-col rounded-2xl border border-cream-dark bg-white p-8 shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-3xl">📧</span>
+              <h3 className="mt-3 text-xl font-bold text-navy">Digital</h3>
+              <p className="mt-3">
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$1</span>
+                <span className="text-sm text-warm-gray">/yr per letter</span>
+              </p>
+              <ul className="mt-6 flex-1 space-y-3">
+                {["Delivered by email", "Fully automated", "Instant and reliable", "Perfect for everyday letters"].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-warm-gray">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/letters/write?type=annual"
+                className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              >
+                Start at $1/year
+              </Link>
+            </div>
+
+            {/* Physical */}
+            <div className="relative flex flex-col rounded-2xl border border-cream-dark bg-white p-8 shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-3xl">✉️</span>
+              <h3 className="mt-3 text-xl font-bold text-navy">Physical</h3>
+              <p className="mt-3">
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$10</span>
+                <span className="text-sm text-warm-gray">/yr per letter</span>
+              </p>
+              <ul className="mt-6 flex-1 space-y-3">
+                {["Printed and mailed", "Quality paper", "A real keepsake", "Perfect for meaningful moments"].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-warm-gray">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/letters/write?type=annual"
+                className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              >
+                Start at $10/year
+              </Link>
+            </div>
+
+            {/* Physical + Photo */}
+            <div className="relative flex flex-col rounded-2xl border-gold bg-white p-8 shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                Most Popular
+              </span>
+              <span className="text-3xl">📸</span>
+              <h3 className="mt-3 text-xl font-bold text-navy">Physical + Photo</h3>
+              <p className="mt-3">
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$15</span>
+                <span className="text-sm text-warm-gray">/yr per letter</span>
+              </p>
+              <ul className="mt-6 flex-1 space-y-3">
+                {["Letter + wallet photo", "Printed and mailed together", "Most personal option"].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-warm-gray">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/letters/write?type=annual"
+                className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              >
+                Start at $15/year
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Use Cases Grid */}
       <section className="px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-navy sm:text-4xl">
-              Letters for Every Moment That Matters
+              Who Writes Legacy Letters?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
               Write now. Deliver later. Some letters are too important to leave

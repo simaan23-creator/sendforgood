@@ -506,7 +506,8 @@ export default function AboutPage() {
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-warm-gray">
             Legacy Letters lets you write to the people you love&nbsp;&mdash;
             and ensure they receive your words at the perfect moment, even if
-            you&rsquo;re not there to say them yourself.
+            you&rsquo;re not there to say them yourself. Digital letters start
+            at just $1/year.
           </p>
           <div className="mt-10">
             <Link
