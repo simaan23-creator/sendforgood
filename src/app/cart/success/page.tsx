@@ -68,9 +68,10 @@ export default function CartSuccessPage() {
             <> for <span className="font-semibold text-navy">{items.length}</span>{" "}{items.length === 1 ? "gift" : "gifts"}</>
           )}
           {items.length > 0 && letterItems.length > 0 && " and"}
-          {letterItems.length > 0 && (
-            <> <span className="font-semibold text-navy">{letterItems.length}</span>{" "}{letterItems.length === 1 ? "letter" : "letters"}</>
-          )}
+          {letterItems.length > 0 && (() => {
+            const totalLetterQuantity = letterItems.reduce((sum, l) => sum + (l.quantity || 1), 0);
+            return <> <span className="font-semibold text-navy">{totalLetterQuantity}</span>{" "}{totalLetterQuantity === 1 ? "letter" : "letters"}</>;
+          })()}
           {" "}and will take care of everything from here.
         </p>
 
@@ -108,7 +109,7 @@ export default function CartSuccessPage() {
                     <p className="font-medium text-navy">{letter.recipientName}</p>
                     <p className="text-xs text-warm-gray">
                       Legacy Letter &middot; {letter.letterType} &middot;{" "}
-                      {letter.deliveryType === "digital" ? "Digital" : letter.deliveryType === "physical_photo" ? "Physical + Photo" : "Physical"} &middot;{" "}
+                      {letter.deliveryType === "digital" ? "Email delivery" : letter.deliveryType === "physical_photo" ? "Physical mail + photo" : "Physical mail"} &middot;{" "}
                       {letter.quantity} {letter.letterType === "annual" ? (letter.quantity === 1 ? "year" : "years") : (letter.quantity === 1 ? "letter" : "letters")}
                     </p>
                   </div>
@@ -140,7 +141,7 @@ export default function CartSuccessPage() {
             href="/send"
             className="inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy w-full sm:w-auto"
           >
-            Send More Gifts
+            Send More
           </Link>
         </div>
 
