@@ -7,6 +7,39 @@ import { createClient } from "@/lib/supabase/client";
 
 const MAX_LETTER_LENGTH = 5000;
 
+function convertToJpeg(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not get canvas context"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to convert image"));
+        },
+        "image/jpeg",
+        0.9,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = url;
+  });
+}
+
 const MILESTONE_OPTIONS = [
   "Wedding Day",
   "Birth of First Child",
@@ -338,7 +371,7 @@ export default function EditLetterPage() {
               )}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 disabled={isLocked || uploadingPhoto}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
@@ -349,12 +382,15 @@ export default function EditLetterPage() {
 
                   try {
                     const supabase = createClient();
-                    const ext = file.name.split(".").pop();
-                    const path = `${letterId}/${Date.now()}.${ext}`;
+                    const jpegBlob = await convertToJpeg(file);
+                    const path = `${letterId}/${Date.now()}.jpg`;
 
                     const { error: uploadError } = await supabase.storage
                       .from("letter-photos")
-                      .upload(path, file, { upsert: true });
+                      .upload(path, jpegBlob, {
+                        upsert: true,
+                        contentType: "image/jpeg",
+                      });
 
                     if (uploadError) throw uploadError;
 
