@@ -111,7 +111,7 @@ export function Header() {
               )}
             </Link>
             <Link
-              href="/send"
+              href="/start"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-cream shadow-sm hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy transition-colors duration-150"
             >
               Start Sending
@@ -218,7 +218,7 @@ export function Header() {
                 )}
               </Link>
               <Link
-                href="/send"
+                href="/start"
                 className="block w-full rounded-lg bg-navy px-3 py-2.5 text-center text-base font-semibold text-cream shadow-sm hover:bg-navy-light transition-colors duration-150"
                 onClick={() => setMobileMenuOpen(false)}
               >
