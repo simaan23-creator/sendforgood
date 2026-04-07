@@ -7,35 +7,50 @@ import { createClient } from "@/lib/supabase/client";
 
 const MAX_LETTER_LENGTH = 5000;
 
-function convertToJpeg(file: File): Promise<Blob> {
+async function convertToJpeg(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
+
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          reject(new Error("Could not get canvas context"));
+          return;
+        }
+        // White background for transparent images (PNG etc)
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
         URL.revokeObjectURL(url);
-        reject(new Error("Could not get canvas context"));
-        return;
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("Failed to convert image"));
+            }
+          },
+          "image/jpeg",
+          0.92,
+        );
+      } catch (e) {
+        URL.revokeObjectURL(url);
+        reject(e);
       }
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Failed to convert image"));
-        },
-        "image/jpeg",
-        0.9,
-      );
     };
+
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error("Failed to load image"));
     };
+
+    img.crossOrigin = "anonymous";
     img.src = url;
   });
 }
@@ -400,8 +415,12 @@ export default function EditLetterPage() {
 
                     setPhotoUrl(urlData.publicUrl);
                     setSaved(false);
-                  } catch {
-                    setError("Failed to upload photo. Please try again.");
+                  } catch (err) {
+                    const message =
+                      err instanceof Error ? err.message : "Unknown error";
+                    setError(
+                      `Failed to upload photo: ${message}. Please try a different image or format (JPG, PNG).`,
+                    );
                   }
 
                   setUploadingPhoto(false);
