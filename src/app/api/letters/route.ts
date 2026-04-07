@@ -90,7 +90,22 @@ export async function PATCH(request: Request) {
 
     const updates: Record<string, unknown> = {};
     if (title !== undefined) updates.title = title;
-    if (content !== undefined) updates.content = content;
+    if (content !== undefined) {
+      updates.content = content;
+      // Update status based on letter type when content is added
+      if (content && letter.status === "draft") {
+        const { data: fullLetter } = await supabase
+          .from("letters")
+          .select("letter_type")
+          .eq("id", letterId)
+          .single();
+        if (fullLetter?.letter_type === "milestone") {
+          updates.status = "pending_release";
+        } else {
+          updates.status = "scheduled";
+        }
+      }
+    }
     if (scheduledDate !== undefined) updates.scheduled_date = scheduledDate;
     if (milestoneLabel !== undefined) updates.milestone_label = milestoneLabel;
     if (executorName !== undefined) updates.executor_name = executorName;

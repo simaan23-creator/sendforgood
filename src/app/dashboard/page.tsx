@@ -710,6 +710,24 @@ export default function DashboardPage() {
 
                     {/* Actions */}
                     <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                      {/* Release button for milestone letters that are written */}
+                      {letter.letter_type === "milestone" && letter.status === "pending_release" && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm("Are you sure you want to release this letter? It will be sent to the recipient.")) return;
+                            await fetch(`/api/letters/release`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ letterId: letter.id }),
+                            });
+                            window.location.reload();
+                          }}
+                          className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
+                        >
+                          Release Now
+                        </button>
+                      )}
                       {hasContent ? (
                         <Link
                           href={`/letters/edit/${letter.id}`}
