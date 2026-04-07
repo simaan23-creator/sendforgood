@@ -285,11 +285,18 @@ function ShipModal({
 function StatsBar({
   orders,
   shipments,
+  letters,
 }: {
   orders: Order[];
   shipments: Shipment[];
+  letters: AdminLetter[];
 }) {
-  const activeOrders = orders.filter((o) => o.status === "active").length;
+  const activeOrdersCount = orders.filter((o) => o.status === "active").length;
+  const activeLetterStatuses = ["pending_release", "scheduled", "released", "printed"];
+  const activeLettersAsOrders = letters.filter((l) =>
+    activeLetterStatuses.includes(l.status)
+  ).length;
+  const activeOrders = activeOrdersCount + activeLettersAsOrders;
 
   const now = new Date();
   const thisMonth = now.getMonth();
@@ -299,27 +306,53 @@ function StatsBar({
 
   const pendingShipments = shipments.filter((s) => s.status === "pending");
 
-  const dueThisMonth = pendingShipments.filter((s) => {
+  const dueThisMonthShipments = pendingShipments.filter((s) => {
     const d = new Date(s.scheduled_date + "T00:00:00");
     return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
   }).length;
 
-  const dueNextMonth = pendingShipments.filter((s) => {
+  const dueNextMonthShipments = pendingShipments.filter((s) => {
     const d = new Date(s.scheduled_date + "T00:00:00");
     return d.getMonth() === nextMonth && d.getFullYear() === nextMonthYear;
   }).length;
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.amount_paid, 0);
+  const scheduledAnnualLetters = letters.filter(
+    (l) => l.letter_type === "annual" && l.status === "scheduled" && l.scheduled_date
+  );
+
+  const dueThisMonthLetters = scheduledAnnualLetters.filter((l) => {
+    const d = new Date(l.scheduled_date! + "T00:00:00");
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+
+  const dueNextMonthLetters = scheduledAnnualLetters.filter((l) => {
+    const d = new Date(l.scheduled_date! + "T00:00:00");
+    return d.getMonth() === nextMonth && d.getFullYear() === nextMonthYear;
+  }).length;
+
+  const dueThisMonth = dueThisMonthShipments + dueThisMonthLetters;
+  const dueNextMonth = dueNextMonthShipments + dueNextMonthLetters;
+
+  const ordersRevenue = orders.reduce((sum, o) => sum + o.amount_paid, 0);
+  const lettersRevenue = letters
+    .filter((l) => l.amount_paid > 0)
+    .reduce((sum, l) => sum + l.amount_paid, 0);
+  const totalRevenue = ordersRevenue + lettersRevenue;
+
+  const activeLettersCount = letters.filter((l) =>
+    ["scheduled", "pending_release"].includes(l.status)
+  ).length;
 
   const stats = [
     { label: "Active Orders", value: activeOrders },
+    { label: "Active Letters", value: activeLettersCount },
     { label: "Due This Month", value: dueThisMonth },
     { label: "Due Next Month", value: dueNextMonth },
     { label: "Total Revenue", value: formatCurrency(totalRevenue) },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       {stats.map((s) => (
         <div
           key={s.label}
@@ -1126,7 +1159,7 @@ export default function AdminDashboard() {
         ) : (
           <>
             {/* Stats */}
-            <StatsBar orders={orders} shipments={shipments} />
+            <StatsBar orders={orders} shipments={shipments} letters={letters} />
 
             {/* Tabs */}
             <div className="flex gap-1 mb-6 border-b border-gray-200">
