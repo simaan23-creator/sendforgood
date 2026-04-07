@@ -2,19 +2,19 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Start Sending — SendForGood",
+  title: "Start Sending - SendForGood",
   description:
-    "Choose how you want to show love — send annual gifts, write heartfelt letters, or both. Set it up once, we handle the rest.",
+    "Choose how you want to show love - send annual gifts, write heartfelt letters, or both. Set it up once, we handle the rest.",
 };
 
 const CARDS = [
   {
     emoji: "🎁",
     title: "Send a Gift",
-    subtitle: "From $29/year",
+    subtitle: "From $20/year",
     description:
-      "Annual gifts delivered to anyone you love — birthdays, holidays, anniversaries, pets, and more. Set it up once, we handle the rest every year.",
-    features: ["All occasions", "5 tiers from $29–$199/yr", "Up to 25 years"],
+      "Annual gifts delivered to anyone you love - birthdays, holidays, anniversaries, pets, and more. Set it up once, we handle the rest every year.",
+    features: ["All occasions", "5 tiers from $20-$200/yr", "Up to 25 years"],
     cta: "Choose a Gift",
     href: "/send",
     borderColor: "border-navy",
@@ -43,7 +43,7 @@ const CARDS = [
     title: "Gifts + Letters",
     subtitle: "Best value",
     description:
-      "The complete experience. Send annual gifts AND write heartfelt letters — both delivered automatically, every year. Add them to your cart together.",
+      "The complete experience. Send annual gifts AND write heartfelt letters - both delivered automatically, every year. Add them to your cart together.",
     features: [
       "One checkout",
       "Gifts and letters combined",
@@ -67,7 +67,7 @@ export default function StartPage() {
             What would you like to send?
           </h1>
           <p className="mt-3 text-lg text-navy/60">
-            Choose one or mix and match — you can always add more later.
+            Choose one or mix and match - you can always add more later.
           </p>
         </div>
 
