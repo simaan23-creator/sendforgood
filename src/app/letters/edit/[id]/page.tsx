@@ -145,7 +145,6 @@ export default function EditLetterPage() {
           executorEmail: executorEmail || null,
           executorPhone: executorPhone || null,
           executorAddress: executorAddress || null,
-          deliveryType,
           recipientEmail: recipientEmail || null,
           photoUrl: photoUrl || null,
         }),
@@ -222,93 +221,49 @@ export default function EditLetterPage() {
         )}
 
         <div className="space-y-6">
-          {/* Delivery Type Selection */}
+          {/* Delivery Type (read-only) */}
           <div>
             <label className="mb-3 block text-sm font-medium text-navy">
               Delivery Type
             </label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {/* Digital */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isLocked) {
-                    setDeliveryType("digital");
-                    setSaved(false);
-                  }
-                }}
-                disabled={isLocked}
-                className={`relative rounded-xl border-2 p-4 text-left transition ${
-                  deliveryType === "digital"
-                    ? "border-gold bg-gold/5"
-                    : "border-cream-dark bg-white hover:border-gold/50"
-                } disabled:opacity-60 disabled:cursor-not-allowed`}
-              >
-                <div className="text-2xl mb-2">&#9993;</div>
-                <p className="font-semibold text-navy text-sm">Digital Letter</p>
-                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
-                  Delivered by email on the scheduled date. Instant, reliable, costs less.
-                </p>
-                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
-                  $1/year
+            <div className="rounded-xl border-2 border-gold bg-gold/5 p-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">
+                  {deliveryType === "digital"
+                    ? "\u{1F4E7}"
+                    : deliveryType === "physical_photo"
+                      ? "\u{1F4F8}"
+                      : "\u{2709}\u{FE0F}"}
                 </span>
-              </button>
-
-              {/* Physical */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isLocked) {
-                    setDeliveryType("physical");
-                    setSaved(false);
-                  }
-                }}
-                disabled={isLocked}
-                className={`relative rounded-xl border-2 p-4 text-left transition ${
-                  deliveryType === "physical"
-                    ? "border-gold bg-gold/5"
-                    : "border-cream-dark bg-white hover:border-gold/50"
-                } disabled:opacity-60 disabled:cursor-not-allowed`}
-              >
-                <div className="text-2xl mb-2">&#128236;</div>
-                <p className="font-semibold text-navy text-sm">Physical Letter</p>
-                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
-                  Printed on quality paper and mailed to their address. A real keepsake they can hold.
-                </p>
-                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
-                  $10/year
-                </span>
-              </button>
-
-              {/* Physical + Photo */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isLocked) {
-                    setDeliveryType("physical_photo");
-                    setSaved(false);
-                  }
-                }}
-                disabled={isLocked}
-                className={`relative rounded-xl border-2 p-4 text-left transition ${
-                  deliveryType === "physical_photo"
-                    ? "border-gold bg-gold/5"
-                    : "border-cream-dark bg-white hover:border-gold/50"
-                } disabled:opacity-60 disabled:cursor-not-allowed`}
-              >
-                <span className="absolute -top-2.5 right-3 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  Most Popular
-                </span>
-                <div className="text-2xl mb-2">&#128247;</div>
-                <p className="font-semibold text-navy text-sm">Physical Letter + Photo</p>
-                <p className="mt-1 text-xs text-warm-gray leading-relaxed">
-                  Everything in Physical, plus a wallet-sized photo printed and included in the envelope.
-                </p>
-                <span className="mt-2 inline-block rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-bold text-forest">
-                  $15/year
-                </span>
-              </button>
+                <div>
+                  <p className="font-semibold text-navy text-sm">
+                    {deliveryType === "digital"
+                      ? "Digital Letter"
+                      : deliveryType === "physical_photo"
+                        ? "Physical Letter + Photo"
+                        : "Physical Letter"}
+                    {" \u2014 "}
+                    <span className="text-forest">
+                      {deliveryType === "digital"
+                        ? "$1/year"
+                        : deliveryType === "physical_photo"
+                          ? "$15/year"
+                          : "$10/year"}
+                    </span>
+                  </p>
+                  <p className="mt-0.5 text-xs text-warm-gray">
+                    {deliveryType === "digital"
+                      ? "Delivered by email on the scheduled date"
+                      : deliveryType === "physical_photo"
+                        ? "Printed on quality paper with a wallet-sized photo included"
+                        : "Printed on quality paper and mailed to their address"}
+                  </p>
+                </div>
+              </div>
             </div>
+            <p className="mt-2 text-xs text-warm-gray-light">
+              To change your delivery type, please contact support.
+            </p>
           </div>
 
           {/* Recipient Email (for digital delivery) */}
