@@ -79,6 +79,19 @@ interface Shipment {
   };
 }
 
+interface AccessRequest {
+  id: string;
+  requester_name: string;
+  requester_email: string;
+  requester_relationship: string;
+  account_holder_name: string;
+  account_holder_email: string;
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  created_at: string;
+  reviewed_at: string | null;
+}
+
 interface AdminLetter {
   id: string;
   user_id: string;
@@ -1082,12 +1095,179 @@ function LettersTab({
   );
 }
 
+// ─── Access Requests Tab ────────────────────────────────────────────────────
+
+function AccessRequestsTab() {
+  const [requests, setRequests] = useState<AccessRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const fetchRequests = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/admin/executor-access");
+    const data = await res.json();
+    setRequests(data.requests || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  async function handleDecision(id: string, status: "approved" | "denied") {
+    setUpdatingId(id);
+    const res = await fetch("/api/admin/executor-access", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) {
+      await fetchRequests();
+    }
+    setUpdatingId(null);
+  }
+
+  const filtered =
+    statusFilter === "all"
+      ? requests
+      : requests.filter((r) => r.status === statusFilter);
+
+  const statusColors: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    approved: "bg-green-100 text-green-700",
+    denied: "bg-red-100 text-red-700",
+  };
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="denied">Denied</option>
+        </select>
+        <div className="text-sm text-gray-500 flex items-center">
+          {filtered.length} request{filtered.length !== 1 ? "s" : ""}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">
+          Loading requests...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          No access requests found
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((r) => {
+            const isExpanded = expandedId === r.id;
+            return (
+              <div
+                key={r.id}
+                className="rounded-lg border border-gray-200 bg-white p-4"
+              >
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-[240px]">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-gray-900">
+                        {r.requester_name}
+                      </span>
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                          statusColors[r.status] || "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500">
+                      {r.requester_email} &middot; {r.requester_relationship}
+                    </div>
+                    <div className="mt-2 text-sm text-gray-700">
+                      Requesting access to{" "}
+                      <span className="font-medium text-gray-900">
+                        {r.account_holder_name}
+                      </span>{" "}
+                      <span className="text-gray-500">
+                        ({r.account_holder_email})
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-400">
+                      Submitted {formatDate(r.created_at.split("T")[0])}
+                      {r.reviewed_at && (
+                        <>
+                          {" "}
+                          &middot; Reviewed{" "}
+                          {formatDate(r.reviewed_at.split("T")[0])}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                      className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition"
+                    >
+                      {isExpanded ? "Hide Reason" : "View Reason"}
+                    </button>
+                    {r.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => handleDecision(r.id, "approved")}
+                          disabled={updatingId === r.id}
+                          className="rounded bg-green-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-green-700 transition disabled:opacity-50"
+                        >
+                          {updatingId === r.id ? "..." : "Approve"}
+                        </button>
+                        <button
+                          onClick={() => handleDecision(r.id, "denied")}
+                          disabled={updatingId === r.id}
+                          className="rounded bg-red-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-red-700 transition disabled:opacity-50"
+                        >
+                          {updatingId === r.id ? "..." : "Deny"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Reason
+                    </h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      {r.reason}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [tab, setTab] = useState<"shipments" | "orders" | "letters">("shipments");
+  const [tab, setTab] = useState<
+    "shipments" | "orders" | "letters" | "access"
+  >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [letters, setLetters] = useState<AdminLetter[]>([]);
@@ -1198,6 +1378,16 @@ export default function AdminDashboard() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setTab("access")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "access"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Access Requests
+              </button>
             </div>
 
             {/* Content */}
@@ -1212,6 +1402,8 @@ export default function AdminDashboard() {
                   letters={letters}
                   onRefresh={fetchData}
                 />
+              ) : tab === "access" ? (
+                <AccessRequestsTab />
               ) : (
                 <OrdersTab />
               )}

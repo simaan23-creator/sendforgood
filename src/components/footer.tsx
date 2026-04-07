@@ -15,6 +15,7 @@ const FOOTER_LINKS = {
   Legal: [
     { href: "/privacy", label: "Privacy" },
     { href: "/terms", label: "Terms" },
+    { href: "/executor-access", label: "Executor Access" },
   ],
 } as const;
 

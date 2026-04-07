@@ -568,6 +568,17 @@ export default function LettersPage() {
           >
             Write Your First Letter &mdash; From $1/yr
           </Link>
+          <p className="mt-10 text-sm text-warm-gray">
+            Are you an executor? If the account holder has passed or is unable
+            to manage their account, you can{" "}
+            <Link
+              href="/executor-access"
+              className="font-semibold text-navy underline underline-offset-2 hover:text-gold"
+            >
+              request access here
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </div>
