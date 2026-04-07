@@ -49,6 +49,7 @@ export async function PATCH(request: Request) {
       title,
       content,
       scheduledDate,
+      milestoneLabel,
       executorName,
       executorEmail,
       executorPhone,
@@ -91,6 +92,7 @@ export async function PATCH(request: Request) {
     if (title !== undefined) updates.title = title;
     if (content !== undefined) updates.content = content;
     if (scheduledDate !== undefined) updates.scheduled_date = scheduledDate;
+    if (milestoneLabel !== undefined) updates.milestone_label = milestoneLabel;
     if (executorName !== undefined) updates.executor_name = executorName;
     if (executorEmail !== undefined) updates.executor_email = executorEmail;
     if (executorPhone !== undefined) updates.executor_phone = executorPhone;
