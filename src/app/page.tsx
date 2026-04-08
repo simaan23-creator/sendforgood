@@ -58,7 +58,7 @@ const USE_CASES = [
     description:
       "Set up birthday gifts for your kids \u2014 up to 25 years at a time. We handle everything, every year.",
     quote:
-      "I set up years of birthday gifts for my daughter in one sitting. Done.",
+      "I still buy my kids gifts myself \u2014 but SendForGood delivers something extra every year without me lifting a finger. My kids think I\u2019m the most thoughtful parent alive. They\u2019re not wrong.",
   },
   {
     emoji: "🕯️",
