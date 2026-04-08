@@ -94,7 +94,7 @@ const USE_CASES = [
     description:
       "Digital letters delivered automatically by email. Write once, we send it every year on their birthday, anniversary, or any day you choose. Starting at just $1 per year.",
     quote:
-      "I set up digital letters for all 6 grandkids for their birthdays. $6 a year total. Best money I ever spent.",
+      "I wrote heartfelt birthday letters to all my grandkids for the next 25 years. $25 total. Now I know that no matter what happens to me, they will never forget that I loved them.",
   },
 ];
 
