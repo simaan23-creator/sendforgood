@@ -121,27 +121,6 @@ const BUSINESS_CARDS = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "I set this up for all 6 grandkids at once. Every birthday, a gift shows up at their door. I did it once and have not thought about it since.",
-    author: "Sandra M.",
-    role: "Grandmother",
-  },
-  {
-    quote:
-      "My clients get a gift on their home anniversary every year. The referrals I get from it are worth 10 times what I spend.",
-    author: "James T.",
-    role: "Realtor",
-  },
-  {
-    quote:
-      "My dog Holly gets a birthday gift every year automatically. Best money I ever spent.",
-    author: "Maria L.",
-    role: "Pet Owner",
-  },
-];
-
 /* ─────────────────────────────── Page ─────────────────────────────── */
 
 export default function HomePage() {
@@ -610,49 +589,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ SOCIAL PROOF ═══════════════════════ */}
-      <section className="bg-cream px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Trusted by thoughtful people
-          </h2>
-
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <blockquote
-                key={t.author}
-                className="flex flex-col rounded-2xl bg-white p-8 shadow-md transition hover:shadow-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="mb-4 h-8 w-8 text-gold/40"
-                  aria-hidden="true"
-                >
-                  <path d="M11.3 2.8C6.1 5.1 3 9.2 3 14c0 3.3 2.4 6 5.4 6 2.6 0 4.6-2 4.6-4.4 0-2.5-1.8-4.2-4.1-4.2-.4 0-1 .1-1.2.2.6-3 3-5.8 5.8-7.4L11.3 2.8zm10 0C16.1 5.1 13 9.2 13 14c0 3.3 2.4 6 5.4 6 2.6 0 4.6-2 4.6-4.4 0-2.5-1.8-4.2-4.1-4.2-.4 0-1 .1-1.2.2.6-3 3-5.8 5.8-7.4L21.3 2.8z" />
-                </svg>
-
-                <p className="flex-1 text-base leading-relaxed text-warm-gray italic">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-
-                <footer className="mt-6 border-t border-cream-dark pt-4">
-                  <cite className="not-italic">
-                    <span className="font-semibold text-navy">
-                      {t.author}
-                    </span>
-                    <span className="ml-1 text-sm text-warm-gray-light">
-                      &mdash; {t.role}
-                    </span>
-                  </cite>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══════════════════════ PRICING PREVIEW ═══════════════════════ */}
       <section className="bg-cream-dark px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
@@ -686,41 +622,6 @@ export default function HomePage() {
               />
             </svg>
           </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ CUSTOMER VOICES ═══════════════════════ */}
-      <section className="bg-cream px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-center text-2xl font-bold text-navy sm:text-3xl">
-            Real people. Real gifts. Real joy.
-          </h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            <blockquote className="rounded-xl bg-white p-6 shadow-md">
-              <p className="text-sm leading-relaxed text-warm-gray italic">
-                &ldquo;I set it up in 10 minutes for all my grandkids. Have not thought about it since.&rdquo;
-              </p>
-              <footer className="mt-4 text-xs font-semibold text-navy">
-                — Grandmother of 4
-              </footer>
-            </blockquote>
-            <blockquote className="rounded-xl bg-white p-6 shadow-md">
-              <p className="text-sm leading-relaxed text-warm-gray italic">
-                &ldquo;My client got a home anniversary gift. They called me for a referral the next week.&rdquo;
-              </p>
-              <footer className="mt-4 text-xs font-semibold text-navy">
-                — Realtor
-              </footer>
-            </blockquote>
-            <blockquote className="rounded-xl bg-white p-6 shadow-md">
-              <p className="text-sm leading-relaxed text-warm-gray italic">
-                &ldquo;Holly gets a birthday box every year. She loses her mind when it arrives.&rdquo;
-              </p>
-              <footer className="mt-4 text-xs font-semibold text-navy">
-                — Pet owner
-              </footer>
-            </blockquote>
-          </div>
         </div>
       </section>
 
