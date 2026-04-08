@@ -13,7 +13,7 @@ const USE_CASES = [
     description:
       "Set up gifts for all your grandkids at once. They\u2019ll feel your love every year, no matter what.",
     quote:
-      "I set it up once for all 6 grandkids. Now I never have to worry about forgetting.",
+      "As I get older, keeping up with birthdays gets harder — and knowing what the grandkids actually want gets even harder. SendForGood solves both. The gifts are always perfect, and I never have to think about it.",
   },
   {
     emoji: "🎁",
