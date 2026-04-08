@@ -76,7 +76,7 @@ const USE_CASES = [
     description:
       "Send annual treats, toys, and surprises for the pets you love. They may not know what day it is, but you do.",
     quote:
-      "My dog gets a birthday box every year. The look on his face when it arrives never gets old.",
+      "My dog gets a birthday box every year on the day I picked her up from the shelter. I am reminded of how much I love her — and she gets to enjoy every second of it.",
   },
   {
     emoji: "\u2709\uFE0F",
