@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 
 /* ─────────────────────────────── Data ─────────────────────────────── */
@@ -131,9 +131,30 @@ export default function HomePage() {
     setActiveSlide((prev) => (prev + 1) % USE_CASES.length);
   }, []);
 
+  const prevSlide = useCallback(() => {
+    setActiveSlide((prev) => (prev - 1 + USE_CASES.length) % USE_CASES.length);
+  }, []);
+
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? nextSlide() : prevSlide();
+    }
+    touchStartX.current = null;
+    setIsPaused(false);
+  };
+
   useEffect(() => {
     if (isPaused) return;
-    const timer = setInterval(nextSlide, 4000);
+    const timer = setInterval(nextSlide, 8000);
     return () => clearInterval(timer);
   }, [isPaused, nextSlide]);
 
@@ -240,7 +261,31 @@ export default function HomePage() {
             className="relative mt-14"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
+            {/* Prev arrow */}
+            <button
+              onClick={prevSlide}
+              aria-label="Previous slide"
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md transition hover:bg-white sm:left-4"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-navy">
+                <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            {/* Next arrow */}
+            <button
+              onClick={nextSlide}
+              aria-label="Next slide"
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md transition hover:bg-white sm:right-4"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-navy">
+                <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+              </svg>
+            </button>
+
             {/* Slides container */}
             <div className="overflow-hidden rounded-2xl bg-cream shadow-lg">
               <div
