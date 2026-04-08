@@ -505,8 +505,7 @@ export default function HomePage() {
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
             You buy gifts for everyone else. Who buys gifts for you? Set up a
             birthday or holiday gift for yourself &mdash; something you actually
-            want, arriving every year automatically. Or write yourself a digital
-            letter for just $1/year &mdash; the cheapest way to leave a legacy.
+            want, arriving every year automatically.
           </p>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-3">
