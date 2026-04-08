@@ -67,7 +67,7 @@ const USE_CASES = [
     description:
       "The most meaningful gift you can give is one that keeps coming. Even if something happens to you, they still receive your love.",
     quote:
-      "My dad set this up before he passed. We still get a gift from him every Christmas.",
+      "My dad set this up before he passed. Every Christmas, a gift arrives — and tucked inside is a letter he wrote, in his own words, just for us. It brings us to tears every single time. We love you, Dad. Thank you for never letting us forget it.",
   },
   {
     emoji: "🐾",
