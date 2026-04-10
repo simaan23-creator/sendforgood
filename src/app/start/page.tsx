@@ -55,6 +55,23 @@ const CARDS = [
     ctaBg: "bg-forest hover:bg-forest-light",
     badge: "Most Popular",
   },
+  {
+    emoji: "\uD83C\uDF99\uFE0F",
+    title: "Record a Voice Message",
+    subtitle: "$5/year",
+    description:
+      "Record your voice and we deliver it by email every year. Your actual voice — on their birthday, a milestone, or any day that matters. Even after you are gone.",
+    features: [
+      "Record in your browser",
+      "Annual or milestone delivery",
+      "Stored securely forever",
+    ],
+    cta: "Record a Message",
+    href: "/voice/record",
+    borderColor: "border-navy/40",
+    ctaBg: "bg-navy/80 hover:bg-navy",
+    badge: "New",
+  },
 ] as const;
 
 export default function StartPage() {
@@ -72,7 +89,7 @@ export default function StartPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {CARDS.map((card) => (
             <div
               key={card.title}
