@@ -239,6 +239,82 @@ export default function VoiceMessagesPage() {
         </div>
       </section>
 
+      {/* Cross-Sell Comparison */}
+      <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+              Three Ways to Leave Your Legacy
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray">
+              Letters, voice, and gifts &mdash; all delivered on the dates you
+              choose, for as long as you need.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <article className="rounded-2xl border border-cream-dark bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Letters">
+                ✉️
+              </span>
+              <h3 className="mt-5 text-xl font-bold text-navy">Letters</h3>
+              <p className="mt-2 text-sm text-warm-gray">From $1/yr</p>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Write letters delivered by email or printed and mailed. Your
+                words, on the days that matter most.
+              </p>
+              <Link
+                href="/letters"
+                className="mt-6 inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+              >
+                Learn More
+              </Link>
+            </article>
+
+            <article className="relative rounded-2xl border-gold bg-white p-8 text-center shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                You Are Here
+              </span>
+              <span className="text-5xl" role="img" aria-label="Voice Messages">
+                🎙️
+              </span>
+              <h3 className="mt-5 text-xl font-bold text-navy">
+                Voice Messages
+              </h3>
+              <p className="mt-2 text-sm text-warm-gray">$5/yr</p>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Record your voice and we deliver it by email. Your actual voice,
+                delivered forever.
+              </p>
+              <Link
+                href="/voice/record"
+                className="mt-6 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light"
+              >
+                Record a Message
+              </Link>
+            </article>
+
+            <article className="rounded-2xl border border-cream-dark bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Gifts">
+                🎁
+              </span>
+              <h3 className="mt-5 text-xl font-bold text-navy">Gifts</h3>
+              <p className="mt-2 text-sm text-warm-gray">From $20/yr</p>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                AI-curated gifts shipped directly to them every year. Different
+                every time, always thoughtful.
+              </p>
+              <Link
+                href="/send"
+                className="mt-6 inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+              >
+                Learn More
+              </Link>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* Use Cases Grid */}
       <section className="px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-6xl">

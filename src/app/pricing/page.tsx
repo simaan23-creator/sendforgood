@@ -153,6 +153,26 @@ export default function PricingPage() {
           })}
         </div>
 
+        {/* Voice Messages */}
+        <div className="mx-auto mt-24 max-w-3xl rounded-2xl border border-cream-dark bg-cream p-8 text-center shadow-md sm:p-12">
+          <span className="text-5xl" role="img" aria-label="Voice Messages">
+            🎙️
+          </span>
+          <h2 className="mt-5 text-2xl font-bold text-navy sm:text-3xl">
+            Voice Messages &mdash; $5/year
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-warm-gray">
+            Record your voice and we deliver it by email on the scheduled date.
+            Annual or milestone delivery. Stored securely forever.
+          </p>
+          <Link
+            href="/voice/record"
+            className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+          >
+            Record a Message
+          </Link>
+        </div>
+
         {/* FAQ */}
         <div className="mx-auto mt-24 max-w-3xl">
           <h2 className="text-center text-2xl font-bold sm:text-3xl">

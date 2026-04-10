@@ -493,6 +493,41 @@ export default function LettersPage() {
         </div>
       </section>
 
+      {/* Voice Messages Cross-Sell */}
+      <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-bold text-navy sm:text-4xl">
+            Want to send your voice instead?
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-warm-gray">
+            Some things are better heard than read. Record a voice message and
+            we deliver it alongside your letter, or on its own.
+          </p>
+
+          <div className="mt-10 mx-auto max-w-md">
+            <article className="rounded-2xl border-gold bg-white p-8 text-center shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Voice Message">
+                🎙️
+              </span>
+              <h3 className="mt-5 text-xl font-bold text-navy">
+                Voice Message &mdash; $5/year
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Record your voice and we deliver it by email every year on the
+                date you choose. Your actual voice, on the days that matter
+                most. Even after you&apos;re gone.
+              </p>
+              <Link
+                href="/voice/record"
+                className="mt-6 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-base font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              >
+                Record a Voice Message &rarr;
+              </Link>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* Trust / Executor Section */}
       <section className="bg-navy px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-4xl text-center">

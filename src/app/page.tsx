@@ -88,6 +88,15 @@ const USE_CASES = [
       "My grandfather wrote me a letter for my wedding day before he passed. I did not know it existed until the envelope arrived. It was the greatest gift I have ever received.",
   },
   {
+    emoji: "\uD83C\uDF99\uFE0F",
+    label: "Voice Messages",
+    headline: "Your voice. Delivered forever.",
+    description:
+      "Record a voice message and we deliver it by email every year \u2014 on their birthday, at graduation, on their wedding day, or any milestone you choose. Even after you are gone.",
+    quote:
+      "I recorded a birthday message for my daughter every year until she turns 18. Hearing my voice on her birthday, no matter what happens, means everything to me.",
+  },
+  {
     emoji: "\uD83D\uDCB2",
     label: "Starting at $1/Year",
     headline: "The most affordable legacy you can leave",
@@ -198,18 +207,18 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
-            Gifts that arrive every year.
+            Gifts. Letters. Voices.
             <br />
-            <span className="text-gold">Letters that outlast a lifetime.</span>
+            <span className="text-gold">Delivered forever.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
             Whether you&rsquo;re a grandparent, a realtor, or a business &mdash;
-            SendForGood handles the gifting so you never miss a moment that
-            matters.
+            SendForGood delivers gifts, letters, and voice messages so the
+            people you love never forget how much you care.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
-            Now introducing Legacy Letters &mdash; words that outlast a lifetime.
+            Now with Legacy Letters and Voice Messages &mdash; your words and voice, delivered forever.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -224,6 +233,12 @@ export default function HomePage() {
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
               Send Your First Letter &mdash; From $1
+            </Link>
+            <Link
+              href="/voice/record"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
+            >
+              Record a Voice Message &mdash; $5/yr
             </Link>
           </div>
 
@@ -573,16 +588,16 @@ export default function HomePage() {
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl md:text-5xl">
-            Leave more than a gift. Leave your words.
+            Leave more than a gift. Leave your words and voice.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            Write letters to the people you love. Choose how they arrive &mdash;
-            by email for as little as $1 a year, or printed and mailed for a
-            more personal touch. We keep them safe and deliver them when the time
-            comes.
+            Write letters or record voice messages for the people you love.
+            Choose how they arrive &mdash; by email for as little as $1 a year,
+            printed and mailed for a personal touch, or recorded in your own
+            voice. We keep them safe and deliver them when the time comes.
           </p>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-3 max-w-4xl mx-auto">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
               <span className="text-5xl" role="img" aria-label="Digital Letters">
                 📧
@@ -621,6 +636,19 @@ export default function HomePage() {
                 mailed with the letter. Our most popular letter option.
               </p>
             </article>
+
+            <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Voice Message">
+                🎙️
+              </span>
+              <h3 className="mt-5 text-xl font-semibold text-navy">
+                Voice Message &mdash; $5/year
+              </h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Record your voice and we deliver it by email every year. Your
+                actual voice, on the days that matter most.
+              </p>
+            </article>
           </div>
 
           <div className="mt-12 text-center">
@@ -641,7 +669,7 @@ export default function HomePage() {
             As little as <span className="text-gold">$1.67/month</span> — gifts delivered every year.
           </h2>
           <p className="mt-3 text-base font-medium text-navy/80">
-            Legacy Letters from $1/year &mdash; Digital, Physical, or Physical + Photo
+            Legacy Letters from $1/year &middot; Voice Messages $5/year
           </p>
           <p className="mt-4 text-lg text-warm-gray">
             One payment. Up to 25 years of joy. No subscriptions.
