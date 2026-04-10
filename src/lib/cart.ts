@@ -138,14 +138,71 @@ export function getLetterCartCount(): number {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   Voice Message Cart
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface VoiceMessageCartItem {
+  id: string;
+  itemType: "voice-message";
+  recipientName: string;
+  recipientEmail: string;
+  messageType: "annual" | "milestone";
+  title: string;
+  quantity: number;
+  durationSeconds: number;
+  unitPrice: number; // cents
+  totalPrice: number; // cents
+}
+
+const VOICE_CART_KEY = "sfg_voice_cart";
+
+export function getVoiceMessageCart(): VoiceMessageCartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(VOICE_CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addVoiceMessageToCart(item: Omit<VoiceMessageCartItem, "id">): VoiceMessageCartItem {
+  const cart = getVoiceMessageCart();
+  const newItem: VoiceMessageCartItem = { ...item, id: generateId() };
+  cart.push(newItem);
+  localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+  return newItem;
+}
+
+export function removeVoiceMessageFromCart(id: string): void {
+  const cart = getVoiceMessageCart().filter((item) => item.id !== id);
+  localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function clearVoiceMessageCart(): void {
+  localStorage.removeItem(VOICE_CART_KEY);
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function getVoiceMessageCartTotal(): number {
+  return getVoiceMessageCart().reduce((sum, item) => sum + item.totalPrice, 0);
+}
+
+export function getVoiceMessageCartCount(): number {
+  return getVoiceMessageCart().length;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    Combined Cart helpers
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function getCombinedCartCount(): number {
-  return getCartCount() + getLetterCartCount();
+  return getCartCount() + getLetterCartCount() + getVoiceMessageCartCount();
 }
 
 export function getCombinedCartTotal(): number {
-  // Gift cart totals are in dollars; letter cart totals are in cents
-  return getCartTotal() + getLetterCartTotal() / 100;
+  // Gift cart totals are in dollars; letter + voice cart totals are in cents
+  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceMessageCartTotal() / 100;
 }

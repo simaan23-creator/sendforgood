@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
+import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES, VOICE_MESSAGE_PRICE } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,20 +52,35 @@ interface LetterItemPayload {
   totalPrice: number;
 }
 
+interface VoiceItemPayload {
+  id: string;
+  itemType: "voice-message";
+  recipientName: string;
+  recipientEmail: string;
+  messageType: "annual" | "milestone";
+  title: string;
+  quantity: number;
+  durationSeconds: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { items, letterItems, email, fullName } = body as {
+    const { items, letterItems, voiceItems, email, fullName } = body as {
       items: CartItemPayload[];
       letterItems?: LetterItemPayload[];
+      voiceItems?: VoiceItemPayload[];
       email: string;
       fullName: string;
     };
 
     const hasGifts = items && items.length > 0;
     const hasLetters = letterItems && letterItems.length > 0;
+    const hasVoice = voiceItems && voiceItems.length > 0;
 
-    if (!hasGifts && !hasLetters) {
+    if (!hasGifts && !hasLetters && !hasVoice) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -136,6 +151,28 @@ export async function POST(request: Request) {
       }
     }
 
+    // Voice message line items
+    if (hasVoice) {
+      for (const voice of voiceItems) {
+        const quantityLabel =
+          voice.messageType === "annual"
+            ? `${voice.quantity} yr${voice.quantity > 1 ? "s" : ""}`
+            : `${voice.quantity} message${voice.quantity > 1 ? "s" : ""}`;
+
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Voice Message — ${voice.recipientName} (${quantityLabel})`,
+              description: `${VOICE_MESSAGE_PRICE.label} for ${voice.recipientName}`,
+            },
+            unit_amount: voice.totalPrice,
+          },
+          quantity: 1,
+        });
+      }
+    }
+
     // Check if user is authenticated
     const supabase = await createClient();
     const {
@@ -162,6 +199,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Serialize voice items to metadata (chunked)
+    const voiceJson = JSON.stringify(voiceItems || []);
+    for (let i = 0; i < voiceJson.length; i += CHUNK_SIZE) {
+      metadataChunks[`voice_items_${Math.floor(i / CHUNK_SIZE)}`] = voiceJson.slice(
+        i,
+        i + CHUNK_SIZE
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -176,6 +222,7 @@ export async function POST(request: Request) {
         fullName: fullName || "",
         itemCount: (items?.length || 0).toString(),
         letterItemCount: (letterItems?.length || 0).toString(),
+        voiceItemCount: (voiceItems?.length || 0).toString(),
         ...metadataChunks,
       },
     });

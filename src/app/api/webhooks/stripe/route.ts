@@ -26,7 +26,9 @@ export async function POST(request: Request) {
 
     try {
       // Check order type
-      if (metadata.isLetterOrder === "true") {
+      if (metadata.isVoiceMessageOrder === "true") {
+        await handleVoiceMessageOrder(session, metadata);
+      } else if (metadata.isLetterOrder === "true") {
         await handleLetterOrder(session, metadata);
       } else if (metadata.isCartOrder === "true") {
         await handleCartOrder(session, metadata);
@@ -322,6 +324,19 @@ interface LetterItemMeta {
   totalPrice: number;
 }
 
+interface VoiceItemMeta {
+  id: string;
+  itemType: "voice-message";
+  recipientName: string;
+  recipientEmail: string;
+  messageType: "annual" | "milestone";
+  title: string;
+  quantity: number;
+  durationSeconds: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 async function handleCartOrder(
   session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
   metadata: Record<string, string>
@@ -345,6 +360,16 @@ async function handleCartOrder(
   }
 
   const letterItems: LetterItemMeta[] = letterJson ? JSON.parse(letterJson) : [];
+
+  // Reassemble voice items JSON from chunks
+  let voiceJson = "";
+  let voiceChunkIndex = 0;
+  while (metadata[`voice_items_${voiceChunkIndex}`] !== undefined) {
+    voiceJson += metadata[`voice_items_${voiceChunkIndex}`];
+    voiceChunkIndex++;
+  }
+
+  const voiceItems: VoiceItemMeta[] = voiceJson ? JSON.parse(voiceJson) : [];
 
   // Find or create user
   let userId = metadata.userId;
@@ -570,6 +595,84 @@ async function handleCartOrder(
     });
   }
 
+  // Process voice message items
+  const processedVoice: Array<{ recipientName: string; messageType: string; quantity: number; totalPrice: number }> = [];
+
+  for (const voice of voiceItems) {
+    // Create recipient for voice message
+    const { data: voiceRecipient, error: vrError } = await supabaseAdmin
+      .from("recipients")
+      .insert({
+        user_id: userId,
+        name: voice.recipientName,
+        country: "US",
+      })
+      .select()
+      .single();
+
+    if (vrError) throw vrError;
+
+    const pricePerUnit = voice.unitPrice;
+
+    if (voice.messageType === "annual") {
+      for (let i = 0; i < voice.quantity; i++) {
+        const deliveryDate = new Date();
+        deliveryDate.setFullYear(currentYear + i);
+
+        await supabaseAdmin.from("voice_messages").insert({
+          user_id: userId,
+          recipient_id: voiceRecipient.id,
+          letter_type: "annual",
+          title: voice.title || `Voice Message for ${voice.recipientName} — Year ${i + 1}`,
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: pricePerUnit,
+          recipient_email: voice.recipientEmail || null,
+          duration_seconds: voice.durationSeconds || 0,
+        });
+      }
+    } else {
+      // Milestone voice messages
+      await supabaseAdmin.from("voice_messages").insert({
+        user_id: userId,
+        recipient_id: voiceRecipient.id,
+        letter_type: "milestone",
+        title: voice.title || `Milestone Voice Message for ${voice.recipientName}`,
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: pricePerUnit,
+        recipient_email: voice.recipientEmail || null,
+        duration_seconds: voice.durationSeconds || 0,
+      });
+
+      if (voice.quantity > 1) {
+        const draftMessages = [];
+        for (let i = 1; i < voice.quantity; i++) {
+          draftMessages.push({
+            user_id: userId,
+            recipient_id: voiceRecipient.id,
+            letter_type: "milestone" as const,
+            title: `Milestone Voice Message ${i + 1} for ${voice.recipientName}`,
+            status: "draft" as const,
+            stripe_payment_intent_id: session.payment_intent as string,
+            amount_paid: pricePerUnit,
+            recipient_email: voice.recipientEmail || null,
+            duration_seconds: 0,
+          });
+        }
+        await supabaseAdmin.from("voice_messages").insert(draftMessages);
+      }
+    }
+
+    processedVoice.push({
+      recipientName: voice.recipientName,
+      messageType: voice.messageType,
+      quantity: voice.quantity,
+      totalPrice: voice.totalPrice,
+    });
+  }
+
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 
@@ -598,12 +701,25 @@ async function handleCartOrder(
     )
     .join("");
 
+  // Build voice message rows for emails
+  const voiceRows = processedVoice
+    .map(
+      (v) =>
+        `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.recipientName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.messageType}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">Digital (Email)</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.quantity}</td>
+        </tr>`
+    )
+    .join("");
+
   // Send customer confirmation email
   try {
-    const totalItemCount = cartItems.length + letterItems.length;
     const subjectParts = [];
     if (cartItems.length > 0) subjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
     if (letterItems.length > 0) subjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
+    if (voiceItems.length > 0) subjectParts.push(`${voiceItems.length} voice message${voiceItems.length > 1 ? "s" : ""}`);
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -617,6 +733,7 @@ async function handleCartOrder(
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
             ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
             ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
+            ${voiceItems.length > 0 ? `<p><strong>Voice Messages:</strong> ${voiceItems.length}</p>` : ""}
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
           ${cartItems.length > 0 ? `
@@ -645,7 +762,20 @@ async function handleCartOrder(
               ${letterRows}
             </table>
           </div>` : ""}
-          <p>We'll take care of everything from here. Each recipient will receive their gift or letter on time.</p>
+          ${voiceItems.length > 0 ? `
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">Your Voice Messages</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr style="background: #f5ede0;">
+                <th style="padding: 8px; text-align: left;">Recipient</th>
+                <th style="padding: 8px; text-align: left;">Type</th>
+                <th style="padding: 8px; text-align: left;">Delivery</th>
+                <th style="padding: 8px; text-align: left;">Qty</th>
+              </tr>
+              ${voiceRows}
+            </table>
+          </div>` : ""}
+          <p>We'll take care of everything from here. Each recipient will receive their gift, letter, or voice message on time.</p>
           <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
           <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
         </div>
@@ -684,9 +814,22 @@ async function handleCartOrder(
       )
       .join("");
 
+    const ownerVoiceRows = voiceItems
+      .map(
+        (v) =>
+          `<tr>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.recipientName}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.messageType}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.quantity}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${(v.totalPrice / 100).toFixed(0)}</td>
+          </tr>`
+      )
+      .join("");
+
     const ownerSubjectParts = [];
     if (cartItems.length > 0) ownerSubjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
     if (letterItems.length > 0) ownerSubjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
+    if (voiceItems.length > 0) ownerSubjectParts.push(`${voiceItems.length} voice${voiceItems.length > 1 ? "s" : ""}`);
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -700,6 +843,7 @@ async function handleCartOrder(
             <p><strong>Customer:</strong> ${metadata.fullName} (${customerEmail})</p>
             ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
             ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
+            ${voiceItems.length > 0 ? `<p><strong>Voice Messages:</strong> ${voiceItems.length}</p>` : ""}
             <p><strong>Total Amount:</strong> ${amountFormatted}</p>
           </div>
           ${cartItems.length > 0 ? `
@@ -729,6 +873,19 @@ async function handleCartOrder(
                 <th style="padding: 6px 8px; text-align: left;">Price</th>
               </tr>
               ${ownerLetterRows}
+            </table>
+          </div>` : ""}
+          ${voiceItems.length > 0 ? `
+          <div style="margin: 24px 0;">
+            <h2 style="font-size: 18px;">Voice Messages</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr style="background: #fce4ec;">
+                <th style="padding: 6px 8px; text-align: left;">Recipient</th>
+                <th style="padding: 6px 8px; text-align: left;">Type</th>
+                <th style="padding: 6px 8px; text-align: left;">Qty</th>
+                <th style="padding: 6px 8px; text-align: left;">Price</th>
+              </tr>
+              ${ownerVoiceRows}
             </table>
           </div>` : ""}
           <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
@@ -1256,5 +1413,183 @@ async function handleLetterOrder(
     });
   } catch (emailError) {
     console.error("Failed to send letter owner notification email:", emailError);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Voice Message Order Handler
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+async function handleVoiceMessageOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  // Find or create user
+  let userId = metadata.userId;
+
+  if (!userId) {
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => u.email === metadata.email
+    );
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const { data: newUser, error: userError } = await supabaseAdmin.auth.admin.createUser({
+        email: metadata.email,
+        email_confirm: true,
+        user_metadata: { full_name: metadata.fullName },
+      });
+
+      if (userError) throw userError;
+      userId = newUser.user.id;
+    }
+  }
+
+  // Ensure profile row exists
+  await supabaseAdmin
+    .from("profiles")
+    .upsert({
+      id: userId,
+      email: metadata.email || session.customer_email || "",
+      full_name: metadata.fullName || "",
+    }, { onConflict: "id" });
+
+  // Create recipient
+  const { data: recipient, error: recipientError } = await supabaseAdmin
+    .from("recipients")
+    .insert({
+      user_id: userId,
+      name: metadata.recipientName,
+      relationship: metadata.relationship || null,
+      country: "US",
+    })
+    .select()
+    .single();
+
+  if (recipientError) throw recipientError;
+
+  const messageType = metadata.messageType as "annual" | "milestone";
+  const years = parseInt(metadata.years) || 1;
+  const milestoneQuantity = metadata.milestoneQuantity || "single";
+
+  if (messageType === "annual") {
+    const scheduledDate = metadata.scheduledDate ? new Date(metadata.scheduledDate) : new Date();
+    const currentYear = new Date().getFullYear();
+
+    for (let i = 0; i < years; i++) {
+      const deliveryDate = new Date(scheduledDate);
+      deliveryDate.setFullYear(currentYear + i);
+
+      if (deliveryDate < new Date()) {
+        deliveryDate.setFullYear(deliveryDate.getFullYear() + 1);
+      }
+
+      await supabaseAdmin
+        .from("voice_messages")
+        .insert({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "annual",
+          title: metadata.title || "",
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: Math.round((session.amount_total || 0) / years),
+          recipient_email: metadata.recipientEmail || null,
+        });
+    }
+  } else {
+    const count = milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+    const priceEach = Math.round((session.amount_total || 0) / count);
+
+    await supabaseAdmin
+      .from("voice_messages")
+      .insert({
+        user_id: userId,
+        recipient_id: recipient.id,
+        letter_type: "milestone",
+        title: metadata.title || "",
+        scheduled_date: metadata.scheduledDate || null,
+        milestone_label: metadata.milestoneLabel || null,
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: priceEach,
+        recipient_email: metadata.recipientEmail || null,
+      });
+
+    if (count > 1) {
+      const draftMessages = [];
+      for (let i = 1; i < count; i++) {
+        draftMessages.push({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "milestone" as const,
+          title: `Milestone Voice Message ${i + 1}`,
+          status: "draft" as const,
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: priceEach,
+          recipient_email: metadata.recipientEmail || null,
+        });
+      }
+      await supabaseAdmin.from("voice_messages").insert(draftMessages);
+    }
+  }
+
+  const customerEmail = metadata.email || session.customer_email!;
+  const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+
+  // Send confirmation email to customer
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: customerEmail,
+      subject: "Your Voice Message Is Scheduled! \uD83C\uDFA4",
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+          <h1 style="color: #1a2744;">Your voice message is safe with us \u2764\uFE0F</h1>
+          <p>Thank you for recording a Voice Message. Your words will be delivered by email exactly when they matter most.</p>
+          <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0; font-size: 18px;">Message Details</h2>
+            <p><strong>Recipient:</strong> ${metadata.recipientName}</p>
+            <p><strong>Type:</strong> ${messageType === "annual" ? `Annual (${years} year${years > 1 ? "s" : ""})` : `Milestone \u2014 ${metadata.milestoneLabel || "TBD"}`}</p>
+            <p><strong>Title:</strong> ${metadata.title || "N/A"}</p>
+            <p><strong>Total paid:</strong> ${amountFormatted}</p>
+          </div>
+          <p>You can re-record your message anytime from your <a href="https://sendforgood.com/dashboard" style="color: #C8A962;">dashboard</a> before it's delivered.</p>
+          <p>About 2 weeks before each message is scheduled, we'll send you a reminder to confirm the final version.</p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send voice message confirmation email:", emailError);
+  }
+
+  // Send owner notification email
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: "Simaan23@gmail.com",
+      subject: `\uD83C\uDFA4 New Voice Message! ${metadata.recipientName} \u2014 ${messageType} \u2014 ${amountFormatted}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <h1 style="color: #1a2744;">New Voice Message Order! \uD83C\uDFA4</h1>
+          <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0;">Message Details</h2>
+            <p><strong>Customer:</strong> ${customerEmail}</p>
+            <p><strong>Recipient:</strong> ${metadata.recipientName} (${metadata.relationship || "N/A"})</p>
+            <p><strong>Type:</strong> ${messageType}</p>
+            ${messageType === "annual" ? `<p><strong>Years:</strong> ${years}</p>` : `<p><strong>Milestone:</strong> ${metadata.milestoneLabel || "N/A"}</p><p><strong>Bundle:</strong> ${milestoneQuantity}</p>`}
+            <p><strong>Amount:</strong> ${amountFormatted}</p>
+            <p><strong>Recipient Email:</strong> ${metadata.recipientEmail || "N/A"}</p>
+          </div>
+          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send voice message owner notification email:", emailError);
   }
 }
