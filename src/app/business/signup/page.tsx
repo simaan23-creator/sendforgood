@@ -228,7 +228,7 @@ export default function BusinessSignupPage() {
               </label>
               <input
                 id="companyWebsite"
-                type="url"
+                type="text"
                 placeholder="https://company.com"
                 value={form.companyWebsite}
                 onChange={(e) => update("companyWebsite", e.target.value)}
