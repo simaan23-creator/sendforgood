@@ -21,13 +21,22 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
+  const [isBusinessAccount, setIsBusinessAccount] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       setLoading(false);
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("account_type")
+          .eq("id", user.id)
+          .single();
+        setIsBusinessAccount(profile?.account_type === "business");
+      }
     });
 
     const {
@@ -82,7 +91,7 @@ export function Header() {
               <>
                 {user ? (
                   <Link
-                    href="/dashboard"
+                    href={isBusinessAccount ? "/business/dashboard" : "/dashboard"}
                     className="text-sm font-medium text-navy/70 hover:text-navy transition-colors duration-150"
                   >
                     Dashboard
@@ -184,7 +193,7 @@ export function Header() {
                 <>
                   {user ? (
                     <Link
-                      href="/dashboard"
+                      href={isBusinessAccount ? "/business/dashboard" : "/dashboard"}
                       className="block rounded-lg px-3 py-2.5 text-base font-medium text-navy/70 hover:bg-cream-dark hover:text-navy transition-colors duration-150"
                       onClick={() => setMobileMenuOpen(false)}
                     >
