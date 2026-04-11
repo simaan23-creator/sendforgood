@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES, VOICE_MESSAGE_PRICE } from "@/lib/stripe";
+import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES, VOICE_MESSAGE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -61,6 +61,7 @@ interface VoiceItemPayload {
   recipientName: string;
   recipientEmail: string;
   messageType: "annual" | "milestone";
+  messageFormat?: "audio" | "video";
   title: string;
   quantity: number;
   durationSeconds: number;
@@ -159,6 +160,8 @@ export async function POST(request: Request) {
     // Voice message line items
     if (hasVoice) {
       for (const voice of voiceItems) {
+        const fmt = voice.messageFormat || "audio";
+        const voicePriceInfo = VOICE_MESSAGE_PRICES[fmt];
         const quantityLabel =
           voice.messageType === "annual"
             ? `${voice.quantity} yr${voice.quantity > 1 ? "s" : ""}`
@@ -168,8 +171,8 @@ export async function POST(request: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Voice Message — ${voice.recipientName} (${quantityLabel})`,
-              description: `${VOICE_MESSAGE_PRICE.label} for ${voice.recipientName}`,
+              name: `${voicePriceInfo.label} — ${voice.recipientName} (${quantityLabel})`,
+              description: `${voicePriceInfo.label} for ${voice.recipientName}`,
             },
             unit_amount: voice.totalPrice,
           },

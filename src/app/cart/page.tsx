@@ -343,11 +343,11 @@ export default function CartPage() {
                         {voice.recipientName}
                       </h3>
                       <span className="shrink-0 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">
-                        Voice
+                        {voice.messageFormat === "video" ? "Video" : "Audio"}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-warm-gray capitalize">
-                      {voice.messageType} &middot; Digital (Email)
+                      {voice.messageType} &middot; {voice.messageFormat === "video" ? "Video" : "Audio"} (Email)
                     </p>
                   </div>
 
@@ -416,7 +416,7 @@ export default function CartPage() {
                 {voiceItems.map((voice) => (
                   <div key={voice.id} className="flex items-center justify-between text-sm">
                     <span className="text-warm-gray truncate max-w-[60%]">
-                      Voice &mdash; {voice.recipientName}
+                      {voice.messageFormat === "video" ? "Video" : "Audio"} &mdash; {voice.recipientName}
                     </span>
                     <span className="font-medium text-navy">${(voice.totalPrice / 100).toFixed(0)}</span>
                   </div>

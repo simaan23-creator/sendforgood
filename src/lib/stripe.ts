@@ -42,10 +42,13 @@ export const LETTER_PRICES = {
 
 export type LetterPriceKey = keyof typeof LETTER_PRICES;
 
-export const VOICE_MESSAGE_PRICE = {
-  label: "Voice Message",
-  price: 500, // $5/yr in cents
+export const VOICE_MESSAGE_PRICES = {
+  audio: { label: "Audio Message", price: 500 },   // $5/yr in cents
+  video: { label: "Video Message", price: 1000 },   // $10/yr in cents
 } as const;
+
+/** @deprecated Use VOICE_MESSAGE_PRICES.audio instead */
+export const VOICE_MESSAGE_PRICE = VOICE_MESSAGE_PRICES.audio;
 
 export const TIER_PRICES: Record<string, { name: string; price: number; description: string }> = {
   starter: {

@@ -333,6 +333,7 @@ interface VoiceItemMeta {
   recipientName: string;
   recipientEmail: string;
   messageType: "annual" | "milestone";
+  messageFormat?: "audio" | "video";
   title: string;
   quantity: number;
   durationSeconds: number;
@@ -599,7 +600,7 @@ async function handleCartOrder(
   }
 
   // Process voice message items
-  const processedVoice: Array<{ recipientName: string; messageType: string; quantity: number; totalPrice: number }> = [];
+  const processedVoice: Array<{ recipientName: string; messageType: string; messageFormat: string; quantity: number; totalPrice: number }> = [];
 
   for (const voice of voiceItems) {
     // Create recipient for voice message
@@ -633,6 +634,7 @@ async function handleCartOrder(
           amount_paid: pricePerUnit,
           recipient_email: voice.recipientEmail || null,
           duration_seconds: voice.durationSeconds || 0,
+          message_format: voice.messageFormat || "audio",
         });
       }
     } else {
@@ -647,6 +649,7 @@ async function handleCartOrder(
         amount_paid: pricePerUnit,
         recipient_email: voice.recipientEmail || null,
         duration_seconds: voice.durationSeconds || 0,
+        message_format: voice.messageFormat || "audio",
       });
 
       if (voice.quantity > 1) {
@@ -662,6 +665,7 @@ async function handleCartOrder(
             amount_paid: pricePerUnit,
             recipient_email: voice.recipientEmail || null,
             duration_seconds: 0,
+            message_format: voice.messageFormat || "audio",
           });
         }
         await supabaseAdmin.from("voice_messages").insert(draftMessages);
@@ -671,6 +675,7 @@ async function handleCartOrder(
     processedVoice.push({
       recipientName: voice.recipientName,
       messageType: voice.messageType,
+      messageFormat: voice.messageFormat || "audio",
       quantity: voice.quantity,
       totalPrice: voice.totalPrice,
     });
@@ -711,7 +716,7 @@ async function handleCartOrder(
         `<tr>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.recipientName}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.messageType}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">Digital (Email)</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.messageFormat === "video" ? "Video" : "Audio"} (Email)</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.quantity}</td>
         </tr>`
     )
@@ -1474,6 +1479,7 @@ async function handleVoiceMessageOrder(
   if (recipientError) throw recipientError;
 
   const messageType = metadata.messageType as "annual" | "milestone";
+  const messageFormat = metadata.messageFormat || "audio";
   const years = parseInt(metadata.years) || 1;
   const milestoneQuantity = metadata.milestoneQuantity || "single";
 
@@ -1501,6 +1507,7 @@ async function handleVoiceMessageOrder(
           stripe_payment_intent_id: session.payment_intent as string,
           amount_paid: Math.round((session.amount_total || 0) / years),
           recipient_email: metadata.recipientEmail || null,
+          message_format: messageFormat,
         });
     }
   } else {
@@ -1520,6 +1527,7 @@ async function handleVoiceMessageOrder(
         stripe_payment_intent_id: session.payment_intent as string,
         amount_paid: priceEach,
         recipient_email: metadata.recipientEmail || null,
+        message_format: messageFormat,
       });
 
     if (count > 1) {
@@ -1534,6 +1542,7 @@ async function handleVoiceMessageOrder(
           stripe_payment_intent_id: session.payment_intent as string,
           amount_paid: priceEach,
           recipient_email: metadata.recipientEmail || null,
+          message_format: messageFormat,
         });
       }
       await supabaseAdmin.from("voice_messages").insert(draftMessages);

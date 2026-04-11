@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import VoiceRecorder from "@/components/VoiceRecorder";
+import VoiceRecorder, { type MediaFormat } from "@/components/VoiceRecorder";
 
 interface MemoryRequest {
   title: string;
@@ -22,7 +22,8 @@ export default function RecordMemoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recorderName, setRecorderName] = useState("");
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
+  const [mediaFormat, setMediaFormat] = useState<MediaFormat>("audio");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -48,23 +49,25 @@ export default function RecordMemoryPage() {
 
   const handleRecordingComplete = useCallback(
     (blob: Blob) => {
-      setAudioBlob(blob);
+      setMediaBlob(blob);
     },
     []
   );
 
   async function handleSubmit() {
-    if (!audioBlob) return;
+    if (!mediaBlob) return;
     setSubmitting(true);
     setError(null);
 
     try {
-      // Upload audio to Supabase storage
-      const fileName = `${code}/${Date.now()}.webm`;
+      const ext = mediaFormat === "video" ? "webm" : "webm";
+      const contentType = mediaFormat === "video" ? "video/webm" : "audio/webm";
+      const fileName = `${code}/${Date.now()}.${ext}`;
+
       const { error: uploadError } = await supabase.storage
         .from("memory-recordings")
-        .upload(fileName, audioBlob, {
-          contentType: "audio/webm",
+        .upload(fileName, mediaBlob, {
+          contentType,
           upsert: false,
         });
 
@@ -72,18 +75,17 @@ export default function RecordMemoryPage() {
         throw new Error("Failed to upload recording. Please try again.");
       }
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("memory-recordings").getPublicUrl(fileName);
 
-      // Submit recording
       const res = await fetch(`/api/memory-requests/${code}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recorder_name: recorderName || null,
           audio_url: publicUrl,
+          message_format: mediaFormat,
         }),
       });
 
@@ -148,7 +150,7 @@ export default function RecordMemoryPage() {
               Thank you!
             </h1>
             <p className="mt-3 text-warm-gray">
-              Your voice message has been recorded and saved. It will be
+              Your {mediaFormat === "video" ? "video" : "voice"} message has been recorded and saved. It will be
               delivered to {request?.requester_first_name} on their chosen
               date.
             </p>
@@ -196,6 +198,13 @@ export default function RecordMemoryPage() {
           )}
         </div>
 
+        {/* Video recommendation */}
+        <div className="mb-6 rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
+          <p className="text-sm text-navy">
+            Video messages are more personal &mdash; we recommend it!
+          </p>
+        </div>
+
         {/* Recorder name */}
         <div className="mb-6">
           <label
@@ -215,14 +224,16 @@ export default function RecordMemoryPage() {
           />
         </div>
 
-        {/* Voice Recorder */}
+        {/* Voice/Video Recorder */}
         <VoiceRecorder
           onRecordingComplete={handleRecordingComplete}
+          onFormatChange={(f) => setMediaFormat(f)}
           maxDurationSeconds={300}
+          defaultFormat="audio"
         />
 
         {/* Submit */}
-        {audioBlob && (
+        {mediaBlob && (
           <div className="mt-6">
             {error && (
               <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">

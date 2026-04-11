@@ -153,24 +153,64 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Voice Messages */}
-        <div className="mx-auto mt-24 max-w-3xl rounded-2xl border border-cream-dark bg-cream p-8 text-center shadow-md sm:p-12">
-          <span className="text-5xl" role="img" aria-label="Voice Messages">
-            🎙️
-          </span>
-          <h2 className="mt-5 text-2xl font-bold text-navy sm:text-3xl">
-            Voice Messages &mdash; $5/year
+        {/* Voice & Video Messages */}
+        <div className="mx-auto mt-24 max-w-4xl">
+          <h2 className="text-center text-2xl font-bold text-navy sm:text-3xl">
+            Voice & Video Messages
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-warm-gray">
-            Record your voice and we deliver it by email on the scheduled date.
+          <p className="mx-auto mt-4 max-w-xl text-center text-lg leading-relaxed text-warm-gray">
+            Record your voice or face and we deliver it by email on the scheduled date.
             Annual or milestone delivery. Stored securely forever.
           </p>
-          <Link
-            href="/voice/record"
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            Record a Message
-          </Link>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
+            <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-5xl" role="img" aria-label="Audio Message">
+                🎙️
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-navy">
+                Audio Message
+              </h3>
+              <p className="mt-2">
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$5</span>
+                <span className="text-sm text-warm-gray">/yr</span>
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                Your voice, delivered by email. Up to 5 minutes per message.
+              </p>
+              <Link
+                href="/voice/record"
+                className="mt-6 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light"
+              >
+                Record Audio
+              </Link>
+            </div>
+
+            <div className="relative rounded-2xl border-gold bg-cream p-8 text-center shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                NEW
+              </span>
+              <span className="text-5xl" role="img" aria-label="Video Message">
+                🎬
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-navy">
+                Video Message
+              </h3>
+              <p className="mt-2">
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$10</span>
+                <span className="text-sm text-warm-gray">/yr</span>
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                Your face and voice together. The most powerful legacy you can leave.
+              </p>
+              <Link
+                href="/voice/record"
+                className="mt-6 inline-flex items-center justify-center rounded-lg bg-gold px-8 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light"
+              >
+                Record Video
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* FAQ */}

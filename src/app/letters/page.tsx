@@ -506,22 +506,22 @@ export default function LettersPage() {
 
           <div className="mt-10 mx-auto max-w-md">
             <article className="rounded-2xl border-gold bg-white p-8 text-center shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-5xl" role="img" aria-label="Voice Message">
+              <span className="text-5xl" role="img" aria-label="Voice & Video Messages">
                 🎙️
               </span>
               <h3 className="mt-5 text-xl font-bold text-navy">
-                Voice Message &mdash; $5/year
+                Audio or Video Message &mdash; from $5/year
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Record your voice and we deliver it by email every year on the
-                date you choose. Your actual voice, on the days that matter
-                most. Even after you&apos;re gone.
+                Record your voice or face and we deliver it by email every year on the
+                date you choose. Audio from $5/yr, video from $10/yr. The most powerful
+                message you can leave behind.
               </p>
               <Link
                 href="/voice/record"
                 className="mt-6 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-base font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                Record a Voice Message &rarr;
+                Record a Message &rarr;
               </Link>
             </article>
           </div>

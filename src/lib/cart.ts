@@ -149,6 +149,7 @@ export interface VoiceMessageCartItem {
   recipientName: string;
   recipientEmail: string;
   messageType: "annual" | "milestone";
+  messageFormat: "audio" | "video";
   title: string;
   quantity: number;
   durationSeconds: number;

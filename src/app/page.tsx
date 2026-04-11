@@ -89,12 +89,12 @@ const USE_CASES = [
   },
   {
     emoji: "\uD83C\uDF99\uFE0F",
-    label: "Voice Messages",
-    headline: "Your voice. Delivered forever.",
+    label: "Voice & Video Messages",
+    headline: "Your voice. Your face. Delivered forever.",
     description:
-      "Record a voice message and we deliver it by email every year \u2014 on their birthday, at graduation, on their wedding day, or any milestone you choose. Even after you are gone.",
+      "Record an audio or video message and we deliver it by email every year \u2014 on their birthday, at graduation, on their wedding day, or any milestone you choose. Video is the most powerful message you can leave behind.",
     quote:
-      "I recorded a birthday message for my daughter every year until she turns 18. Hearing my voice on her birthday, no matter what happens, means everything to me.",
+      "I recorded a video birthday message for my daughter every year until she turns 18. Seeing my face and hearing my voice on her birthday, no matter what happens, means everything to me.",
   },
   {
     emoji: "\uD83D\uDCB2",
@@ -218,7 +218,7 @@ export default function HomePage() {
             people you love never forget how much you care.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
-            Now with Legacy Letters and Voice Messages &mdash; your words and voice, delivered forever.
+            Now with Legacy Letters, Voice Messages, and Video Messages &mdash; your words, voice, and face, delivered forever.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -238,7 +238,7 @@ export default function HomePage() {
               href="/voice/record"
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
-              Record a Voice Message &mdash; $5/yr
+              Record a Message &mdash; From $5/yr
             </Link>
           </div>
 
@@ -576,7 +576,7 @@ export default function HomePage() {
               <span className="text-4xl" role="img" aria-label="Ask for a Memory">🎙️</span>
               <h3 className="mt-4 text-xl font-semibold text-navy group-hover:text-gold">Ask for a Memory</h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Share a link with anyone. They record a voice message for you.
+                Share a link with anyone. They record an audio or video message for you.
                 You receive it on your birthday or any day you choose.
               </p>
               <span className="mt-4 inline-block text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 group-hover:text-gold">
@@ -650,15 +650,15 @@ export default function HomePage() {
             </article>
 
             <article className="rounded-2xl bg-cream p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-5xl" role="img" aria-label="Voice Message">
+              <span className="text-5xl" role="img" aria-label="Voice & Video Messages">
                 🎙️
               </span>
               <h3 className="mt-5 text-xl font-semibold text-navy">
-                Voice Message &mdash; $5/year
+                Audio or Video &mdash; from $5/year
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Record your voice and we deliver it by email every year. Your
-                actual voice, on the days that matter most.
+                Record your voice or face and we deliver it by email every year.
+                The most powerful message you can leave behind is your face saying I love you.
               </p>
             </article>
           </div>
@@ -681,7 +681,7 @@ export default function HomePage() {
             As little as <span className="text-gold">$1.67/month</span> — gifts delivered every year.
           </h2>
           <p className="mt-3 text-base font-medium text-navy/80">
-            Legacy Letters from $1/year &middot; Voice Messages $5/year
+            Legacy Letters from $1/year &middot; Audio Messages $5/year &middot; Video Messages $10/year
           </p>
           <p className="mt-4 text-lg text-warm-gray">
             One payment. Up to 25 years of joy. No subscriptions.

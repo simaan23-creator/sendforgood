@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Voice Messages — SendForGood",
+  title: "Voice & Video Messages — SendForGood",
   description:
-    "Record a voice message today that arrives by email on a future date. Birthday messages every year, milestone messages for graduations, weddings, and more. Your voice keeps arriving — even after you're gone.",
+    "Record a voice or video message today that arrives by email on a future date. Birthday messages every year, milestone messages for graduations, weddings, and more. Your voice and face keep arriving — even after you're gone.",
 };
 
 const USE_CASES = [
@@ -48,7 +48,7 @@ const USE_CASES = [
     icon: "\u2764\uFE0F",
     title: "Just Because",
     description:
-      "At $5/year, record a voice message for anyone you love \u2014 children, grandchildren, friends. Start today.",
+      "Starting at $5/year for audio or $10/year for video \u2014 record a message for anyone you love. Start today.",
   },
 ];
 
@@ -86,9 +86,9 @@ const FAQ = [
       "This is the entire purpose of Voice Messages. All prepaid recordings are stored securely and delivered on their scheduled dates regardless of your account status. When you purchase voice messages, you can designate an executor \u2014 a trusted person who will be notified and can manage your deliveries. Your voice keeps arriving.",
   },
   {
-    question: "How are voice messages delivered?",
+    question: "How are voice and video messages delivered?",
     answer:
-      "Voice messages are delivered by email on the scheduled date. The recipient receives a beautifully designed email with a secure, private link to listen to your recording. The link is protected and only accessible to the recipient.",
+      "Both audio and video messages are delivered by email on the scheduled date. The recipient receives a beautifully designed email with a secure, private link to listen to or watch your recording. The link is protected and only accessible to the recipient.",
   },
   {
     question: "Can I re-record my message after saving it?",
@@ -103,7 +103,12 @@ const FAQ = [
   {
     question: "How long can my recording be?",
     answer:
-      "Voice messages can be up to 5 minutes long. We find that the most meaningful messages are often just 1\u20132 minutes of heartfelt words.",
+      "Both audio and video messages can be up to 5 minutes long. We find that the most meaningful messages are often just 1\u20132 minutes of heartfelt words.",
+  },
+  {
+    question: "What\u2019s the difference between audio and video messages?",
+    answer:
+      "Audio messages ($5/year) capture your voice. Video messages ($10/year) capture both your face and your voice \u2014 the most powerful and personal option. Both are delivered the same way by email. You choose the format when you record.",
   },
   {
     question: "What if the recipient\u2019s email changes?",
@@ -124,16 +129,16 @@ export default function VoiceMessagesPage() {
       <section className="relative overflow-hidden px-6 py-20 sm:py-32">
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gold">
-            Voice Messages
+            Voice & Video Messages
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
-            Your voice.{" "}
-            <span className="text-gold">Delivered when it matters most.</span>
+            Your voice. Your face.{" "}
+            <span className="text-gold">Delivered forever.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Record voice messages for the people you love. Just $5 per year.
+            Record audio or video messages for the people you love.
             Delivered by email on the date you choose &mdash; even years from
-            now.
+            now. Video is the most powerful message you can leave behind.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -150,7 +155,7 @@ export default function VoiceMessagesPage() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-warm-gray-light">
-            $5/year per message &middot; No subscriptions &middot; Delivered
+            Audio $5/year &middot; Video $10/year &middot; No subscriptions &middot; Delivered
             forever
           </p>
         </div>
@@ -165,7 +170,7 @@ export default function VoiceMessagesPage() {
             before she passed.&rdquo;
           </p>
           <p className="mt-6 text-sm text-cream/60">
-            This is the kind of moment Voice Messages creates.
+            This is the kind of moment Voice &amp; Video Messages creates. The most powerful message you can leave behind is your face saying I love you.
           </p>
         </div>
       </section>
@@ -182,15 +187,13 @@ export default function VoiceMessagesPage() {
             </p>
           </div>
 
-          <div className="mt-14">
-            <div className="relative flex flex-col rounded-2xl border-gold bg-white p-8 shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
-                Voice Message
-              </span>
+          <div className="mt-14 grid gap-6 sm:grid-cols-2">
+            {/* Audio tier */}
+            <div className="relative flex flex-col rounded-2xl border border-cream-dark bg-white p-8 shadow-md transition hover:-translate-y-1 hover:shadow-xl">
               <div className="text-center">
                 <span className="text-4xl">&#127908;</span>
                 <h3 className="mt-3 text-xl font-bold text-navy">
-                  Digital Voice Message
+                  Audio Message
                 </h3>
                 <p className="mt-3">
                   <span className="text-5xl font-extrabold tracking-tight text-navy">
@@ -207,22 +210,54 @@ export default function VoiceMessagesPage() {
                   "Delivered by email on the scheduled date",
                   "Secure, private listening link",
                   "Annual or milestone message types",
-                  "Keeps arriving for up to 25 years",
                   "Continues even if something happens to you",
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="mt-0.5 h-4 w-4 shrink-0 text-forest"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-                        clipRule="evenodd"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-warm-gray">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/voice/record"
+                className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              >
+                Record Audio &mdash; $5/year
+              </Link>
+            </div>
+
+            {/* Video tier */}
+            <div className="relative flex flex-col rounded-2xl border-gold bg-white p-8 shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                NEW
+              </span>
+              <div className="text-center">
+                <span className="text-4xl">&#127916;</span>
+                <h3 className="mt-3 text-xl font-bold text-navy">
+                  Video Message
+                </h3>
+                <p className="mt-3">
+                  <span className="text-5xl font-extrabold tracking-tight text-navy">
+                    $10
+                  </span>
+                  <span className="text-sm text-warm-gray">
+                    /yr per message
+                  </span>
+                </p>
+              </div>
+              <ul className="mt-8 space-y-3">
+                {[
+                  "Record up to 5 minutes of video",
+                  "Your face and voice, delivered together",
+                  "Secure, private viewing link",
+                  "Annual or milestone message types",
+                  "The most powerful legacy you can leave",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
                     </svg>
                     <span className="text-warm-gray">{f}</span>
                   </li>
@@ -232,7 +267,7 @@ export default function VoiceMessagesPage() {
                 href="/voice/record"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
-                Record a Voice Message &mdash; $5/year
+                Record Video &mdash; $10/year
               </Link>
             </div>
           </div>
@@ -275,16 +310,16 @@ export default function VoiceMessagesPage() {
               <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
                 You Are Here
               </span>
-              <span className="text-5xl" role="img" aria-label="Voice Messages">
+              <span className="text-5xl" role="img" aria-label="Voice & Video Messages">
                 🎙️
               </span>
               <h3 className="mt-5 text-xl font-bold text-navy">
-                Voice Messages
+                Voice & Video Messages
               </h3>
-              <p className="mt-2 text-sm text-warm-gray">$5/yr</p>
+              <p className="mt-2 text-sm text-warm-gray">Audio $5/yr &middot; Video $10/yr</p>
               <p className="mt-3 leading-relaxed text-warm-gray">
-                Record your voice and we deliver it by email. Your actual voice,
-                delivered forever.
+                Record your voice or face and we deliver it by email. The most personal
+                legacy you can leave behind.
               </p>
               <Link
                 href="/voice/record"
@@ -451,7 +486,7 @@ export default function VoiceMessagesPage() {
             href="/voice/record"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Record Your First Message &mdash; $5/yr
+            Record Your First Message &mdash; From $5/yr
           </Link>
           <p className="mt-10 text-sm text-warm-gray">
             Are you an executor? If the account holder has passed or is unable

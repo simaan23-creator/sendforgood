@@ -57,12 +57,12 @@ const CARDS = [
   },
   {
     emoji: "\uD83C\uDF99\uFE0F",
-    title: "Record a Voice Message",
-    subtitle: "$5/year",
+    title: "Record a Voice or Video Message",
+    subtitle: "From $5/year",
     description:
-      "Record your voice and we deliver it by email every year. Your actual voice — on their birthday, a milestone, or any day that matters. Even after you are gone.",
+      "Record your voice or face and we deliver it by email every year. Audio from $5/yr, video from $10/yr. The most powerful message you can leave behind.",
     features: [
-      "Record in your browser",
+      "Audio ($5/yr) or Video ($10/yr)",
       "Annual or milestone delivery",
       "Stored securely forever",
     ],
