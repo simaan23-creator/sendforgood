@@ -335,7 +335,7 @@ export default function BusinessDashboard() {
               Manage your recipients, upload lists, and track deliveries.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
             <Link
               href="/start"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-cream shadow-sm hover:bg-navy-light transition"
@@ -354,6 +354,17 @@ export default function BusinessDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>
               Upload CSV
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const supabase = createClient();
+                await supabase.auth.signOut();
+                router.push("/business");
+              }}
+              className="text-sm text-warm-gray hover:text-navy transition"
+            >
+              Sign Out
             </button>
           </div>
         </div>
