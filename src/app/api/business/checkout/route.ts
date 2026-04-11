@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { stripe, TIER_PRICES } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,6 +34,8 @@ interface BusinessCheckoutBody {
 export async function POST(request: Request) {
   try {
     const body: BusinessCheckoutBody = await request.json();
+    const cookieStore = await cookies();
+    const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
     const { account, recipients } = body;
 
     // Validate
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
         industry: account.industry,
         companyWebsite: account.companyWebsite || "",
         recipientCount: recipients.length.toString(),
+        affiliate_code: affiliateCode,
         ...metadataChunks,
       },
     });

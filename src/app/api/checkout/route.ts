@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { stripe, TIER_PRICES } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const cookieStore = await cookies();
+    const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
     const {
       recipientName,
       relationship,
@@ -94,6 +97,7 @@ export async function POST(request: Request) {
         executorEmail: executorEmail || "",
         executorPhone: executorPhone || "",
         executorAddress: executorAddress || "",
+        affiliate_code: affiliateCode,
       },
     });
 

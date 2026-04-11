@@ -92,6 +92,37 @@ interface AccessRequest {
   reviewed_at: string | null;
 }
 
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  code: string;
+  first_commission_rate: number;
+  repeat_commission_rate: number;
+  active: boolean;
+  notes: string | null;
+  total_earned: number;
+  total_paid: number;
+  created_at: string;
+  referral_count: number;
+  total_unpaid: number;
+}
+
+interface AffiliateReferral {
+  id: string;
+  affiliate_id: string;
+  customer_email: string;
+  order_id: string;
+  amount_paid: number;
+  commission_rate: number;
+  commission_amount: number;
+  referral_type: "first" | "repeat";
+  paid: boolean;
+  paid_at: string | null;
+  created_at: string;
+  affiliates: { name: string; email: string; code: string } | null;
+}
+
 interface AdminLetter {
   id: string;
   user_id: string;
@@ -1260,13 +1291,442 @@ function AccessRequestsTab() {
   );
 }
 
+// ─── Affiliates Tab ─────────────────────────────────────────────────────────
+
+function AffiliatesTab() {
+  const [subTab, setSubTab] = useState<"list" | "referrals">("list");
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
+  const [totalUnpaid, setTotalUnpaid] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
+
+  // Referral filters
+  const [filterAffiliateId, setFilterAffiliateId] = useState("all");
+  const [filterPaid, setFilterPaid] = useState("all");
+
+  const fetchAffiliates = useCallback(async () => {
+    const res = await fetch("/api/admin/affiliates");
+    const data = await res.json();
+    setAffiliates(data.affiliates || []);
+  }, []);
+
+  const fetchReferrals = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (filterAffiliateId !== "all") params.set("affiliate_id", filterAffiliateId);
+    if (filterPaid !== "all") params.set("paid", filterPaid);
+    const res = await fetch(`/api/admin/affiliates/referrals?${params}`);
+    const data = await res.json();
+    setReferrals(data.referrals || []);
+    setTotalUnpaid(data.totalUnpaid || 0);
+  }, [filterAffiliateId, filterPaid]);
+
+  useEffect(() => {
+    Promise.all([fetchAffiliates(), fetchReferrals()]).then(() => setLoading(false));
+  }, [fetchAffiliates, fetchReferrals]);
+
+  async function handleToggleActive(affiliate: Affiliate) {
+    await fetch("/api/admin/affiliates", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: affiliate.id, active: !affiliate.active }),
+    });
+    fetchAffiliates();
+  }
+
+  async function handleMarkPaid(affiliateId: string) {
+    await fetch(`/api/admin/affiliates/${affiliateId}/pay`, { method: "POST" });
+    fetchAffiliates();
+    fetchReferrals();
+  }
+
+  function copyLink(code: string) {
+    navigator.clipboard.writeText(`https://sendforgood.com?ref=${code}`);
+  }
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-400">Loading affiliates...</div>;
+  }
+
+  return (
+    <div>
+      {/* Sub-tabs */}
+      <div className="flex gap-4 mb-6">
+        <button
+          onClick={() => setSubTab("list")}
+          className={`text-sm font-medium pb-1 border-b-2 transition ${
+            subTab === "list"
+              ? "border-gray-900 text-gray-900"
+              : "border-transparent text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Affiliates List
+        </button>
+        <button
+          onClick={() => setSubTab("referrals")}
+          className={`text-sm font-medium pb-1 border-b-2 transition ${
+            subTab === "referrals"
+              ? "border-gray-900 text-gray-900"
+              : "border-transparent text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Referrals Log
+        </button>
+      </div>
+
+      {subTab === "list" ? (
+        <>
+          {/* Add Affiliate button */}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => { setEditingAffiliate(null); setShowAddModal(true); }}
+              className="rounded-md bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition"
+            >
+              + Add Affiliate
+            </button>
+          </div>
+
+          {/* Affiliates Table */}
+          {affiliates.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No affiliates yet</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="pb-3 pr-4">Name</th>
+                    <th className="pb-3 pr-4">Email</th>
+                    <th className="pb-3 pr-4">Code</th>
+                    <th className="pb-3 pr-4">Rates</th>
+                    <th className="pb-3 pr-4">Status</th>
+                    <th className="pb-3 pr-4">Referrals</th>
+                    <th className="pb-3 pr-4">Earned</th>
+                    <th className="pb-3 pr-4">Unpaid</th>
+                    <th className="pb-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {affiliates.map((a) => (
+                    <tr key={a.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 pr-4 font-medium text-gray-900">{a.name}</td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">{a.email}</td>
+                      <td className="py-3 pr-4">
+                        <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{a.code}</code>
+                      </td>
+                      <td className="py-3 pr-4 text-xs text-gray-600">
+                        {a.first_commission_rate}% / {a.repeat_commission_rate}%
+                      </td>
+                      <td className="py-3 pr-4">
+                        <button
+                          onClick={() => handleToggleActive(a)}
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition ${
+                            a.active
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}
+                        >
+                          {a.active ? "Active" : "Inactive"}
+                        </button>
+                      </td>
+                      <td className="py-3 pr-4 text-center">{a.referral_count}</td>
+                      <td className="py-3 pr-4 font-medium">{formatCurrency(a.total_earned)}</td>
+                      <td className="py-3 pr-4">
+                        {a.total_unpaid > 0 ? (
+                          <span className="text-orange-600 font-medium">{formatCurrency(a.total_unpaid)}</span>
+                        ) : (
+                          <span className="text-gray-400">$0.00</span>
+                        )}
+                      </td>
+                      <td className="py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => { setEditingAffiliate(a); setShowAddModal(true); }}
+                          className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition mr-1"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => copyLink(a.code)}
+                          className="rounded bg-blue-50 border border-blue-200 text-blue-600 px-2.5 py-1 text-xs font-medium hover:bg-blue-100 transition mr-1"
+                        >
+                          Copy Link
+                        </button>
+                        {a.total_unpaid > 0 && (
+                          <button
+                            onClick={() => handleMarkPaid(a.id)}
+                            className="rounded bg-green-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-green-700 transition"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Referrals Log */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-center">
+            <select
+              value={filterAffiliateId}
+              onChange={(e) => setFilterAffiliateId(e.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="all">All Affiliates</option>
+              {affiliates.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+            <select
+              value={filterPaid}
+              onChange={(e) => setFilterPaid(e.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="all">All</option>
+              <option value="false">Unpaid</option>
+              <option value="true">Paid</option>
+            </select>
+            <div className="ml-auto bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
+              <span className="text-xs text-orange-600 font-medium">Total Unpaid:</span>
+              <span className="ml-2 text-sm font-bold text-orange-700">{formatCurrency(totalUnpaid)}</span>
+            </div>
+          </div>
+
+          {referrals.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No referrals found</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="pb-3 pr-4">Date</th>
+                    <th className="pb-3 pr-4">Affiliate</th>
+                    <th className="pb-3 pr-4">Customer</th>
+                    <th className="pb-3 pr-4">Order Amount</th>
+                    <th className="pb-3 pr-4">Commission</th>
+                    <th className="pb-3 pr-4">Type</th>
+                    <th className="pb-3">Paid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referrals.map((r) => (
+                    <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 pr-4 whitespace-nowrap text-gray-500">
+                        {formatDate(r.created_at.split("T")[0])}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="font-medium text-gray-900">{r.affiliates?.name || "—"}</span>
+                        <span className="ml-1.5 text-xs text-gray-400">({r.affiliates?.code})</span>
+                      </td>
+                      <td className="py-3 pr-4 text-xs text-gray-600">{r.customer_email}</td>
+                      <td className="py-3 pr-4">{formatCurrency(r.amount_paid)}</td>
+                      <td className="py-3 pr-4 font-medium">{formatCurrency(r.commission_amount)}</td>
+                      <td className="py-3 pr-4">
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          r.referral_type === "first"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-purple-100 text-purple-700"
+                        }`}>
+                          {r.referral_type === "first" ? "First" : "Repeat"}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        {r.paid ? (
+                          <span className="inline-block rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-xs font-medium">
+                            Paid{r.paid_at ? ` ${formatDate(r.paid_at.split("T")[0])}` : ""}
+                          </span>
+                        ) : (
+                          <span className="inline-block rounded-full bg-yellow-100 text-yellow-700 px-2.5 py-0.5 text-xs font-medium">
+                            Unpaid
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Add/Edit Affiliate Modal */}
+      {showAddModal && (
+        <AffiliateFormModal
+          affiliate={editingAffiliate}
+          onClose={() => { setShowAddModal(false); setEditingAffiliate(null); }}
+          onSaved={() => { setShowAddModal(false); setEditingAffiliate(null); fetchAffiliates(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AffiliateFormModal({
+  affiliate,
+  onClose,
+  onSaved,
+}: {
+  affiliate: Affiliate | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!affiliate;
+  const [name, setName] = useState(affiliate?.name || "");
+  const [email, setEmail] = useState(affiliate?.email || "");
+  const [code, setCode] = useState(affiliate?.code || "");
+  const [codeManuallyEdited, setCodeManuallyEdited] = useState(false);
+  const [firstRate, setFirstRate] = useState(affiliate?.first_commission_rate ?? 15);
+  const [repeatRate, setRepeatRate] = useState(affiliate?.repeat_commission_rate ?? 10);
+  const [notes, setNotes] = useState(affiliate?.notes || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // Auto-suggest code from name (only for new affiliates, until user manually edits)
+  useEffect(() => {
+    if (!isEdit && name && !codeManuallyEdited) {
+      setCode(name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+    }
+  }, [name, isEdit, codeManuallyEdited]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    const res = await fetch("/api/admin/affiliates", {
+      method: isEdit ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        isEdit
+          ? { id: affiliate.id, name, email, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes }
+          : { name, email, code, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes }
+      ),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Failed to save");
+      setSaving(false);
+      return;
+    }
+
+    onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {isEdit ? "Edit Affiliate" : "Add Affiliate"}
+        </h2>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          {!isEdit && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Referral Code * <span className="text-gray-400 font-normal">(lowercase, unique)</span>
+              </label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => { setCodeManuallyEdited(true); setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "")); }}
+                required
+                pattern="[a-z0-9_-]+"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <p className="text-xs text-gray-400 mt-1">Link: sendforgood.com?ref={code || "..."}</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First Purchase %</label>
+              <input
+                type="number"
+                value={firstRate}
+                onChange={(e) => setFirstRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Repeat Purchase %</label>
+              <input
+                type="number"
+                value={repeatRate}
+                onChange={(e) => setRepeatRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+        </div>
+
+        {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-md bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {saving ? "Saving..." : isEdit ? "Save Changes" : "Create Affiliate"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [tab, setTab] = useState<
-    "shipments" | "orders" | "letters" | "access"
+    "shipments" | "orders" | "letters" | "access" | "affiliates"
   >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -1388,6 +1848,16 @@ export default function AdminDashboard() {
               >
                 Access Requests
               </button>
+              <button
+                onClick={() => setTab("affiliates")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "affiliates"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Affiliates
+              </button>
             </div>
 
             {/* Content */}
@@ -1404,6 +1874,8 @@ export default function AdminDashboard() {
                 />
               ) : tab === "access" ? (
                 <AccessRequestsTab />
+              ) : tab === "affiliates" ? (
+                <AffiliatesTab />
               ) : (
                 <OrdersTab />
               )}

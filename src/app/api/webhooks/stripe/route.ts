@@ -37,6 +37,9 @@ export async function POST(request: Request) {
       } else {
         await handleIndividualOrder(session, metadata);
       }
+
+      // Process affiliate referral if affiliate code present
+      await processAffiliateReferral(session, metadata);
     } catch (error) {
       console.error("Error processing webhook:", error);
       return NextResponse.json(
@@ -1591,5 +1594,106 @@ async function handleVoiceMessageOrder(
     });
   } catch (emailError) {
     console.error("Failed to send voice message owner notification email:", emailError);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Affiliate Referral Processing
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+async function processAffiliateReferral(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null; id?: string },
+  metadata: Record<string, string>
+) {
+  const affiliateCode = metadata.affiliate_code;
+  if (!affiliateCode) return;
+
+  try {
+    // Look up the affiliate by code
+    const { data: affiliate, error: affError } = await supabaseAdmin
+      .from("affiliates")
+      .select("*")
+      .eq("code", affiliateCode)
+      .eq("active", true)
+      .single();
+
+    if (affError || !affiliate) {
+      console.log(`Affiliate code "${affiliateCode}" not found or inactive`);
+      return;
+    }
+
+    const customerEmail = metadata.email || session.customer_email || "";
+    const amountPaid = session.amount_total || 0; // in cents
+
+    // Check if this customer has purchased before (to determine first vs repeat)
+    const { count } = await supabaseAdmin
+      .from("affiliate_referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("customer_email", customerEmail);
+
+    const isFirstPurchase = !count || count === 0;
+    const referralType = isFirstPurchase ? "first" : "repeat";
+    const commissionRate = isFirstPurchase
+      ? affiliate.first_commission_rate
+      : affiliate.repeat_commission_rate;
+    const commissionAmount = Math.round((amountPaid * commissionRate) / 100);
+
+    // Insert referral record
+    const { error: refError } = await supabaseAdmin
+      .from("affiliate_referrals")
+      .insert({
+        affiliate_id: affiliate.id,
+        customer_email: customerEmail,
+        order_id: (session.payment_intent as string) || session.id || "",
+        amount_paid: amountPaid,
+        commission_rate: commissionRate,
+        commission_amount: commissionAmount,
+        referral_type: referralType,
+        paid: false,
+      });
+
+    if (refError) {
+      console.error("Failed to insert affiliate referral:", refError);
+      return;
+    }
+
+    // Update affiliate total_earned
+    await supabaseAdmin
+      .from("affiliates")
+      .update({
+        total_earned: (affiliate.total_earned || 0) + commissionAmount,
+      })
+      .eq("id", affiliate.id);
+
+    // Send notification email
+    const commissionFormatted = `$${(commissionAmount / 100).toFixed(2)}`;
+    const orderFormatted = `$${(amountPaid / 100).toFixed(2)}`;
+
+    try {
+      await resend.emails.send({
+        from: "SendForGood <noreply@sendforgood.com>",
+        to: "Simaan23@gmail.com",
+        subject: `\uD83E\uDD1D New Affiliate Referral! ${affiliate.name} \u2014 ${commissionFormatted} commission`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <h1 style="color: #1a2744;">New Affiliate Referral!</h1>
+            <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+              <p><strong>Affiliate:</strong> ${affiliate.name} (${affiliate.email})</p>
+              <p><strong>Code:</strong> ${affiliateCode}</p>
+              <p><strong>Customer:</strong> ${customerEmail}</p>
+              <p><strong>Order Amount:</strong> ${orderFormatted}</p>
+              <p><strong>Referral Type:</strong> ${referralType === "first" ? "First Purchase" : "Repeat Purchase"}</p>
+              <p><strong>Commission Rate:</strong> ${commissionRate}%</p>
+              <p><strong>Commission:</strong> ${commissionFormatted}</p>
+            </div>
+            <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send affiliate referral notification:", emailError);
+    }
+  } catch (error) {
+    console.error("Error processing affiliate referral:", error);
   }
 }

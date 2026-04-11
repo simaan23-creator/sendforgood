@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { stripe, DELIVERY_TYPE_PRICES, type DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const cookieStore = await cookies();
+    const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
     const {
       recipientName,
       relationship,
@@ -111,6 +114,7 @@ export async function POST(request: Request) {
         city: city || "",
         state: state || "",
         postalCode: postalCode || "",
+        affiliate_code: affiliateCode,
       },
     });
 
