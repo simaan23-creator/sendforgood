@@ -24,6 +24,8 @@ interface CartItemPayload {
   giftNotes: string;
   cardMessage: string;
   petType: string;
+  isProfessional: boolean;
+  recipientIndustry: string;
   executorName: string;
   executorEmail: string;
   executorPhone: string;

@@ -80,6 +80,8 @@ interface FormData {
   interests: string[];
   giftNotes: string;
   petType: string;
+  isProfessional: boolean;
+  recipientIndustry: string;
   executorName: string;
   executorEmail: string;
   executorPhone: string;
@@ -108,6 +110,8 @@ const initialFormData: FormData = {
   interests: [],
   giftNotes: "",
   petType: "",
+  isProfessional: false,
+  recipientIndustry: "",
   executorName: "",
   executorEmail: "",
   executorPhone: "",
@@ -268,6 +272,8 @@ export default function SendPage() {
       giftNotes: form.giftNotes,
       cardMessage: "",
       petType: form.petType,
+      isProfessional: form.isProfessional,
+      recipientIndustry: form.recipientIndustry,
       executorName: hasExecutor ? form.executorName : "",
       executorEmail: hasExecutor ? form.executorEmail : "",
       executorPhone: hasExecutor ? form.executorPhone : "",
@@ -945,92 +951,166 @@ function StepAboutThem({
   return (
     <div>
       <h2 className="text-2xl font-bold text-navy sm:text-3xl">
-        Help us pick the perfect gift
+        {form.isProfessional ? "Professional gift preferences" : "Help us pick the perfect gift"}
       </h2>
       <p className="mt-2 text-warm-gray">
-        The more you tell us, the more personal the gift.
+        {form.isProfessional
+          ? "Tell us a little so we can pick the right professional gift."
+          : "The more you tell us, the more personal the gift."}
       </p>
 
       <div className="mt-8 space-y-6">
-        {/* Age */}
-        <div>
-          <label htmlFor="recipientAge" className="mb-1.5 block text-sm font-medium text-navy">
-            How old will they be? <span className="text-warm-gray-light font-normal">Optional</span>
-          </label>
-          <input
-            id="recipientAge"
-            type="text"
-            placeholder="e.g. 30"
-            value={form.recipientAge}
-            onChange={(e) => update("recipientAge", e.target.value)}
-            className={inputClass}
-          />
+        {/* Personal / Professional toggle */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => update("isProfessional", false)}
+            className={`flex flex-col items-center rounded-xl border-2 p-6 text-center transition-all ${
+              !form.isProfessional
+                ? "border-gold bg-gold/5 shadow-lg ring-2 ring-gold/30"
+                : "border-cream-dark bg-white hover:border-gold/40 hover:shadow-md"
+            }`}
+          >
+            <span className="text-4xl">&#10084;&#65039;</span>
+            <h3 className="mt-3 text-base font-bold text-navy">Personal Gift</h3>
+            <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+              Tell us about them so we can pick something they will love
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => update("isProfessional", true)}
+            className={`flex flex-col items-center rounded-xl border-2 p-6 text-center transition-all ${
+              form.isProfessional
+                ? "border-gold bg-gold/5 shadow-lg ring-2 ring-gold/30"
+                : "border-cream-dark bg-white hover:border-gold/40 hover:shadow-md"
+            }`}
+          >
+            <span className="text-4xl">&#128188;</span>
+            <h3 className="mt-3 text-base font-bold text-navy">Professional Gift</h3>
+            <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+              A tasteful, universally appropriate gift &mdash; perfect for clients, colleagues, or anyone you know professionally
+            </p>
+          </button>
         </div>
 
-        {/* Gender */}
-        <div>
-          <p className="mb-2 text-sm font-medium text-navy">
-            Gender <span className="text-warm-gray-light font-normal">Optional</span>
-          </p>
-          <div className="flex gap-3">
-            {GENDER_OPTIONS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => update("recipientGender", form.recipientGender === g ? "" : g)}
-                className={`rounded-lg border-2 px-5 py-2.5 text-sm font-semibold transition ${
-                  form.recipientGender === g
-                    ? "border-gold bg-gold/10 text-navy shadow-sm"
-                    : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
-                }`}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* ── Personal fields ── */}
+        {!form.isProfessional && (
+          <>
+            {/* Age */}
+            <div>
+              <label htmlFor="recipientAge" className="mb-1.5 block text-sm font-medium text-navy">
+                How old will they be? <span className="text-warm-gray-light font-normal">Optional</span>
+              </label>
+              <input
+                id="recipientAge"
+                type="text"
+                placeholder="e.g. 30"
+                value={form.recipientAge}
+                onChange={(e) => update("recipientAge", e.target.value)}
+                className={inputClass}
+              />
+            </div>
 
-        {/* Interests */}
-        <div>
-          <p className="mb-2 text-sm font-medium text-navy">
-            Interests <span className="text-warm-gray-light font-normal">Optional — select all that apply</span>
-          </p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {INTEREST_OPTIONS.map(({ emoji, label }) => {
-              const selected = form.interests.includes(label);
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => toggleInterest(label)}
-                  className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition ${
-                    selected
-                      ? "border-gold bg-gold/10 text-navy shadow-sm"
-                      : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
-                  }`}
-                >
-                  <span className="text-base">{emoji}</span>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            {/* Gender */}
+            <div>
+              <p className="mb-2 text-sm font-medium text-navy">
+                Gender <span className="text-warm-gray-light font-normal">Optional</span>
+              </p>
+              <div className="flex gap-3">
+                {GENDER_OPTIONS.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => update("recipientGender", form.recipientGender === g ? "" : g)}
+                    className={`rounded-lg border-2 px-5 py-2.5 text-sm font-semibold transition ${
+                      form.recipientGender === g
+                        ? "border-gold bg-gold/10 text-navy shadow-sm"
+                        : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Gift notes */}
+            {/* Interests */}
+            <div>
+              <p className="mb-2 text-sm font-medium text-navy">
+                Interests <span className="text-warm-gray-light font-normal">Optional — select all that apply</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {INTEREST_OPTIONS.map(({ emoji, label }) => {
+                  const selected = form.interests.includes(label);
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => toggleInterest(label)}
+                      className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition ${
+                        selected
+                          ? "border-gold bg-gold/10 text-navy shadow-sm"
+                          : "border-cream-dark bg-white text-warm-gray hover:border-gold/40"
+                      }`}
+                    >
+                      <span className="text-base">{emoji}</span>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Professional fields ── */}
+        {form.isProfessional && (
+          <>
+            <div>
+              <label htmlFor="recipientIndustry" className="mb-1.5 block text-sm font-medium text-navy">
+                Their industry / role <span className="text-warm-gray-light font-normal">Optional</span>
+              </label>
+              <input
+                id="recipientIndustry"
+                type="text"
+                placeholder="e.g. Real estate agent, doctor, accountant"
+                value={form.recipientIndustry}
+                onChange={(e) => update("recipientIndustry", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Gift notes — shown for both modes */}
         <div>
           <label htmlFor="giftNotes" className="mb-1.5 block text-sm font-medium text-navy">
-            Anything else we should know? <span className="text-warm-gray-light font-normal">Optional</span>
+            {form.isProfessional
+              ? <>Gift restrictions <span className="text-warm-gray-light font-normal">Optional</span></>
+              : <>Anything else we should know? <span className="text-warm-gray-light font-normal">Optional</span></>}
           </label>
           <textarea
             id="giftNotes"
             rows={3}
-            placeholder="e.g. She loves purple. He is allergic to nuts. They prefer eco-friendly products."
+            placeholder={
+              form.isProfessional
+                ? "e.g. No alcohol, kosher only, eco-friendly preferred"
+                : "e.g. She loves purple. He is allergic to nuts. They prefer eco-friendly products."
+            }
             value={form.giftNotes}
             onChange={(e) => update("giftNotes", e.target.value)}
             className={inputClass}
           />
         </div>
+
+        {/* Professional note */}
+        {form.isProfessional && (
+          <p className="text-sm font-medium" style={{ color: "#C8A962" }}>
+            We will select a professional, tasteful gift suitable for any business relationship.
+          </p>
+        )}
 
         {/* Executor section (collapsible) */}
         {!showExecutor ? (
