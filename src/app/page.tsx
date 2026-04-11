@@ -547,7 +547,7 @@ export default function HomePage() {
             want, arriving every year automatically.
           </p>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
               <span className="text-4xl" role="img" aria-label="Your birthday, done right">🎂</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">Your birthday, done right</h3>
@@ -571,6 +571,18 @@ export default function HomePage() {
                 Seriously. You work hard. Treat yourself.
               </p>
             </article>
+
+            <Link href="/request" className="group rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Ask for a Memory">🎙️</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy group-hover:text-gold">Ask for a Memory</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Share a link with anyone. They record a voice message for you.
+                You receive it on your birthday or any day you choose.
+              </p>
+              <span className="mt-4 inline-block text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 group-hover:text-gold">
+                Create a Request
+              </span>
+            </Link>
           </div>
 
           <div className="mt-12 text-center">
