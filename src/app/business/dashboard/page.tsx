@@ -381,7 +381,7 @@ export default function BusinessDashboard() {
               {profile.company_website && (
                 <div>
                   <span className="text-warm-gray">Website:</span>{" "}
-                  <a href={profile.company_website} target="_blank" rel="noopener noreferrer" className="font-medium text-gold hover:text-gold-dark underline underline-offset-2">
+                  <a href={profile.company_website.startsWith("http") ? profile.company_website : `https://${profile.company_website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-gold hover:text-gold-dark underline underline-offset-2">
                     {profile.company_website.replace(/^https?:\/\//, "")}
                   </a>
                 </div>
