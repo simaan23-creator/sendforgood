@@ -97,6 +97,12 @@ export default function BusinessPage() {
               View Pricing
             </Link>
           </div>
+          <p className="mt-4 text-sm text-warm-gray">
+            Already have an account?{" "}
+            <Link href="/auth" className="font-medium text-gold hover:text-gold-dark underline underline-offset-2">
+              Sign in
+            </Link>
+          </p>
         </div>
       </section>
 
