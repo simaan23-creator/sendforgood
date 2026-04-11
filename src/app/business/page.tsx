@@ -1,19 +1,8 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+"use client";
 
-export const metadata: Metadata = {
-  title: "For Business — SendForGood",
-  description:
-    "Gifts selected and shipped to your clients — automated, effortless, memorable. Set it up once — we handle the rest.",
-  openGraph: {
-    title: "For Business — SendForGood",
-    description:
-      "Gifts selected and shipped to your clients — automated, effortless, memorable. Set it up once — we handle the rest.",
-    url: "https://sendforgood.com/business",
-    siteName: "SendForGood",
-    type: "website",
-  },
-};
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 const FEATURES = [
   {
@@ -71,6 +60,15 @@ const INDUSTRIES = [
 ] as const;
 
 export default function BusinessPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+  }, []);
+
   return (
     <main className="bg-gradient-to-b from-cream to-cream-dark">
       {/* Hero */}
@@ -85,10 +83,10 @@ export default function BusinessPage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/business/signup"
+              href={isLoggedIn ? "/business/dashboard" : "/business/signup"}
               className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3.5 text-base font-semibold text-cream shadow-sm hover:bg-navy-light transition-colors duration-150 w-full sm:w-auto"
             >
-              Set Up Your Business Account
+              {isLoggedIn ? "Go to Business Dashboard" : "Set Up Your Business Account"}
             </Link>
             <Link
               href="/pricing"
@@ -97,12 +95,14 @@ export default function BusinessPage() {
               View Pricing
             </Link>
           </div>
-          <p className="mt-4 text-sm text-warm-gray">
-            Already have an account?{" "}
-            <Link href="/auth" className="font-medium text-gold hover:text-gold-dark underline underline-offset-2">
-              Sign in
-            </Link>
-          </p>
+          {!isLoggedIn && (
+            <p className="mt-4 text-sm text-warm-gray">
+              Already have an account?{" "}
+              <Link href="/auth" className="font-medium text-gold hover:text-gold-dark underline underline-offset-2">
+                Sign in
+              </Link>
+            </p>
+          )}
         </div>
       </section>
 
@@ -203,10 +203,10 @@ export default function BusinessPage() {
             your tiers, and we select and ship gifts on your behalf &mdash; automatically.
           </p>
           <Link
-            href="/business/signup"
+            href={isLoggedIn ? "/business/dashboard" : "/business/signup"}
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-8 py-3.5 text-base font-semibold text-navy shadow-sm hover:bg-gold-light transition-colors duration-150"
           >
-            Set Up Your Business Account
+            {isLoggedIn ? "Go to Business Dashboard" : "Set Up Your Business Account"}
           </Link>
         </div>
       </section>

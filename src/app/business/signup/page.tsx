@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
@@ -22,6 +23,15 @@ interface SignupForm {
 }
 
 export default function BusinessSignupPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.replace("/business/dashboard");
+    });
+  }, [router]);
+
   const [form, setForm] = useState<SignupForm>({
     companyName: "",
     industry: "",
