@@ -92,7 +92,7 @@ export default function RequestMemoryPage() {
             Create Your Request
           </Link>
           <p className="mt-4 text-sm text-warm-gray">
-            Free to create. Free to record. Free to listen.
+            Creating a request is free. Storage and delivery fees apply.
           </p>
         </div>
       </section>
