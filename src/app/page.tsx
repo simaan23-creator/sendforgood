@@ -587,7 +587,7 @@ export default function HomePage() {
 
           <div className="mt-12 text-center">
             <Link
-              href="/send"
+              href="/send?self=true"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               Send Yourself a Gift

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
@@ -45,6 +45,7 @@ const STEP_LABELS = [
 ];
 
 const RELATIONSHIP_OPTIONS = [
+  "Myself",
   "Parent",
   "Child",
   "Grandchild",
@@ -124,7 +125,17 @@ const initialFormData: FormData = {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function SendPage() {
+  return (
+    <Suspense fallback={null}>
+      <SendPageInner />
+    </Suspense>
+  );
+}
+
+function SendPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isSelf = searchParams.get("self") === "true";
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -135,10 +146,10 @@ export default function SendPage() {
   const [cartCount, setCartCount] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  /* Check if user is logged in */
+  /* Check if user is logged in + pre-fill for self-gifting */
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
         setIsLoggedIn(true);
         setUserEmail(data.user.email ?? null);
@@ -147,9 +158,25 @@ export default function SendPage() {
           email: data.user!.email ?? "",
           fullName: data.user!.user_metadata?.full_name ?? "",
         }));
+
+        if (isSelf) {
+          // Fetch profile name for self-gifting pre-fill
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", data.user!.id)
+            .single();
+
+          const name = profile?.full_name || data.user!.user_metadata?.full_name || "";
+          setForm((prev) => ({
+            ...prev,
+            recipientName: name,
+            relationship: "Myself",
+          }));
+        }
       }
     });
-  }, []);
+  }, [isSelf]);
 
   /* Track cart count */
   useEffect(() => {
@@ -440,7 +467,7 @@ export default function SendPage() {
 
         {/* ──────────────── Step Content ──────────────── */}
         <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8">
-          {step === 0 && <StepRecipient form={form} errors={errors} update={update} />}
+          {step === 0 && <StepRecipient form={form} errors={errors} update={update} isSelf={isSelf} />}
           {step === 1 && <StepOccasion form={form} errors={errors} update={update} currentYear={currentYear} />}
           {step === 2 && <StepTier form={form} errors={errors} update={update} totalPrice={totalPrice} letterPrice={letterPrice} />}
           {step === 3 && <StepAddress form={form} errors={errors} update={update} />}
@@ -537,23 +564,33 @@ interface StepProps {
   update: (field: keyof FormData, value: string | number | string[] | boolean) => void;
 }
 
-function StepRecipient({ form, errors, update }: StepProps) {
+function StepRecipient({ form, errors, update, isSelf }: StepProps & { isSelf: boolean }) {
   const isPet = form.relationship === "My Pet / Fur Baby";
 
   return (
     <div>
+      {/* Self-gift banner */}
+      {isSelf && (
+        <div className="mb-6 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3 text-sm text-navy">
+          <span className="font-medium" style={{ color: "#C8A962" }}>Gifting yourself</span>
+          {" \u2014 "}your name and address will be used automatically
+        </div>
+      )}
+
       <h2 className="text-2xl font-bold text-navy sm:text-3xl">
-        Who&rsquo;s the lucky recipient?
+        {isSelf ? "Treat yourself \u2014 you deserve it!" : "Who\u2019s the lucky recipient?"}
       </h2>
       <p className="mt-2 text-warm-gray">
-        Tell us about the {isPet ? "pet" : "person"} you want to surprise with years of thoughtful gifts.
+        {isSelf
+          ? "Set up a gift for yourself. Something you actually want, arriving every year automatically."
+          : `Tell us about the ${isPet ? "pet" : "person"} you want to surprise with years of thoughtful gifts.`}
       </p>
 
       <div className="mt-8 space-y-5">
         {/* Recipient Name */}
         <div>
           <Label htmlFor="recipientName" required>
-            {isPet ? "Your pet\u2019s name" : "Recipient\u2019s name"}
+            {isPet ? "Your pet\u2019s name" : isSelf ? "Your name" : "Recipient\u2019s name"}
           </Label>
           <input
             id="recipientName"
@@ -569,20 +606,26 @@ function StepRecipient({ form, errors, update }: StepProps) {
         {/* Relationship */}
         <div>
           <Label htmlFor="relationship" required>Your relationship to them</Label>
-          <div className="relative">
-            <select
-              id="relationship"
-              value={form.relationship}
-              onChange={(e) => update("relationship", e.target.value)}
-              className={selectClass}
-            >
-              <option value="">Select relationship...</option>
-              {RELATIONSHIP_OPTIONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-            <ChevronDownIcon />
-          </div>
+          {isSelf ? (
+            <div className="inline-flex items-center rounded-full bg-gold/10 border border-gold/30 px-4 py-2 text-sm font-semibold text-navy">
+              Myself
+            </div>
+          ) : (
+            <div className="relative">
+              <select
+                id="relationship"
+                value={form.relationship}
+                onChange={(e) => update("relationship", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select relationship...</option>
+                {RELATIONSHIP_OPTIONS.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <ChevronDownIcon />
+            </div>
+          )}
           <FieldError message={errors.relationship} />
         </div>
 
