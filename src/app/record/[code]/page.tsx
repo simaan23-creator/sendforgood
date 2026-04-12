@@ -11,6 +11,10 @@ interface MemoryRequest {
   delivery_date: string;
   note_to_recorder: string | null;
   requester_first_name: string;
+  sealed_until: string | null;
+  is_sealed: boolean;
+  audio_slots_left: number;
+  video_slots_left: number;
 }
 
 export default function RecordMemoryPage() {
@@ -115,11 +119,35 @@ export default function RecordMemoryPage() {
       <main className="min-h-screen bg-cream">
         <div className="mx-auto max-w-lg px-4 py-20 text-center">
           <div className="rounded-2xl border border-cream-dark bg-white p-10 shadow-md">
-            <span className="text-5xl">😔</span>
+            <span className="text-5xl">{"\uD83D\uDE14"}</span>
             <h1 className="mt-4 text-2xl font-bold text-navy">
               Request not found
             </h1>
             <p className="mt-3 text-warm-gray">{error}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Check if vault is full for both formats
+  const audioFull = request ? request.audio_slots_left <= 0 : true;
+  const videoFull = request ? request.video_slots_left <= 0 : true;
+  const vaultFull = audioFull && videoFull;
+
+  if (vaultFull) {
+    return (
+      <main className="min-h-screen bg-cream">
+        <div className="mx-auto max-w-lg px-4 py-20 text-center">
+          <div className="rounded-2xl border border-cream-dark bg-white p-10 shadow-md">
+            <span className="text-5xl">{"\uD83D\uDD12"}</span>
+            <h1 className="mt-4 text-2xl font-bold text-navy">
+              This vault is full
+            </h1>
+            <p className="mt-3 text-warm-gray">
+              No more recordings can be added to this vault. All available
+              credits have been used.
+            </p>
           </div>
         </div>
       </main>
@@ -150,9 +178,10 @@ export default function RecordMemoryPage() {
               Thank you!
             </h1>
             <p className="mt-3 text-warm-gray">
-              Your {mediaFormat === "video" ? "video" : "voice"} message has been recorded and saved. It will be
-              delivered to {request?.requester_first_name} on their chosen
-              date.
+              Your {mediaFormat === "video" ? "video" : "voice"} message has been recorded and saved.
+              {request?.is_sealed && request?.sealed_until
+                ? ` It will be stored safely and delivered to ${request.requester_first_name} when their vault opens.`
+                : ` It will be delivered to ${request?.requester_first_name} on their chosen date.`}
             </p>
           </div>
         </div>
@@ -166,6 +195,18 @@ export default function RecordMemoryPage() {
         { month: "long", day: "numeric", year: "numeric" }
       )
     : "";
+
+  const sealedDate = request?.sealed_until
+    ? new Date(request.sealed_until + "T00:00:00").toLocaleDateString(
+        "en-US",
+        { month: "long", day: "numeric", year: "numeric" }
+      )
+    : null;
+
+  // Determine which formats are available
+  const canRecordAudio = !audioFull;
+  const canRecordVideo = !videoFull;
+  const defaultFormat = canRecordVideo ? "video" : "audio";
 
   return (
     <main className="min-h-screen bg-cream">
@@ -198,11 +239,35 @@ export default function RecordMemoryPage() {
           )}
         </div>
 
+        {/* Sealed vault notice */}
+        {request?.is_sealed && sealedDate && (
+          <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <p className="text-sm font-medium text-amber-800">
+              &#x1F512; This message will be sealed until {sealedDate}
+            </p>
+            <p className="mt-1 text-xs text-amber-700">
+              Your message will be stored safely and delivered to{" "}
+              {request.requester_first_name} when their vault opens on{" "}
+              {sealedDate}.
+            </p>
+          </div>
+        )}
+
         {/* Video recommendation */}
         <div className="mb-6 rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
           <p className="text-sm text-navy">
             Video messages are more personal &mdash; we recommend it!
           </p>
+          {!canRecordAudio && canRecordVideo && (
+            <p className="mt-1 text-xs text-warm-gray">
+              Only video recording is available for this vault.
+            </p>
+          )}
+          {canRecordAudio && !canRecordVideo && (
+            <p className="mt-1 text-xs text-warm-gray">
+              Only audio recording is available for this vault.
+            </p>
+          )}
         </div>
 
         {/* Recorder name */}
@@ -229,7 +294,9 @@ export default function RecordMemoryPage() {
           onRecordingComplete={handleRecordingComplete}
           onFormatChange={(f) => setMediaFormat(f)}
           maxDurationSeconds={300}
-          defaultFormat="audio"
+          defaultFormat={defaultFormat as MediaFormat}
+          disableAudio={!canRecordAudio}
+          disableVideo={!canRecordVideo}
         />
 
         {/* Submit */}

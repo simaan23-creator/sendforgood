@@ -13,7 +13,15 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { title, occasion, delivery_date, note_to_recorder } = body;
+  const {
+    title,
+    occasion,
+    delivery_date,
+    note_to_recorder,
+    sealed_until,
+    max_audio_recordings,
+    max_video_recordings,
+  } = body;
 
   if (!title || !occasion || !delivery_date) {
     return NextResponse.json(
@@ -31,6 +39,14 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate sealed_until if provided
+  if (sealed_until && sealed_until <= today) {
+    return NextResponse.json(
+      { error: "Sealed until date must be in the future" },
+      { status: 400 }
+    );
+  }
+
   const { data, error } = await supabaseAdmin
     .from("memory_requests")
     .insert({
@@ -40,6 +56,10 @@ export async function POST(request: Request) {
       occasion,
       delivery_date,
       note_to_recorder: note_to_recorder || null,
+      sealed_until: sealed_until || null,
+      is_sealed: !!sealed_until,
+      max_audio_recordings: max_audio_recordings || 0,
+      max_video_recordings: max_video_recordings || 0,
     })
     .select()
     .single();

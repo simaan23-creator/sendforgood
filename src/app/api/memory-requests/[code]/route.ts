@@ -10,7 +10,7 @@ export async function GET(
 
   const { data: memoryRequest, error } = await supabaseAdmin
     .from("memory_requests")
-    .select("title, occasion, delivery_date, note_to_recorder, requester_id")
+    .select("id, title, occasion, delivery_date, note_to_recorder, requester_id, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
     .eq("unique_code", code)
     .eq("status", "active")
     .single();
@@ -31,12 +31,34 @@ export async function GET(
 
   const firstName = profile?.full_name?.split(" ")[0] || "Someone";
 
+  // Count existing recordings by format
+  const { data: recordings } = await supabaseAdmin
+    .from("memory_recordings")
+    .select("message_format")
+    .eq("request_id", memoryRequest.id);
+
+  let audioRecorded = 0;
+  let videoRecorded = 0;
+  if (recordings) {
+    for (const rec of recordings) {
+      if (rec.message_format === "video") videoRecorded++;
+      else audioRecorded++;
+    }
+  }
+
+  const audioSlotsLeft = Math.max(0, (memoryRequest.max_audio_recordings || 0) - audioRecorded);
+  const videoSlotsLeft = Math.max(0, (memoryRequest.max_video_recordings || 0) - videoRecorded);
+
   return NextResponse.json({
     title: memoryRequest.title,
     occasion: memoryRequest.occasion,
     delivery_date: memoryRequest.delivery_date,
     note_to_recorder: memoryRequest.note_to_recorder,
     requester_first_name: firstName,
+    sealed_until: memoryRequest.sealed_until,
+    is_sealed: memoryRequest.is_sealed,
+    audio_slots_left: audioSlotsLeft,
+    video_slots_left: videoSlotsLeft,
   });
 }
 
@@ -46,7 +68,7 @@ export async function POST(
 ) {
   const { code } = await params;
   const body = await request.json();
-  const { recorder_name, audio_url } = body;
+  const { recorder_name, audio_url, message_format } = body;
 
   if (!audio_url) {
     return NextResponse.json(
@@ -55,10 +77,12 @@ export async function POST(
     );
   }
 
+  const format = message_format || "audio";
+
   // Find the memory request
   const { data: memoryRequest, error: reqError } = await supabaseAdmin
     .from("memory_requests")
-    .select("id, requester_email, title, delivery_date")
+    .select("id, requester_id, requester_email, title, delivery_date, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
     .eq("unique_code", code)
     .eq("status", "active")
     .single();
@@ -70,6 +94,26 @@ export async function POST(
     );
   }
 
+  // Check credit availability for this format
+  const maxField = format === "video" ? "max_video_recordings" : "max_audio_recordings";
+  const maxAllowed = memoryRequest[maxField] || 0;
+
+  if (maxAllowed > 0) {
+    // Count existing recordings of this format
+    const { count } = await supabaseAdmin
+      .from("memory_recordings")
+      .select("*", { count: "exact", head: true })
+      .eq("request_id", memoryRequest.id)
+      .eq("message_format", format);
+
+    if ((count || 0) >= maxAllowed) {
+      return NextResponse.json(
+        { error: "This vault is full \u2014 no more recordings can be added for this format." },
+        { status: 400 }
+      );
+    }
+  }
+
   // Create recording
   const { data: recording, error: recError } = await supabaseAdmin
     .from("memory_recordings")
@@ -77,6 +121,7 @@ export async function POST(
       request_id: memoryRequest.id,
       recorder_name: recorder_name || null,
       audio_url,
+      message_format: format,
     })
     .select()
     .single();

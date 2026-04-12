@@ -10,6 +10,8 @@ interface VoiceRecorderProps {
   maxDurationSeconds?: number;
   defaultFormat?: MediaFormat;
   showFormatToggle?: boolean;
+  disableAudio?: boolean;
+  disableVideo?: boolean;
 }
 
 export default function VoiceRecorder({
@@ -18,6 +20,8 @@ export default function VoiceRecorder({
   maxDurationSeconds = 300,
   defaultFormat = "audio",
   showFormatToggle = true,
+  disableAudio = false,
+  disableVideo = false,
 }: VoiceRecorderProps) {
   const [format, setFormat] = useState<MediaFormat>(defaultFormat);
   const [isRecording, setIsRecording] = useState(false);
@@ -172,7 +176,7 @@ export default function VoiceRecorder({
   return (
     <div className="rounded-2xl border border-cream-dark bg-white p-6">
       {/* Format toggle */}
-      {showFormatToggle && !isRecording && (
+      {showFormatToggle && !isRecording && !disableAudio && !disableVideo && (
         <div className="mb-5 flex items-center justify-center gap-1 rounded-lg bg-cream p-1">
           <button
             type="button"

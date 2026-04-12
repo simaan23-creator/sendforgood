@@ -26,7 +26,9 @@ export async function POST(request: Request) {
 
     try {
       // Check order type
-      if (metadata.isVoiceMessageOrder === "true") {
+      if (metadata.isVaultOrder === "true") {
+        await handleVaultCreditOrder(session, metadata);
+      } else if (metadata.isVoiceMessageOrder === "true") {
         await handleVoiceMessageOrder(session, metadata);
       } else if (metadata.isLetterOrder === "true") {
         await handleLetterOrder(session, metadata);
@@ -1603,6 +1605,89 @@ async function handleVoiceMessageOrder(
     });
   } catch (emailError) {
     console.error("Failed to send voice message owner notification email:", emailError);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Vault Credit Order Handler
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+async function handleVaultCreditOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  const userId = metadata.userId;
+  const audioCredits = parseInt(metadata.audioCredits) || 0;
+  const videoCredits = parseInt(metadata.videoCredits) || 0;
+
+  // Insert credit record
+  const { error: creditError } = await supabaseAdmin
+    .from("memory_credits")
+    .insert({
+      user_id: userId,
+      audio_credits: audioCredits,
+      video_credits: videoCredits,
+      stripe_payment_intent_id: session.payment_intent as string,
+    });
+
+  if (creditError) throw creditError;
+
+  const customerEmail = metadata.email || session.customer_email!;
+  const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+
+  // Send confirmation email to customer
+  try {
+    const creditParts = [];
+    if (audioCredits > 0) creditParts.push(`${audioCredits} audio credit${audioCredits > 1 ? "s" : ""}`);
+    if (videoCredits > 0) creditParts.push(`${videoCredits} video credit${videoCredits > 1 ? "s" : ""}`);
+
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: customerEmail,
+      subject: "Your Memory Vault credits are ready! \uD83D\uDD13",
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+          <h1 style="color: #1a2744;">Your credits are ready! \uD83C\uDF89</h1>
+          <p>Thank you for purchasing Memory Vault credits. You can now create a vault and share the link with your loved ones.</p>
+          <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <h2 style="margin-top: 0; font-size: 18px;">Credit Summary</h2>
+            ${audioCredits > 0 ? `<p><strong>Audio Credits:</strong> ${audioCredits} ($5 each)</p>` : ""}
+            ${videoCredits > 0 ? `<p><strong>Video Credits:</strong> ${videoCredits} ($10 each)</p>` : ""}
+            <p><strong>Total paid:</strong> ${amountFormatted}</p>
+          </div>
+          <p>Credits are consumed only when someone records a message. Unused credits never expire.</p>
+          <p style="margin-top: 24px;">
+            <a href="https://sendforgood.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
+          </p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send vault credit confirmation email:", emailError);
+  }
+
+  // Send owner notification
+  try {
+    await resend.emails.send({
+      from: "SendForGood <noreply@sendforgood.com>",
+      to: "Simaan23@gmail.com",
+      subject: `\uD83D\uDD12 New Vault Credits! ${audioCredits} audio + ${videoCredits} video \u2014 ${amountFormatted}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <h1 style="color: #1a2744;">New Vault Credit Purchase!</h1>
+          <div style="background: #f0f7ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <p><strong>Customer:</strong> ${customerEmail}</p>
+            <p><strong>Audio Credits:</strong> ${audioCredits}</p>
+            <p><strong>Video Credits:</strong> ${videoCredits}</p>
+            <p><strong>Amount:</strong> ${amountFormatted}</p>
+          </div>
+          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send vault credit owner notification:", emailError);
   }
 }
 

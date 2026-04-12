@@ -774,85 +774,40 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* My Memory Requests */}
+        {/* My Memory Vaults */}
         <div className="mt-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Memory Requests</h2>
-            <Link
-              href="/request/create"
-              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-            >
-              + New Request
-            </Link>
+            <h2 className="text-xl font-bold text-navy">My Memory Vaults</h2>
+            <div className="flex gap-2">
+              <Link
+                href="/vault/buy"
+                className="rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition-colors hover:bg-cream-dark"
+              >
+                Buy Credits
+              </Link>
+              <Link
+                href="/vault/my"
+                className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
+              >
+                View All Vaults
+              </Link>
+            </div>
           </div>
 
-          {memoryRequests.length === 0 ? (
-            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
-              <p className="text-warm-gray">
-                No memory requests yet.{" "}
-                <Link href="/request" className="font-medium text-navy underline hover:text-gold">
-                  Ask someone to record a message for you
-                </Link>
+          <div className="rounded-xl border border-cream-dark bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-warm-gray">
+                {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
+                {memoryRequests.reduce((sum, r) => sum + r.recording_count, 0)} total recordings
               </p>
+              <Link
+                href="/vault/my"
+                className="text-sm font-medium text-navy underline hover:text-gold"
+              >
+                Manage vaults &rarr;
+              </Link>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {memoryRequests.map((req) => {
-                const deliveryDate = new Date(req.delivery_date + "T00:00:00").toLocaleDateString(
-                  "en-US",
-                  { month: "long", day: "numeric", year: "numeric" }
-                );
-                const shareUrl = typeof window !== "undefined"
-                  ? `${window.location.origin}/record/${req.unique_code}`
-                  : "";
-
-                return (
-                  <div
-                    key={req.id}
-                    className="rounded-xl border border-cream-dark bg-white p-6 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-navy">{req.title}</h3>
-                        <p className="mt-1 text-sm text-warm-gray">
-                          {req.occasion} &middot; Delivers {deliveryDate}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy">
-                          {req.recording_count} recording{req.recording_count !== 1 ? "s" : ""}
-                        </span>
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                            req.status === "active"
-                              ? "bg-forest/10 text-forest"
-                              : req.status === "completed"
-                                ? "bg-navy/10 text-navy"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {req.status}
-                        </span>
-                      </div>
-                    </div>
-                    {req.status === "active" && (
-                      <div className="mt-4 flex items-center gap-3 border-t border-cream-dark pt-4">
-                        <button
-                          onClick={() => navigator.clipboard.writeText(shareUrl)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-navy transition hover:bg-cream-dark"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                            <path d="M13 4.5a2.5 2.5 0 1 1 .702 1.737L6.97 9.604a2.518 2.518 0 0 1 0 .799l6.733 3.365a2.5 2.5 0 1 1-.671 1.341l-6.733-3.366a2.5 2.5 0 1 1 0-3.48l6.733-3.366A2.52 2.52 0 0 1 13 4.5Z" />
-                          </svg>
-                          Copy Link
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Account Settings */}

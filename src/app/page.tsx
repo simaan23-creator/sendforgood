@@ -105,6 +105,15 @@ const USE_CASES = [
     quote:
       "I wrote heartfelt birthday letters to all my grandkids for the next 25 years. $25 per child. Now I know that no matter what happens to me, they will always be reminded of how much I love them.",
   },
+  {
+    emoji: "\uD83D\uDD12",
+    label: "Memory Vault",
+    headline: "Collect memories. Seal them. Open them together.",
+    description:
+      "Send a link to everyone at your wedding. They record. You seal it for 10 years. On your anniversary, your vault opens and every message is waiting.",
+    quote:
+      "We sent links to all 80 guests at our wedding. We sealed the vault for our 10th anniversary. Watching those videos together was the best night of our lives.",
+  },
 ];
 
 const BUSINESS_CARDS = [
@@ -547,7 +556,7 @@ export default function HomePage() {
             want, arriving every year automatically.
           </p>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <article className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
               <span className="text-4xl" role="img" aria-label="Your birthday, done right">🎂</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">Your birthday, done right</h3>
@@ -573,7 +582,7 @@ export default function HomePage() {
             </article>
 
             <Link href="/request" className="group rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-              <span className="text-4xl" role="img" aria-label="Ask for a Memory">🎙️</span>
+              <span className="text-4xl" role="img" aria-label="Ask for a Memory">{"\uD83C\uDFA4"}</span>
               <h3 className="mt-4 text-xl font-semibold text-navy group-hover:text-gold">Ask for a Memory</h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
                 Share a link with anyone. They record an audio or video message for you.
@@ -581,6 +590,18 @@ export default function HomePage() {
               </p>
               <span className="mt-4 inline-block text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 group-hover:text-gold">
                 Create a Request
+              </span>
+            </Link>
+
+            <Link href="/vault" className="group rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="text-4xl" role="img" aria-label="Create a Memory Vault">{"\uD83D\uDD12"}</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy group-hover:text-gold">Create a Memory Vault</h3>
+              <p className="mt-3 leading-relaxed text-warm-gray">
+                Collect video messages from everyone at your wedding, party, or any gathering.
+                Seal them until your anniversary, graduation, or any day you choose.
+              </p>
+              <span className="mt-4 inline-block text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 group-hover:text-gold">
+                Create a Vault
               </span>
             </Link>
           </div>

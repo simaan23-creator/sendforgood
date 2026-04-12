@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/gifts", label: "Our Gifts" },
   { href: "/letters", label: "Letters" },
   { href: "/voice", label: "Voice" },
+  { href: "/vault", label: "Vault" },
   { href: "/pricing", label: "Pricing" },
   { href: "/business", label: "For Business" },
   { href: "/about", label: "About" },
