@@ -61,16 +61,26 @@ function AuthForm() {
 
   async function handleGoogleOAuth() {
     setError(null);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+          skipBrowserRedirect: false,
+        },
+      });
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-      },
-    });
+      if (error) {
+        setError(error.message);
+        return;
+      }
 
-    if (error) {
-      setError(error.message);
+      // Manual redirect if auto-redirect fails
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      setError("Failed to initiate Google sign in. Please try magic link.");
     }
   }
 
