@@ -39,6 +39,7 @@ export default function CreateMemoryRequestPage() {
   const [sealedUntil, setSealedUntil] = useState("");
   const [maxAudioRecordings, setMaxAudioRecordings] = useState(0);
   const [maxVideoRecordings, setMaxVideoRecordings] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   // Credit balance
   const [credits, setCredits] = useState<CreditBalance | null>(null);
@@ -238,10 +239,12 @@ export default function CreateMemoryRequestPage() {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream transition hover:bg-navy-light"
+                  className={`rounded-lg px-4 py-2 text-sm font-medium text-cream transition ${copied ? "bg-forest" : "bg-navy hover:bg-navy-light"}`}
                 >
-                  Copy
+                  {copied ? "✓ Copied!" : "Copy"}
                 </button>
               </div>
             </div>
