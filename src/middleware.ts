@@ -2,9 +2,14 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  // Skip affiliate tracking for auth callback
-  const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
+  const pathname = request.nextUrl.pathname;
   
+  // Skip ALL middleware for auth callback — let it process cleanly
+  if (pathname === "/auth/callback") {
+    return NextResponse.next();
+  }
+
+  const isAuthCallback = false;
   const response = await updateSession(request);
 
   // Affiliate tracking: if ?ref= query param exists, set a 30-day cookie
