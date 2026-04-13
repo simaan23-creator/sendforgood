@@ -2,19 +2,24 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // Skip affiliate tracking for auth callback
+  const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
+  
   const response = await updateSession(request);
 
   // Affiliate tracking: if ?ref= query param exists, set a 30-day cookie
-  const refCode = request.nextUrl.searchParams.get("ref");
-  if (refCode && /^[a-z0-9_-]+$/.test(refCode)) {
-    const res = response ?? NextResponse.next({ request });
-    res.cookies.set("sfg_affiliate", refCode, {
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: "/",
-      httpOnly: false, // readable by checkout API routes
-      sameSite: "lax",
-    });
-    return res;
+  if (!isAuthCallback) {
+    const refCode = request.nextUrl.searchParams.get("ref");
+    if (refCode && /^[a-z0-9_-]+$/.test(refCode)) {
+      const res = response ?? NextResponse.next({ request });
+      res.cookies.set("sfg_affiliate", refCode, {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+      });
+      return res;
+    }
   }
 
   return response;
