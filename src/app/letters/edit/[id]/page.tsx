@@ -172,7 +172,9 @@ export default function EditLetterPage() {
       setRecipientEmail(data.recipient_email || "");
       setPhotoUrl(data.photo_url || "");
 
-      // Fetch gift order executor
+      setLoading(false);
+
+      // Fetch gift order executor (non-critical, load in background)
       try {
         const res = await fetch(`/api/letters/${letterId}/gift-executor`);
         if (res.ok) {
