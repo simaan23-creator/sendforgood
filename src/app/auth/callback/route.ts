@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -8,30 +7,18 @@ export async function GET(request: Request) {
   const type = searchParams.get("type");
   const redirect = searchParams.get("redirect") || "/dashboard";
 
-  const supabase = await createClient();
-
-  // Handle magic link (token_hash flow)
-  if (token_hash && type) {
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as "email" | "magiclink" | "recovery" | "invite" });
-    if (!error) {
-      return NextResponse.redirect(`${origin}${redirect}`);
-    }
+  // For OAuth code flow — redirect to client-side handler
+  if (code) {
+    return NextResponse.redirect(
+      `${origin}/auth/exchange?code=${encodeURIComponent(code)}&redirect=${encodeURIComponent(redirect)}`
+    );
   }
 
-  // Handle OAuth code flow (Google etc)
-  if (code) {
-    try {
-      const exchangePromise = supabase.auth.exchangeCodeForSession(code);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), 10000)
-      );
-      const result = await Promise.race([exchangePromise, timeoutPromise]) as { error: unknown };
-      if (!result.error) {
-        return NextResponse.redirect(`${origin}${redirect}`);
-      }
-    } catch {
-      // timeout or error — redirect to auth with error
-    }
+  // For magic link token_hash flow — redirect to client-side handler
+  if (token_hash && type) {
+    return NextResponse.redirect(
+      `${origin}/auth/exchange?token_hash=${encodeURIComponent(token_hash)}&type=${encodeURIComponent(type)}&redirect=${encodeURIComponent(redirect)}`
+    );
   }
 
   return NextResponse.redirect(`${origin}/auth?error=auth_failed`);
