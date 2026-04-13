@@ -20,9 +20,17 @@ export async function GET(request: Request) {
 
   // Handle OAuth code flow (Google etc)
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${redirect}`);
+    try {
+      const exchangePromise = supabase.auth.exchangeCodeForSession(code);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 10000)
+      );
+      const result = await Promise.race([exchangePromise, timeoutPromise]) as { error: unknown };
+      if (!result.error) {
+        return NextResponse.redirect(`${origin}${redirect}`);
+      }
+    } catch {
+      // timeout or error — redirect to auth with error
     }
   }
 
