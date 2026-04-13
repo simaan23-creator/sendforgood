@@ -42,7 +42,8 @@ function ExchangeInner() {
         }
 
         setStatus("Success! Redirecting...");
-        router.push(redirect);
+        // Hard redirect to ensure session cookies are properly set
+        window.location.href = redirect;
       } catch (err) {
         setStatus("Error occurred. Redirecting...");
         setTimeout(() => router.push("/auth?error=auth_failed"), 2000);
