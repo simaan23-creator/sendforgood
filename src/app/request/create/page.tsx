@@ -92,6 +92,25 @@ export default function CreateMemoryRequestPage() {
       return;
     }
 
+    // Validate sealed_until is at least 1 day in the future
+    if (sealedUntil) {
+      const sealDate = new Date(sealedUntil + "T00:00:00");
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const oneDayFromNow = new Date(now);
+      oneDayFromNow.setDate(oneDayFromNow.getDate() + 1);
+      if (sealDate < oneDayFromNow) {
+        setError("Seal date must be at least 1 day in the future.");
+        return;
+      }
+    }
+
+    // Require a delivery date when vault is not sealed
+    if (!sealedUntil && !deliveryDate) {
+      setError("Please select a delivery date.");
+      return;
+    }
+
     if (maxAudioRecordings <= 0 && maxVideoRecordings <= 0) {
       setError(
         "Please allocate at least one audio or video credit to this vault."
@@ -122,7 +141,7 @@ export default function CreateMemoryRequestPage() {
         body: JSON.stringify({
           title,
           occasion,
-          delivery_date: deliveryDate,
+          delivery_date: sealedUntil ? sealedUntil : deliveryDate,
           note_to_recorder: noteToRecorder || null,
           sealed_until: sealedUntil || null,
           max_audio_recordings: maxAudioRecordings,
@@ -378,32 +397,13 @@ export default function CreateMemoryRequestPage() {
             </select>
           </div>
 
-          {/* Delivery date */}
-          <div>
-            <label
-              htmlFor="delivery_date"
-              className="mb-1.5 block text-sm font-medium text-navy"
-            >
-              When should we deliver the recordings?
-            </label>
-            <input
-              id="delivery_date"
-              type="date"
-              required
-              min={minDate}
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-            />
-          </div>
-
           {/* Sealed until date */}
           <div>
             <label
               htmlFor="sealed_until"
               className="mb-1.5 block text-sm font-medium text-navy"
             >
-              When should your vault open?{" "}
+              Seal your vault until a specific date?{" "}
               <span className="font-normal text-warm-gray">(optional)</span>
             </label>
             <input
@@ -415,17 +415,24 @@ export default function CreateMemoryRequestPage() {
               className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
             />
             {sealedUntil && (
-              <div className="mt-2 rounded-lg border border-gold/30 bg-gold/5 p-3">
+              <div className="mt-2 flex items-center justify-between rounded-lg border border-gold/30 bg-gold/5 p-3">
                 <p className="text-sm text-navy">
-                  &#x1F512; Your vault will be sealed until{" "}
+                  &#x1F512; Recordings will be delivered when your vault opens on{" "}
                   <strong>
                     {new Date(sealedUntil + "T00:00:00").toLocaleDateString(
                       "en-US",
                       { month: "long", day: "numeric", year: "numeric" }
                     )}
                   </strong>
-                  . You will not be able to access the recordings until then.
+                  . You won&#39;t be able to access them until then.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setSealedUntil("")}
+                  className="ml-3 shrink-0 text-xs font-medium text-warm-gray hover:text-navy"
+                >
+                  Clear
+                </button>
               </div>
             )}
             <p className="mt-1.5 text-xs text-warm-gray-light italic">
@@ -433,6 +440,27 @@ export default function CreateMemoryRequestPage() {
               matters.
             </p>
           </div>
+
+          {/* Delivery date — only shown when vault is NOT sealed */}
+          {!sealedUntil && (
+            <div>
+              <label
+                htmlFor="delivery_date"
+                className="mb-1.5 block text-sm font-medium text-navy"
+              >
+                When should we deliver the recordings?
+              </label>
+              <input
+                id="delivery_date"
+                type="date"
+                required
+                min={minDate}
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+            </div>
+          )}
 
           {/* Credit allocation */}
           {hasCredits && (
