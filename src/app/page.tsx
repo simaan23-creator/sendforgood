@@ -176,6 +176,24 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [isPaused, nextSlide]);
 
+  // Handle Supabase auth hash fragments (magic links redirect here)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.substring(1));
+    const token_hash = params.get("token_hash");
+    const type = params.get("type");
+    const error = params.get("error");
+    if (error) {
+      window.location.href = `/auth?error=${error}`;
+      return;
+    }
+    if (token_hash && type) {
+      window.location.href = `/auth/callback?token_hash=${encodeURIComponent(token_hash)}&type=${encodeURIComponent(type)}`;
+    }
+  }, []);
+
   return (
     <main>
       {/* ═══════════════════════════ HERO ═══════════════════════════ */}
