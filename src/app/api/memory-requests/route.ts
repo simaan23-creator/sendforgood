@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       is_sealed: !!sealed_until,
       max_audio_recordings: max_audio_recordings || 0,
       max_video_recordings: max_video_recordings || 0,
+      status: "active",
     })
     .select()
     .single();

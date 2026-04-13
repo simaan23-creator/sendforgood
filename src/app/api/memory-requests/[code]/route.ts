@@ -12,7 +12,7 @@ export async function GET(
     .from("memory_requests")
     .select("id, title, occasion, delivery_date, note_to_recorder, requester_id, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
     .eq("unique_code", code)
-    .eq("status", "active")
+    .in("status", ["active", "pending"])
     .single();
 
   if (error || !memoryRequest) {
@@ -84,7 +84,7 @@ export async function POST(
     .from("memory_requests")
     .select("id, requester_id, requester_email, title, delivery_date, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
     .eq("unique_code", code)
-    .eq("status", "active")
+    .in("status", ["active", "pending"])
     .single();
 
   if (reqError || !memoryRequest) {
