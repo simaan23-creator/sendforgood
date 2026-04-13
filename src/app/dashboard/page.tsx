@@ -229,7 +229,9 @@ export default function DashboardPage() {
       setLetters(lettersResult.data as Letter[]);
     }
 
-    // Fetch memory requests
+    // Show dashboard immediately, load memory requests in background
+    setLoading(false);
+
     try {
       const memRes = await fetch("/api/memory-requests");
       if (memRes.ok) {
@@ -239,8 +241,6 @@ export default function DashboardPage() {
     } catch {
       // silently fail
     }
-
-    setLoading(false);
   }, [supabase, router]);
 
   useEffect(() => {
