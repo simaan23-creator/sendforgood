@@ -233,11 +233,12 @@ export default function DashboardPage() {
     setLoading(false);
 
     try {
-      const memRes = await fetch("/api/memory-requests");
-      if (memRes.ok) {
-        const memData = await memRes.json();
-        setMemoryRequests(memData);
-      }
+      const { data: memData } = await supabase
+        .from("memory_requests")
+        .select("*, memory_recordings(id)")
+        .eq("requester_id", (await supabase.auth.getUser()).data.user?.id || "")
+        .order("created_at", { ascending: false });
+      if (memData) setMemoryRequests(memData);
     } catch {
       // silently fail
     }
