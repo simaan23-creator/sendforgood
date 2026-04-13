@@ -138,7 +138,7 @@ export default function CartPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your cart is empty</h1>
           <p className="mt-3 text-warm-gray">
-            Start adding gifts or letters to surprise your loved ones year after year.
+            Start adding gifts, letters, voice messages, or video messages to your cart.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
@@ -161,6 +161,12 @@ export default function CartPage() {
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
             >
               Record a Voice Message
+            </Link>
+            <Link
+              href="/vault"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+            >
+              🔐 Create a Vault
             </Link>
           </div>
         </div>
