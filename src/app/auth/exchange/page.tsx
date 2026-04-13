@@ -22,27 +22,40 @@ function ExchangeInner() {
       try {
         if (token_hash && type) {
           setStatus("Verifying magic link...");
-          const { error } = await supabase.auth.verifyOtp({
+          const { data, error } = await supabase.auth.verifyOtp({
             token_hash,
             type: type as "email" | "magiclink" | "recovery" | "invite",
           });
           if (error) {
             setStatus("Failed: " + error.message);
-            setTimeout(() => router.push("/auth?error=auth_failed"), 2000);
+            setTimeout(() => window.location.href = "/auth?error=auth_failed", 2000);
+            return;
+          }
+          if (data?.session) {
+            setStatus("Signed in! Redirecting...");
+            // Small delay to ensure session is stored
+            await new Promise(r => setTimeout(r, 500));
+            window.location.href = redirect;
             return;
           }
         } else if (code) {
           setStatus("Completing sign in...");
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             setStatus("Failed: " + error.message);
-            setTimeout(() => router.push("/auth?error=auth_failed"), 2000);
+            setTimeout(() => window.location.href = "/auth?error=auth_failed", 2000);
+            return;
+          }
+          if (data?.session) {
+            setStatus("Signed in! Redirecting...");
+            await new Promise(r => setTimeout(r, 500));
+            window.location.href = redirect;
             return;
           }
         }
 
-        setStatus("Success! Redirecting...");
-        // Hard redirect to ensure session cookies are properly set
+        setStatus("Session established. Redirecting...");
+        await new Promise(r => setTimeout(r, 1000));
         window.location.href = redirect;
       } catch (err) {
         setStatus("Error occurred. Redirecting...");
