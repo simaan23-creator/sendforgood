@@ -154,14 +154,33 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Voice & Video Messages */}
+        {/* Messages — Letters, Voice & Video */}
         <div className="mx-auto mt-24 max-w-4xl">
           <h2 className="text-center text-2xl font-bold text-navy sm:text-3xl">
-            Voice & Video Messages
+            Messages
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-center text-lg leading-relaxed text-warm-gray">
-            Record your voice or face and we deliver it by email on the scheduled date.
-            Annual or milestone delivery. Stored securely forever.
+            Send your words in any format. Written letters, voice messages, or video messages — delivered on your schedule, forever.
+          </p>
+
+          {/* Letters */}
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              { label: "Digital Letter", price: "$1", desc: "Delivered by email. Fully automated." },
+              { label: "Physical Letter", price: "$10", desc: "Printed and mailed to the recipient." },
+              { label: "Letter + Photo", price: "$15", desc: "Printed letter + wallet-sized photo mailed together." },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl border border-cream-dark bg-white p-5 text-center shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-wide text-warm-gray">{item.label}</p>
+                <p className="mt-2 text-3xl font-extrabold text-navy">{item.price}<span className="text-base font-normal text-warm-gray">/letter</span></p>
+                <p className="mt-2 text-sm leading-relaxed text-warm-gray">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <h3 className="mt-10 text-center text-lg font-semibold text-navy">Audio & Video</h3>
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-warm-gray">
+            Record your voice or face and we deliver it by email on the scheduled date. Stored securely forever.
           </p>
 
           <div className="mt-10 grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
