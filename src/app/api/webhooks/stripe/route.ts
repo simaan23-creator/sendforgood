@@ -3,6 +3,15 @@ import { stripe, TIER_PRICES } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
 
+function generateClaimCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let code = "";
+  for (let i = 0; i < 16; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature")!;
@@ -647,11 +656,30 @@ async function handleCartOrder(
     gcChunkIndex++;
   }
 
-  const giftCreditItems: Array<{ tier: string; quantity: number; unitPrice: number }> = giftCreditsJson ? JSON.parse(giftCreditsJson) : [];
+  const giftCreditItems: Array<{
+    tier: string;
+    quantity: number;
+    unitPrice: number;
+    isGifted?: boolean;
+    giftRecipientName?: string;
+    giftRecipientEmail?: string;
+    giftMessage?: string;
+  }> = giftCreditsJson ? JSON.parse(giftCreditsJson) : [];
+
+  // Fetch sender profile for gifted credit emails
+  let senderName = metadata.fullName || "";
+  if (!senderName) {
+    const { data: senderProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .single();
+    senderName = senderProfile?.full_name || "";
+  }
 
   for (const gc of giftCreditItems) {
     const amountPaid = gc.unitPrice * gc.quantity;
-    const { error: gcError } = await supabaseAdmin
+    const { data: giftCreditRecord, error: gcError } = await supabaseAdmin
       .from("gift_credits")
       .insert({
         user_id: userId,
@@ -660,9 +688,91 @@ async function handleCartOrder(
         quantity_used: 0,
         stripe_payment_intent_id: session.payment_intent as string,
         amount_paid: amountPaid,
-      });
+      })
+      .select()
+      .single();
 
     if (gcError) throw gcError;
+
+    // If this is a gifted credit, create gifted_credits record and send email
+    if (gc.isGifted) {
+      const claimCode = generateClaimCode();
+      const { error: giftedError } = await supabaseAdmin
+        .from("gifted_credits")
+        .insert({
+          sender_id: userId,
+          recipient_email: gc.giftRecipientEmail || null,
+          recipient_name: gc.giftRecipientName || "",
+          tier: gc.tier,
+          message: gc.giftMessage || null,
+          claim_code: claimCode,
+          status: "pending",
+          gift_credit_id: giftCreditRecord.id,
+        });
+
+      if (giftedError) throw giftedError;
+
+      const claimUrl = `${process.env.NEXT_PUBLIC_APP_URL}/gifts/claim/${claimCode}`;
+      const tierInfo = TIER_PRICES[gc.tier];
+      const tierName = tierInfo?.name || gc.tier;
+      const senderFirst = senderName.split(" ")[0] || "Someone";
+
+      if (gc.giftRecipientEmail) {
+        // Send claim email to recipient
+        try {
+          await resend.emails.send({
+            from: "SendForGood <noreply@sendforgood.com>",
+            to: gc.giftRecipientEmail,
+            subject: `${senderFirst} sent you a SendForGood gift!`,
+            html: `
+              <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+                <h1 style="color: #1a2744;">You\u2019ve received a gift! \uD83C\uDF81</h1>
+                <p>${senderFirst} has given you a <strong>${tierName}</strong> gift credit on SendForGood.</p>
+                <p>This means a thoughtful, curated gift will be delivered to your door every year \u2014 and you get to set up the details.</p>
+                ${gc.giftMessage ? `
+                <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #C8A962;">
+                  <p style="margin: 0; font-style: italic; color: #1a2744;">\u201C${gc.giftMessage}\u201D</p>
+                  <p style="margin: 8px 0 0; font-size: 14px; color: #666;">\u2014 ${senderFirst}</p>
+                </div>` : ""}
+                <p style="margin-top: 24px;">
+                  <a href="${claimUrl}" style="background: #2D5016; color: #fdf8f0; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Claim Your Gift</a>
+                </p>
+                <p style="margin-top: 24px; font-size: 14px; color: #666;">After claiming, you\u2019ll set up your preferences (interests, address, occasion date) and we\u2019ll handle the rest.</p>
+                <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+              </div>
+            `,
+          });
+        } catch (emailError) {
+          console.error("Failed to send gift claim email to recipient:", emailError);
+        }
+      } else {
+        // No recipient email — send claim link to the sender
+        const senderEmail = metadata.email || session.customer_email || "";
+        if (senderEmail) {
+          try {
+            await resend.emails.send({
+              from: "SendForGood <noreply@sendforgood.com>",
+              to: senderEmail,
+              subject: `Your gift credit claim link for ${gc.giftRecipientName}`,
+              html: `
+                <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+                  <h1 style="color: #1a2744;">Here\u2019s your gift claim link \uD83C\uDF81</h1>
+                  <p>You purchased a <strong>${tierName}</strong> gift credit for <strong>${gc.giftRecipientName}</strong>.</p>
+                  <p>Since you didn\u2019t provide their email, here\u2019s the claim link to share with them:</p>
+                  <div style="background: #fdf8f0; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
+                    <a href="${claimUrl}" style="color: #2D5016; font-weight: 600; word-break: break-all;">${claimUrl}</a>
+                  </div>
+                  <p style="font-size: 14px; color: #666;">They\u2019ll create an account (or sign in), claim the credit, and set up their gift preferences.</p>
+                  <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+                </div>
+              `,
+            });
+          } catch (emailError) {
+            console.error("Failed to send gift claim link to sender:", emailError);
+          }
+        }
+      }
+    }
   }
 
   // Process vault credit items

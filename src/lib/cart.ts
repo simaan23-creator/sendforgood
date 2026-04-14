@@ -259,6 +259,10 @@ export interface GiftCreditCartItem {
   quantity: number;
   unitPrice: number; // cents
   totalPrice: number; // cents
+  isGifted?: boolean;
+  giftRecipientName?: string;
+  giftRecipientEmail?: string;
+  giftMessage?: string;
 }
 
 const GIFT_CREDIT_CART_KEY = "sfg_gift_credits_cart";

@@ -83,6 +83,10 @@ interface GiftCreditItemPayload {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  isGifted?: boolean;
+  giftRecipientName?: string;
+  giftRecipientEmail?: string;
+  giftMessage?: string;
 }
 
 export async function POST(request: Request) {
@@ -244,11 +248,14 @@ export async function POST(request: Request) {
     // Gift credit line items
     if (hasGiftCredits) {
       for (const gc of giftCreditItems) {
+        const productName = gc.isGifted
+          ? `Gift: ${gc.tierName} Gift Credit for ${gc.giftRecipientName}`
+          : `${gc.tierName} Gift Credit (${gc.quantity})`;
         lineItems.push({
           price_data: {
             currency: "usd",
             product_data: {
-              name: `${gc.tierName} Gift Credit (${gc.quantity})`,
+              name: productName,
               description: `${gc.quantity} ${gc.tierName} gift credit${gc.quantity > 1 ? "s" : ""} at $${(gc.unitPrice / 100).toFixed(0)} each`,
             },
             unit_amount: gc.unitPrice,
@@ -313,9 +320,17 @@ export async function POST(request: Request) {
       }
     }
 
-    // Serialize gift credit items for metadata
+    // Serialize gift credit items for metadata (include gifted fields)
     const giftCreditsJson = hasGiftCredits
-      ? JSON.stringify(giftCreditItems.map((gc) => ({ tier: gc.tier, quantity: gc.quantity, unitPrice: gc.unitPrice })))
+      ? JSON.stringify(giftCreditItems.map((gc) => ({
+          tier: gc.tier,
+          quantity: gc.quantity,
+          unitPrice: gc.unitPrice,
+          isGifted: gc.isGifted || false,
+          giftRecipientName: gc.giftRecipientName || "",
+          giftRecipientEmail: gc.giftRecipientEmail || "",
+          giftMessage: gc.giftMessage || "",
+        })))
       : "";
     if (giftCreditsJson) {
       for (let i = 0; i < giftCreditsJson.length; i += CHUNK_SIZE) {

@@ -1720,13 +1720,291 @@ function AffiliateFormModal({
   );
 }
 
+// ─── Gift Assignments Tab ────────────────────────────────────────────────────
+
+interface GiftAssignment {
+  id: string;
+  credit_id: string;
+  user_id: string;
+  recipient_name: string;
+  relationship: string;
+  is_pet: boolean;
+  pet_type: string | null;
+  occasion_type: string;
+  occasion_date: string;
+  scheduled_year: number;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  is_professional: boolean;
+  age: string | null;
+  gender: string | null;
+  interests: string | null;
+  gift_notes: string | null;
+  recipient_industry: string | null;
+  status: string;
+  created_at: string;
+  gift_credits: { tier: string; quantity: number; user_id: string } | null;
+  profiles: { email: string; full_name: string | null } | null;
+}
+
+function GiftAssignmentsTab() {
+  const [assignments, setAssignments] = useState<GiftAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchAssignments = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/admin/gift-assignments");
+    const data = await res.json();
+    setAssignments(data.assignments || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
+
+  async function handleUpdateStatus(id: string, newStatus: string) {
+    setUpdatingId(id);
+    const res = await fetch("/api/admin/gift-assignments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: newStatus }),
+    });
+    if (res.ok) {
+      await fetchAssignments();
+    }
+    setUpdatingId(null);
+  }
+
+  const filtered = statusFilter === "all"
+    ? assignments
+    : assignments.filter((a) => a.status === statusFilter);
+
+  const assignmentStatusColors: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    active: "bg-blue-100 text-blue-700",
+    completed: "bg-green-100 text-green-700",
+  };
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+        </select>
+        <div className="text-sm text-gray-500 flex items-center">
+          {filtered.length} assignment{filtered.length !== 1 ? "s" : ""}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">Loading assignments...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">No gift assignments found</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="pb-3 pr-4">Recipient</th>
+                <th className="pb-3 pr-4">Tier</th>
+                <th className="pb-3 pr-4">Occasion</th>
+                <th className="pb-3 pr-4">Next Delivery</th>
+                <th className="pb-3 pr-4">Address</th>
+                <th className="pb-3 pr-4">Customer</th>
+                <th className="pb-3 pr-4">Status</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((a) => {
+                const isExpanded = expandedId === a.id;
+                return (
+                  <React.Fragment key={a.id}>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 pr-4">
+                        <div className="font-medium text-gray-900">{a.recipient_name}</div>
+                        <div className="text-xs text-gray-400">
+                          {a.relationship || "N/A"}
+                          {a.is_pet && ` (Pet: ${a.pet_type || "pet"})`}
+                        </div>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                          {a.gift_credits?.tier || "—"}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4">
+                        {capitalize(a.occasion_type)}
+                        <div className="text-xs text-gray-400">
+                          {a.occasion_date ? formatDate(a.occasion_date) : "—"}
+                        </div>
+                      </td>
+                      <td className="py-3 pr-4 whitespace-nowrap">
+                        {a.occasion_date ? (
+                          <>
+                            <span className="font-medium">{formatDate(a.occasion_date)}</span>
+                            {(() => {
+                              const days = daysUntil(a.occasion_date);
+                              if (days < 0) return <span className="ml-1.5 text-xs text-red-600 font-medium">Overdue</span>;
+                              if (days <= 14) return <span className="ml-1.5 text-xs text-yellow-700 font-medium">{days}d</span>;
+                              return null;
+                            })()}
+                          </>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                        {a.city && a.state ? `${a.city}, ${a.state}` : "—"}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                        {a.profiles?.email || "—"}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                          assignmentStatusColors[a.status] || "bg-gray-100 text-gray-700"
+                        }`}>
+                          {a.status}
+                        </span>
+                      </td>
+                      <td className="py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : a.id)}
+                          className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition mr-1.5"
+                        >
+                          {isExpanded ? "Hide" : "Details"}
+                        </button>
+                        {a.status === "pending" && (
+                          <button
+                            onClick={() => handleUpdateStatus(a.id, "active")}
+                            disabled={updatingId === a.id}
+                            className="rounded bg-blue-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-blue-700 transition mr-1.5 disabled:opacity-50"
+                          >
+                            {updatingId === a.id ? "..." : "Activate"}
+                          </button>
+                        )}
+                        {(a.status === "pending" || a.status === "active") && (
+                          <button
+                            onClick={() => handleUpdateStatus(a.id, "completed")}
+                            disabled={updatingId === a.id}
+                            className="rounded bg-green-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-green-700 transition disabled:opacity-50"
+                          >
+                            {updatingId === a.id ? "..." : "Mark Fulfilled"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={8} className="p-0">
+                          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                              {/* Address */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Delivery Address
+                                </h4>
+                                {a.address_line1 ? (
+                                  <div className="text-gray-700 space-y-0.5">
+                                    <p>{a.address_line1}</p>
+                                    {a.address_line2 && <p>{a.address_line2}</p>}
+                                    <p>{a.city}, {a.state} {a.postal_code}</p>
+                                    <p>{a.country || "US"}</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-400">No address</p>
+                                )}
+                              </div>
+
+                              {/* Recipient Profile */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Recipient Profile
+                                </h4>
+                                <div className="space-y-1">
+                                  <DetailRow label="Age" value={a.age} />
+                                  <DetailRow label="Gender" value={a.gender} />
+                                  <DetailRow label="Interests" value={a.interests} />
+                                  <DetailRow label="Gift Notes" value={a.gift_notes} />
+                                  {a.is_professional && (
+                                    <DetailRow label="Industry" value={a.recipient_industry} />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Customer + Status */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                  Customer Info
+                                </h4>
+                                <div className="space-y-1">
+                                  <DetailRow label="Email" value={a.profiles?.email} />
+                                  <DetailRow label="Name" value={a.profiles?.full_name} />
+                                  <DetailRow label="Year" value={a.scheduled_year?.toString()} />
+                                  <DetailRow label="Created" value={formatDate(a.created_at.split("T")[0])} />
+                                </div>
+
+                                {/* Status update buttons */}
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    Update Status
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {["pending", "active", "completed"].map((s) => (
+                                      <button
+                                        key={s}
+                                        onClick={() => handleUpdateStatus(a.id, s)}
+                                        disabled={a.status === s || updatingId === a.id}
+                                        className={`rounded px-2 py-1 text-xs font-medium transition ${
+                                          a.status === s
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        }`}
+                                      >
+                                        {s}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [tab, setTab] = useState<
-    "shipments" | "orders" | "letters" | "access" | "affiliates"
+    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments"
   >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -1862,6 +2140,16 @@ export default function AdminDashboard() {
               >
                 Affiliates
               </button>
+              <button
+                onClick={() => setTab("gift-assignments")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "gift-assignments"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Gift Assignments
+              </button>
             </div>
 
             {/* Content */}
@@ -1880,6 +2168,8 @@ export default function AdminDashboard() {
                 <AccessRequestsTab />
               ) : tab === "affiliates" ? (
                 <AffiliatesTab />
+              ) : tab === "gift-assignments" ? (
+                <GiftAssignmentsTab />
               ) : (
                 <OrdersTab />
               )}

@@ -173,6 +173,7 @@ export default function DashboardPage() {
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
+  const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
@@ -286,6 +287,16 @@ export default function DashboardPage() {
       } else {
         setGiftCredits([]);
       }
+    } catch { /* silently fail */ }
+
+    // Fetch gifts you've given
+    try {
+      const { data: givenData } = await supabase
+        .from('gifted_credits')
+        .select('id, recipient_name, recipient_email, tier, status, claim_code, created_at')
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false });
+      if (givenData) setGiftsGiven(givenData);
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -545,12 +556,20 @@ export default function DashboardPage() {
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Gift Credits</h2>
-            <Link
-              href="/gifts/buy"
-              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-            >
-              Buy More Credits
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/gifts/give"
+                className="rounded-lg border-2 border-gold px-4 py-2 text-sm font-medium text-gold-dark transition-colors hover:bg-gold hover:text-white"
+              >
+                Give a Gift Credit
+              </Link>
+              <Link
+                href="/gifts/buy"
+                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+              >
+                Buy More Credits
+              </Link>
+            </div>
           </div>
 
           {giftCredits.length === 0 ? (
@@ -635,6 +654,50 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Gifts You've Given */}
+        {giftsGiven.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-navy mb-4">Gifts You&apos;ve Given</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {giftsGiven.map((g) => {
+                const tierName = getTierName(g.tier);
+                const statusColors: Record<string, string> = {
+                  pending: "bg-yellow-100 text-yellow-800",
+                  claimed: "bg-forest/10 text-forest",
+                  expired: "bg-red-100 text-red-700",
+                };
+                const statusLabel: Record<string, string> = {
+                  pending: "Pending",
+                  claimed: "Claimed",
+                  expired: "Expired",
+                };
+                return (
+                  <div
+                    key={g.id}
+                    className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(g.tier)}`}>
+                        {tierName}
+                      </span>
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusColors[g.status] || "bg-warm-gray-light/20 text-warm-gray"}`}>
+                        {statusLabel[g.status] || g.status}
+                      </span>
+                    </div>
+                    <p className="mt-3 font-semibold text-navy">{g.recipient_name}</p>
+                    {g.recipient_email && (
+                      <p className="text-xs text-warm-gray">{g.recipient_email}</p>
+                    )}
+                    <p className="mt-2 text-xs text-warm-gray-light">
+                      Sent {new Date(g.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Orders list */}
         <div className="space-y-4">

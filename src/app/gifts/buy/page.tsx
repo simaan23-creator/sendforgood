@@ -214,6 +214,14 @@ export default function BuyGiftCreditsPage() {
               Add to Cart
             </button>
           </div>
+          <div className="mt-4 text-center">
+            <Link
+              href="/gifts/give"
+              className="text-sm font-medium text-navy underline hover:text-gold transition-colors"
+            >
+              Want to gift credits to someone? &rarr;
+            </Link>
+          </div>
         </div>
 
         {/* Trust badges */}
