@@ -209,7 +209,7 @@ export default function VaultPage() {
           </p>
           <div className="mt-10">
             <Link
-              href="/vault/buy"
+              href="/messages/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Buy Credits &amp; Create Your Vault

@@ -110,7 +110,7 @@ export default function WeddingPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/vault/buy"
+              href="/messages/buy"
               className="inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:w-auto"
             >
               Create Your Wedding Vault
@@ -232,7 +232,7 @@ export default function WeddingPage() {
               </ul>
             </div>
             <Link
-              href="/vault/buy"
+              href="/messages/buy"
               className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Buy Credits &amp; Create Your Vault
@@ -271,7 +271,7 @@ export default function WeddingPage() {
           </p>
           <div className="mt-10">
             <Link
-              href="/vault/buy"
+              href="/messages/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Create Your Wedding Vault

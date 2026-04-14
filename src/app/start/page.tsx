@@ -57,17 +57,17 @@ const CARDS = [
   },
   {
     emoji: "\uD83C\uDF99\uFE0F",
-    title: "Record a Voice or Video Message",
+    title: "Messages & Vault",
     subtitle: "From $5/year",
     description:
-      "Record your voice or face and we deliver it by email every year. Audio from $5/yr, video from $10/yr. The most powerful message you can leave behind.",
+      "Record audio or video messages for someone, or create a vault to collect messages from others. All credits are shared — $5 for audio, $10 for video.",
     features: [
       "Audio ($5/yr) or Video ($10/yr)",
-      "Annual or milestone delivery",
-      "Stored securely forever",
+      "Record for someone or collect from others",
+      "Credits never expire",
     ],
-    cta: "Record a Message",
-    href: "/voice/record",
+    cta: "Buy Credits",
+    href: "/messages/buy",
     borderColor: "border-navy/40",
     ctaBg: "bg-navy/80 hover:bg-navy",
     badge: "New",
