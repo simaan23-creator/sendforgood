@@ -109,11 +109,9 @@ export default function CartSuccessPage() {
                   className="flex items-center justify-between border-b border-cream-dark pb-3"
                 >
                   <div>
-                    <p className="font-medium text-navy">{letter.recipientName}</p>
+                    <p className="font-medium text-navy">{letter.deliveryLabel}</p>
                     <p className="text-xs text-warm-gray">
-                      Legacy Letter &middot; {letter.letterType} &middot;{" "}
-                      {letter.deliveryType === "digital" ? "Email delivery" : letter.deliveryType === "physical_photo" ? "Physical mail + photo" : "Physical mail"} &middot;{" "}
-                      {letter.quantity} {letter.letterType === "annual" ? (letter.quantity === 1 ? "year" : "years") : (letter.quantity === 1 ? "letter" : "letters")}
+                      {letter.quantity} {letter.quantity === 1 ? "year" : "years"}
                     </p>
                   </div>
                   <span className="font-medium text-navy">

@@ -13,18 +13,17 @@ const DELIVERY_TIERS = [
     name: "Digital Letter",
     icon: "\u2709",
     price: 1,
-    unit: "/yr per letter",
+    unit: "/letter",
     description: "Delivered by email on the scheduled date. Instant, reliable, costs less.",
     features: [
       "Delivered via email on the scheduled date",
       "Beautiful, styled HTML letter with your words",
       "Instant delivery — no printing delays",
-      "Annual or milestone letter types",
       "Keeps arriving for up to 25 years",
       "Continues even if something happens to you",
     ],
-    cta: "Write a Digital Letter",
-    href: "/letters/write?type=annual",
+    cta: "Buy Digital Credits",
+    href: "/letters/write",
     popular: false,
   },
   {
@@ -32,18 +31,17 @@ const DELIVERY_TIERS = [
     name: "Physical Letter",
     icon: "\uD83D\uDCEC",
     price: 10,
-    unit: "/yr per letter",
+    unit: "/letter",
     description: "Printed on quality paper and mailed to their address. A real keepsake they can hold.",
     features: [
       "Professionally printed on premium stationery",
       "Sealed and mailed directly to them via USPS",
-      "Annual or milestone letter types",
       "A real keepsake they can hold onto",
       "Keeps arriving for up to 25 years",
       "Continues even if something happens to you",
     ],
-    cta: "Write a Physical Letter",
-    href: "/letters/write?type=annual",
+    cta: "Buy Physical Credits",
+    href: "/letters/write",
     popular: false,
   },
   {
@@ -51,18 +49,17 @@ const DELIVERY_TIERS = [
     name: "Physical + Photo",
     icon: "\uD83D\uDCF7",
     price: 15,
-    unit: "/yr per letter",
+    unit: "/letter",
     description: "Everything in Physical, plus a wallet-sized photo printed and included in the envelope.",
     features: [
       "Everything in Physical Letter, plus:",
       "Upload any photo — printed wallet-sized",
       "Photo included in the envelope with your letter",
-      "Annual or milestone letter types",
       "Keeps arriving for up to 25 years",
       "The most personal keepsake you can send",
     ],
-    cta: "Write a Letter + Photo",
-    href: "/letters/write?type=annual",
+    cta: "Buy Photo Credits",
+    href: "/letters/write",
     popular: true,
   },
 ];
@@ -202,10 +199,10 @@ export default function LettersPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/letters/write?type=annual"
+              href="/letters/write"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Write Your First Letter
+              Buy Letter Credits
             </Link>
             <Link
               href="#how-it-works"
@@ -254,7 +251,7 @@ export default function LettersPage() {
               <h3 className="mt-3 text-xl font-bold text-navy">Digital</h3>
               <p className="mt-3">
                 <span className="text-4xl font-extrabold tracking-tight text-navy">$1</span>
-                <span className="text-sm text-warm-gray">/yr per letter</span>
+                <span className="text-sm text-warm-gray">/letter</span>
               </p>
               <ul className="mt-6 flex-1 space-y-3">
                 {["Delivered by email", "Fully automated", "Instant and reliable", "Perfect for everyday letters"].map((f) => (
@@ -267,10 +264,10 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write?type=annual"
+                href="/letters/write"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                Start at $1/year
+                Start at $1/letter
               </Link>
             </div>
 
@@ -280,7 +277,7 @@ export default function LettersPage() {
               <h3 className="mt-3 text-xl font-bold text-navy">Physical</h3>
               <p className="mt-3">
                 <span className="text-4xl font-extrabold tracking-tight text-navy">$10</span>
-                <span className="text-sm text-warm-gray">/yr per letter</span>
+                <span className="text-sm text-warm-gray">/letter</span>
               </p>
               <ul className="mt-6 flex-1 space-y-3">
                 {["Printed and mailed", "Quality paper", "A real keepsake", "Perfect for meaningful moments"].map((f) => (
@@ -293,10 +290,10 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write?type=annual"
+                href="/letters/write"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                Start at $10/year
+                Start at $10/letter
               </Link>
             </div>
 
@@ -309,7 +306,7 @@ export default function LettersPage() {
               <h3 className="mt-3 text-xl font-bold text-navy">Physical + Photo</h3>
               <p className="mt-3">
                 <span className="text-4xl font-extrabold tracking-tight text-navy">$15</span>
-                <span className="text-sm text-warm-gray">/yr per letter</span>
+                <span className="text-sm text-warm-gray">/letter</span>
               </p>
               <ul className="mt-6 flex-1 space-y-3">
                 {["Letter + wallet photo", "Printed and mailed together", "Most personal option"].map((f) => (
@@ -322,10 +319,10 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write?type=annual"
+                href="/letters/write"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
-                Start at $15/year
+                Start at $15/letter
               </Link>
             </div>
           </div>
@@ -583,7 +580,7 @@ export default function LettersPage() {
             href="/letters/write"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Write Your First Letter &mdash; From $1/yr
+            Buy Letter Credits &mdash; From $1/letter
           </Link>
           <p className="mt-10 text-sm text-warm-gray">
             Are you an executor? If the account holder has passed or is unable

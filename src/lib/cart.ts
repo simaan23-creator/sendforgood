@@ -84,19 +84,11 @@ export function getCartCount(): number {
 export interface LetterCartItem {
   id: string;
   itemType: "letter";
-  recipientName: string;
-  recipientEmail: string;
-  letterType: "annual" | "milestone";
   deliveryType: "digital" | "physical" | "physical_photo";
+  deliveryLabel: string;
   quantity: number;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  unitPrice: number;
-  totalPrice: number;
+  unitPrice: number;  // cents per letter
+  totalPrice: number; // cents
 }
 
 const LETTER_CART_KEY = "sfg_letter_cart";
