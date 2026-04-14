@@ -9,7 +9,7 @@ export default function BuyCreditsPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [audioCredits, setAudioCredits] = useState(5);
   const [videoCredits, setVideoCredits] = useState(5);
@@ -29,9 +29,10 @@ export default function BuyCreditsPage() {
         return;
       }
 
-      // Fetch current credit balance
+      // Fetch current credit balance in background
       try {
-        const res = await fetch("/api/vault/credits");
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+        const res = await Promise.race([fetch("/api/vault/credits"), timeout]) as Response;
         if (res.ok) {
           const data = await res.json();
           setExistingAudio(data.audioCredits - data.audioUsed);
@@ -40,8 +41,6 @@ export default function BuyCreditsPage() {
       } catch {
         // silently fail
       }
-
-      setLoading(false);
     }
     init();
   }, [supabase, router]);
