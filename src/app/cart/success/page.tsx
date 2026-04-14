@@ -141,10 +141,10 @@ export default function CartSuccessPage() {
             View Your Dashboard
           </Link>
           <Link
-            href="/send"
+            href="/gifts/buy"
             className="inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy w-full sm:w-auto"
           >
-            Send More
+            Buy More Credits
           </Link>
         </div>
 

@@ -70,7 +70,7 @@ const products = [
     name: "Gifts",
     description: "Annual gifts delivered automatically.",
     price: "From $20/year",
-    href: "/send",
+    href: "/gifts/buy",
   },
   {
     emoji: "\u2709\uFE0F",
@@ -328,10 +328,10 @@ export default function AboutPage() {
           </p>
           <div className="mt-10">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
-              Start Sending
+              Get Started
             </Link>
           </div>
         </div>

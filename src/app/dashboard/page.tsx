@@ -404,10 +404,10 @@ export default function DashboardPage() {
                 Sign Out
               </button>
               <Link
-                href="/send"
+                href="/gifts/buy"
                 className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
               >
-                Send a New Gift
+                Buy Gift Credits
               </Link>
             </div>
           </div>
@@ -437,10 +437,10 @@ export default function DashboardPage() {
               year.
             </p>
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Start Sending
+              Buy Gift Credits
             </Link>
           </div>
         </div>
@@ -470,10 +470,10 @@ export default function DashboardPage() {
               Sign Out
             </button>
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Send a New Gift
+              Buy Gift Credits
             </Link>
           </div>
         </div>

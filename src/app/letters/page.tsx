@@ -484,10 +484,10 @@ export default function LettersPage() {
               spend.
             </p>
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="mt-5 inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
             >
-              Create a Gift Plan with Letters
+              Buy Gift Credits
             </Link>
           </div>
         </div>

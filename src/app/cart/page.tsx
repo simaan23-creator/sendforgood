@@ -4,36 +4,22 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { TIERS, OCCASION_TYPES } from "@/lib/constants";
 import {
-  getCart,
-  removeFromCart,
-  getCartTotal,
-  getCartCount,
   getLetterCart,
   removeLetterFromCart,
-  getLetterCartTotal,
-  getLetterCartCount,
   getVoiceCart,
   removeVoiceFromCart,
-  getVoiceCartTotal,
-  getVoiceCartCount,
   getVaultCart,
   removeVaultFromCart,
-  getVaultCartTotal,
-  getVaultCartCount,
   getGiftCreditCart,
   removeGiftCreditFromCart,
-  getGiftCreditCartTotal,
-  getGiftCreditCartCount,
   getCombinedCartCount,
   getCombinedCartTotal,
 } from "@/lib/cart";
-import type { CartItem, LetterCartItem, VoiceCartItem, VaultCartItem, GiftCreditCartItem } from "@/lib/cart";
+import type { LetterCartItem, VoiceCartItem, VaultCartItem, GiftCreditCartItem } from "@/lib/cart";
 
 export default function CartPage() {
   const router = useRouter();
-  const [items, setItems] = useState<CartItem[]>([]);
   const [letterItems, setLetterItems] = useState<LetterCartItem[]>([]);
   const [voiceItems, setVoiceItems] = useState<VoiceCartItem[]>([]);
   const [vaultItems, setVaultItems] = useState<VaultCartItem[]>([]);
@@ -50,7 +36,6 @@ export default function CartPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   function refreshCart() {
-    setItems(getCart());
     setLetterItems(getLetterCart());
     setVoiceItems(getVoiceCart());
     setVaultItems(getVaultCart());
@@ -76,11 +61,6 @@ export default function CartPage() {
       }
     });
   }, []);
-
-  function handleRemove(id: string) {
-    removeFromCart(id);
-    refreshCart();
-  }
 
   function handleRemoveLetter(id: string) {
     removeLetterFromCart(id);
@@ -116,7 +96,7 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items,
+          items: [],
           letterItems,
           voiceItems,
           vaultItems,
@@ -140,15 +120,6 @@ export default function CartPage() {
     }
   }
 
-  function getOccasionLabel(item: CartItem): string {
-    if (item.occasionType === "custom") return item.occasionLabel;
-    return OCCASION_TYPES.find((o) => o.value === item.occasionType)?.label ?? item.occasionType;
-  }
-
-  function getTierName(tierId: string): string {
-    return TIERS.find((t) => t.id === tierId)?.name ?? tierId;
-  }
-
   /* ════════════════════════════ Empty Cart ═════════════════════════════ */
 
   if (count === 0) {
@@ -166,10 +137,10 @@ export default function CartPage() {
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-navy-light"
             >
-              Start Adding Gifts
+              Buy Gift Credits
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
               </svg>
@@ -207,13 +178,13 @@ export default function CartPage() {
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your Cart</h1>
           <div className="flex items-center gap-4">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
               </svg>
-              Add Gift
+              Buy Credits
             </Link>
             <Link
               href="/letters/write"
@@ -239,61 +210,6 @@ export default function CartPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* ──────────── Cart Items ──────────── */}
           <div className="space-y-4 lg:col-span-2">
-            {/* Gift items */}
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-xl border border-cream-dark bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-navy truncate">
-                      {item.recipientName}
-                    </h3>
-                    <p className="mt-1 text-sm text-warm-gray">
-                      {getOccasionLabel(item)} &middot; {item.relationship}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(item.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-red-50 hover:text-red-500"
-                    aria-label={`Remove ${item.recipientName}`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                      <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-                  <div>
-                    <span className="text-warm-gray-light">Tier</span>
-                    <p className="font-medium text-navy">{getTierName(item.tier)}</p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Duration</span>
-                    <p className="font-medium text-navy">
-                      {item.years} {item.years === 1 ? "year" : "years"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Per Year</span>
-                    <p className="font-medium text-navy">${item.unitPrice}</p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Total</span>
-                    <p className="font-bold text-forest">${item.totalPrice.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="mt-3 text-xs text-warm-gray-light">
-                  {item.city}, {item.state} {item.postalCode}
-                </div>
-              </div>
-            ))}
-
             {/* Letter items */}
             {letterItems.map((letter) => (
               <div
@@ -542,14 +458,6 @@ export default function CartPage() {
               <h2 className="text-lg font-bold text-navy">Order Summary</h2>
 
               <div className="mt-4 space-y-3">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <span className="text-warm-gray truncate max-w-[60%]">
-                      {getTierName(item.tier)} &mdash; {item.recipientName}
-                    </span>
-                    <span className="font-medium text-navy">${item.totalPrice.toLocaleString()}</span>
-                  </div>
-                ))}
                 {letterItems.map((letter) => (
                   <div key={letter.id} className="flex items-center justify-between text-sm">
                     <span className="text-warm-gray truncate max-w-[60%]">

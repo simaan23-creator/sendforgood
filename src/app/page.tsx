@@ -626,10 +626,10 @@ export default function HomePage() {
 
           <div className="mt-12 text-center">
             <Link
-              href="/send?self=true"
+              href="/gifts/buy"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Send Yourself a Gift
+              Buy Gift Credits
             </Link>
           </div>
         </div>
@@ -780,10 +780,10 @@ export default function HomePage() {
           </h2>
           <div className="mt-10">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
-              Start Sending Today
+              Get Started Today
             </Link>
           </div>
           <p className="mt-5 text-sm text-cream/60">

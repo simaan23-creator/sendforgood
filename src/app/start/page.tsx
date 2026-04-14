@@ -43,14 +43,14 @@ const CARDS = [
     title: "Gifts + Letters",
     subtitle: "Best value",
     description:
-      "The complete experience. Send annual gifts AND write heartfelt letters - both delivered automatically, every year. Add them to your cart together.",
+      "The complete experience. Buy gift credits and write heartfelt letters - both managed from your dashboard. Credits never expire.",
     features: [
       "One checkout",
       "Gifts and letters combined",
       "Most meaningful option",
     ],
-    cta: "Start with Gifts",
-    href: "/send",
+    cta: "Buy Gift Credits",
+    href: "/gifts/buy",
     borderColor: "border-forest",
     ctaBg: "bg-forest hover:bg-forest-light",
     badge: "Most Popular",

@@ -139,14 +139,14 @@ export default function PricingPage() {
                 </ul>
 
                 <Link
-                  href="/send"
+                  href="/gifts/buy"
                   className={`mt-6 inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${
                     isPopular
                       ? "bg-gold text-navy hover:bg-gold-light focus-visible:outline-gold shadow-sm"
                       : "bg-navy text-cream hover:bg-navy-light focus-visible:outline-navy shadow-sm"
                   }`}
                 >
-                  Send Your First Gift
+                  Buy Gift Credits
                 </Link>
               </article>
             );
@@ -240,10 +240,10 @@ export default function PricingPage() {
             always upgrade later.
           </p>
           <Link
-            href="/send"
+            href="/gifts/buy"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Send Your First Gift &mdash; From $20
+            Buy Gift Credits &mdash; From $20
           </Link>
         </div>
       </div>
