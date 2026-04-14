@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -158,7 +158,9 @@ function getTierName(tierId: string): string {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+  const [assignSuccess, setAssignSuccess] = useState(false);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [letters, setLetters] = useState<Letter[]>([]);
@@ -170,7 +172,7 @@ export default function DashboardPage() {
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
-  const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string}>>([]);
+  const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
@@ -254,19 +256,46 @@ export default function DashboardPage() {
       setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
     } catch { /* silently fail */ }
 
-    // Fetch gift credits
+    // Fetch gift credits + assignments
     try {
       const { data: gcData } = await supabase
         .from('gift_credits')
         .select('id, tier, quantity, quantity_used, amount_paid, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      if (gcData) setGiftCredits(gcData);
+
+      if (gcData && gcData.length > 0) {
+        const creditIds = gcData.map((c: { id: string }) => c.id);
+        const { data: assignData } = await supabase
+          .from('gift_assignments')
+          .select('id, credit_id, recipient_name, occasion_type, occasion_date, scheduled_year, status')
+          .in('credit_id', creditIds)
+          .order('occasion_date', { ascending: true });
+
+        const assignmentsByCredit: Record<string, typeof assignData> = {};
+        for (const a of assignData || []) {
+          const cid = (a as { credit_id: string }).credit_id;
+          if (!assignmentsByCredit[cid]) assignmentsByCredit[cid] = [];
+          assignmentsByCredit[cid]!.push(a);
+        }
+
+        setGiftCredits(gcData.map((gc: { id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string }) => ({
+          ...gc,
+          assignments: assignmentsByCredit[gc.id] || [],
+        })));
+      } else {
+        setGiftCredits([]);
+      }
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
   useEffect(() => {
     loadDashboard();
+    if (searchParams.get("assigned") === "true") {
+      setAssignSuccess(true);
+      // Clean up URL
+      window.history.replaceState({}, "", "/dashboard");
+    }
   }, []);
 
   async function handleSignOut() {
@@ -504,6 +533,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Assignment success banner */}
+        {assignSuccess && (
+          <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
+            <span>Gift credit assigned successfully! We&apos;ll handle the rest.</span>
+            <button onClick={() => setAssignSuccess(false)} className="ml-4 font-semibold hover:underline">Dismiss</button>
+          </div>
+        )}
+
         {/* My Gift Credits */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -529,6 +566,19 @@ export default function DashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {giftCredits.map((gc) => {
                 const available = gc.quantity - gc.quantity_used;
+                const assigned = gc.assignments || [];
+                // Deduplicate by recipient — show unique recipients with their next delivery
+                const recipientMap = new Map<string, { name: string; occasion: string; nextDate: string; status: string }>();
+                for (const a of assigned) {
+                  if (!recipientMap.has(a.recipient_name) || a.occasion_date < recipientMap.get(a.recipient_name)!.nextDate) {
+                    recipientMap.set(a.recipient_name, {
+                      name: a.recipient_name,
+                      occasion: a.occasion_type,
+                      nextDate: a.occasion_date,
+                      status: a.status,
+                    });
+                  }
+                }
                 return (
                   <div
                     key={gc.id}
@@ -553,17 +603,31 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-warm-gray-light">
-                      ${(gc.amount_paid / 100).toFixed(0)} paid
+                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned
                     </p>
+
+                    {/* Assigned recipients */}
+                    {recipientMap.size > 0 && (
+                      <div className="mt-3 space-y-2 border-t border-cream-dark pt-3">
+                        {Array.from(recipientMap.values()).map((r) => (
+                          <div key={r.name} className="flex items-center justify-between text-xs">
+                            <span className="font-medium text-navy">{r.name}</span>
+                            <span className="text-warm-gray">
+                              {r.occasion.replace(/_/g, " ")} &middot;{" "}
+                              {new Date(r.nextDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {available > 0 && (
-                      <button
-                        type="button"
-                        disabled
-                        className="mt-3 w-full rounded-lg border-2 border-navy px-3 py-2 text-xs font-semibold text-navy opacity-50 cursor-not-allowed"
-                        title="Coming soon in Phase 2"
+                      <Link
+                        href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
+                        className="mt-3 block w-full rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                       >
-                        Assign Recipient (Coming Soon)
-                      </button>
+                        Assign Recipient
+                      </Link>
                     )}
                   </div>
                 );
