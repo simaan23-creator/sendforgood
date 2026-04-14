@@ -32,7 +32,7 @@ export default function MyVaultsPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [vaults, setVaults] = useState<MemoryRequest[]>([]);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
