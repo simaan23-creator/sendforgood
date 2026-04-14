@@ -86,7 +86,8 @@ interface MemoryRequest {
   delivery_date: string;
   unique_code: string;
   status: string;
-  recording_count: number;
+  recording_count?: number;
+  memory_recordings?: { id: string }[];
   created_at: string;
 }
 
