@@ -27,7 +27,7 @@ export default function CreateMemoryRequestPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [occasion, setOccasion] = useState("My Birthday");
@@ -43,7 +43,7 @@ export default function CreateMemoryRequestPage() {
 
   // Credit balance
   const [credits, setCredits] = useState<CreditBalance | null>(null);
-  const [loadingCredits, setLoadingCredits] = useState(true);
+  const [loadingCredits, setLoadingCredits] = useState(false);
 
   // Success state
   const [createdRequest, setCreatedRequest] = useState<{

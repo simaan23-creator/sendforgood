@@ -152,7 +152,7 @@ function parseCSV(text: string): CsvRecipient[] {
 
 export default function BusinessDashboard() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
   const [recipients, setRecipients] = useState<BusinessRecipient[]>([]);
   const [orders, setOrders] = useState<BusinessOrder[]>([]);

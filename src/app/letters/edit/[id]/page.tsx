@@ -120,7 +120,7 @@ export default function EditLetterPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
   const [useGiftExecutor, setUseGiftExecutor] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
