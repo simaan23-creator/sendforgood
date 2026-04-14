@@ -1746,17 +1746,39 @@ interface GiftAssignment {
   gift_notes: string | null;
   recipient_industry: string | null;
   status: string;
+  tracking_number: string | null;
+  admin_notes: string | null;
   created_at: string;
   gift_credits: { tier: string; quantity: number; user_id: string } | null;
   profiles: { email: string; full_name: string | null } | null;
 }
 
+const TIER_BADGE_COLORS: Record<string, string> = {
+  starter: "bg-gray-100 text-gray-700 border-gray-300",
+  classic: "bg-green-50 text-green-800 border-green-300",
+  premium: "bg-yellow-50 text-yellow-800 border-yellow-400",
+  deluxe: "bg-[#1B2A4A] text-white border-[#1B2A4A]",
+  legacy: "bg-[#8B6914] text-white border-[#8B6914]",
+};
+
+function buildAmazonSearchUrl(tier: string, interests: string | null, occasion: string): string {
+  const parts: string[] = [];
+  if (tier) parts.push(tier === "starter" ? "" : tier);
+  if (interests) parts.push(interests);
+  if (occasion) parts.push(occasion.replace(/_/g, " "));
+  parts.push("gift");
+  const query = parts.filter(Boolean).join(" ").trim();
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}`;
+}
+
 function GiftAssignmentsTab() {
   const [assignments, setAssignments] = useState<GiftAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
+  const [notesInputs, setNotesInputs] = useState<Record<string, string>>({});
+  const [showNotesFor, setShowNotesFor] = useState<string | null>(null);
+  const [clickedOrderNow, setClickedOrderNow] = useState<Set<string>>(new Set());
 
   const fetchAssignments = useCallback(async () => {
     setLoading(true);
@@ -1770,12 +1792,12 @@ function GiftAssignmentsTab() {
     fetchAssignments();
   }, [fetchAssignments]);
 
-  async function handleUpdateStatus(id: string, newStatus: string) {
+  async function handleUpdate(id: string, payload: Record<string, string>) {
     setUpdatingId(id);
     const res = await fetch("/api/admin/gift-assignments", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: newStatus }),
+      body: JSON.stringify({ id, ...payload }),
     });
     if (res.ok) {
       await fetchAssignments();
@@ -1783,215 +1805,284 @@ function GiftAssignmentsTab() {
     setUpdatingId(null);
   }
 
-  const filtered = statusFilter === "all"
-    ? assignments
-    : assignments.filter((a) => a.status === statusFilter);
+  // Group assignments by urgency
+  const needsAction: GiftAssignment[] = [];
+  const upcoming: GiftAssignment[] = [];
+  const scheduled: GiftAssignment[] = [];
+  const fulfilled: GiftAssignment[] = [];
+
+  for (const a of assignments) {
+    if (a.status === "fulfilled" || a.status === "completed") {
+      fulfilled.push(a);
+      continue;
+    }
+    const days = daysUntil(a.occasion_date);
+    if (days <= 30 && (a.status === "pending" || a.status === "ordered")) {
+      needsAction.push(a);
+    } else if (days > 30 && days <= 90) {
+      upcoming.push(a);
+    } else if (days > 90) {
+      scheduled.push(a);
+    } else {
+      // Overdue items also go to needs action
+      needsAction.push(a);
+    }
+  }
 
   const assignmentStatusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-700",
+    ordered: "bg-blue-100 text-blue-700",
+    fulfilled: "bg-green-100 text-green-700",
     active: "bg-blue-100 text-blue-700",
     completed: "bg-green-100 text-green-700",
   };
 
+  function renderCard(a: GiftAssignment, urgency: "urgent" | "upcoming" | "scheduled" | "fulfilled") {
+    const days = daysUntil(a.occasion_date);
+    const tier = a.gift_credits?.tier || "starter";
+    const borderClass =
+      urgency === "urgent"
+        ? days < 0 ? "border-l-4 border-l-red-500" : "border-l-4 border-l-amber-500"
+        : urgency === "upcoming"
+          ? "border-l-4 border-l-yellow-400"
+          : urgency === "fulfilled"
+            ? "border-l-4 border-l-green-400"
+            : "border-l-4 border-l-gray-300";
+
+    return (
+      <div key={a.id} className={`bg-white rounded-lg border border-gray-200 ${borderClass} p-5 mb-4 shadow-sm`}>
+        {/* Header row */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${TIER_BADGE_COLORS[tier] || TIER_BADGE_COLORS.starter}`}>
+            {tier}
+          </span>
+          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${assignmentStatusColors[a.status] || "bg-gray-100 text-gray-700"}`}>
+            {a.status}
+          </span>
+          <span className={`ml-auto text-sm font-bold ${days < 0 ? "text-red-600" : days <= 14 ? "text-amber-600" : days <= 30 ? "text-yellow-600" : "text-gray-500"}`}>
+            {days < 0 ? `${Math.abs(days)}d OVERDUE` : `${days}d until delivery`}
+          </span>
+        </div>
+
+        {/* Main info grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          {/* Recipient */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Recipient</h4>
+            <p className="font-medium text-gray-900">
+              {a.recipient_name}
+              {a.is_pet && <span className="ml-1 text-xs text-gray-400">(Pet: {a.pet_type || "pet"})</span>}
+            </p>
+            <p className="text-gray-500">{a.relationship || "N/A"}</p>
+            <p className="text-gray-500 mt-1">
+              {capitalize(a.occasion_type)} &middot; {a.occasion_date ? formatDate(a.occasion_date) : "—"}
+            </p>
+          </div>
+
+          {/* Address */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Delivery Address</h4>
+            {a.address_line1 ? (
+              <div className="text-gray-700 space-y-0.5">
+                <p>{a.address_line1}</p>
+                {a.address_line2 && <p>{a.address_line2}</p>}
+                <p>{a.city}, {a.state} {a.postal_code}</p>
+                <p>{a.country || "US"}</p>
+              </div>
+            ) : (
+              <p className="text-gray-400">No address</p>
+            )}
+          </div>
+
+          {/* Interests / Notes */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Gift Details</h4>
+            <div className="space-y-1">
+              {a.interests && <p className="text-gray-700"><span className="text-gray-400">Interests:</span> {a.interests}</p>}
+              {a.gift_notes && <p className="text-gray-700"><span className="text-gray-400">Notes:</span> {a.gift_notes}</p>}
+              {a.age && <p className="text-gray-700"><span className="text-gray-400">Age:</span> {a.age}</p>}
+              {a.gender && <p className="text-gray-700"><span className="text-gray-400">Gender:</span> {a.gender}</p>}
+              {a.is_professional && a.recipient_industry && (
+                <p className="text-gray-700"><span className="text-gray-400">Industry:</span> {a.recipient_industry}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Customer info */}
+        <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+          <span>Customer: <strong className="text-gray-700">{a.profiles?.full_name || "—"}</strong></span>
+          <span>Email: <a href={`mailto:${a.profiles?.email}`} className="text-blue-600 underline">{a.profiles?.email || "—"}</a></span>
+          <span>Year {a.scheduled_year} &middot; Created {formatDate(a.created_at.split("T")[0])}</span>
+          {a.tracking_number && <span>Tracking: <strong className="text-gray-700">{a.tracking_number}</strong></span>}
+          {a.admin_notes && <span>Notes: <em className="text-gray-600">{a.admin_notes}</em></span>}
+        </div>
+
+        {/* Action buttons */}
+        {urgency === "urgent" && (
+          <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
+            {a.status === "pending" && (
+              <>
+                <button
+                  onClick={() => {
+                    window.open(buildAmazonSearchUrl(tier, a.interests, a.occasion_type), "_blank");
+                    setClickedOrderNow((prev) => new Set(prev).add(a.id));
+                  }}
+                  className="rounded-lg bg-[#FF9900] text-white px-4 py-2 text-sm font-bold hover:bg-[#e68a00] transition shadow-sm"
+                >
+                  Order Now (Amazon)
+                </button>
+                {clickedOrderNow.has(a.id) && (
+                  <button
+                    onClick={() => handleUpdate(a.id, { status: "ordered" })}
+                    disabled={updatingId === a.id}
+                    className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                  >
+                    {updatingId === a.id ? "..." : "Mark as Ordered"}
+                  </button>
+                )}
+              </>
+            )}
+
+            {(a.status === "pending" || a.status === "ordered") && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Tracking # (optional)"
+                  value={trackingInputs[a.id] || ""}
+                  onChange={(e) => setTrackingInputs((prev) => ({ ...prev, [a.id]: e.target.value }))}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm w-48 outline-none focus:ring-2 focus:ring-green-200"
+                />
+                <button
+                  onClick={() => handleUpdate(a.id, {
+                    status: "fulfilled",
+                    ...(trackingInputs[a.id] ? { tracking_number: trackingInputs[a.id] } : {}),
+                  })}
+                  disabled={updatingId === a.id}
+                  className="rounded-lg bg-green-600 text-white px-4 py-2 text-sm font-medium hover:bg-green-700 transition disabled:opacity-50"
+                >
+                  {updatingId === a.id ? "..." : "Mark Fulfilled"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {urgency === "upcoming" && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            {showNotesFor === a.id ? (
+              <div className="flex items-start gap-2">
+                <textarea
+                  placeholder="Planning notes..."
+                  value={notesInputs[a.id] || a.admin_notes || ""}
+                  onChange={(e) => setNotesInputs((prev) => ({ ...prev, [a.id]: e.target.value }))}
+                  className="rounded-md border border-gray-300 px-3 py-2 text-sm flex-1 outline-none focus:ring-2 focus:ring-yellow-200 min-h-[60px]"
+                />
+                <button
+                  onClick={async () => {
+                    await handleUpdate(a.id, { admin_notes: notesInputs[a.id] || "" });
+                    setShowNotesFor(null);
+                  }}
+                  disabled={updatingId === a.id}
+                  className="rounded-lg bg-yellow-500 text-white px-4 py-2 text-sm font-medium hover:bg-yellow-600 transition disabled:opacity-50"
+                >
+                  {updatingId === a.id ? "..." : "Save Notes"}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setShowNotesFor(a.id);
+                    setNotesInputs((prev) => ({ ...prev, [a.id]: a.admin_notes || "" }));
+                  }}
+                  className="rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-2 text-sm font-medium hover:bg-yellow-200 transition"
+                >
+                  Start Planning
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(buildAmazonSearchUrl(tier, a.interests, a.occasion_type), "_blank");
+                  }}
+                  className="rounded-lg bg-gray-100 text-gray-600 border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-200 transition"
+                >
+                  Preview Amazon Search
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-400">Loading assignments...</div>;
+  }
+
+  if (assignments.length === 0) {
+    return <div className="text-center py-12 text-gray-400">No gift assignments found</div>;
+  }
+
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
-        >
-          <option value="all">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-        </select>
-        <div className="text-sm text-gray-500 flex items-center">
-          {filtered.length} assignment{filtered.length !== 1 ? "s" : ""}
+    <div className="space-y-8">
+      {/* Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-red-700">{needsAction.length}</div>
+          <div className="text-xs text-red-600 font-medium">Needs Action</div>
+        </div>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-yellow-700">{upcoming.length}</div>
+          <div className="text-xs text-yellow-600 font-medium">Upcoming</div>
+        </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-gray-700">{scheduled.length}</div>
+          <div className="text-xs text-gray-500 font-medium">Scheduled</div>
+        </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-green-700">{fulfilled.length}</div>
+          <div className="text-xs text-green-600 font-medium">Fulfilled</div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading assignments...</div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">No gift assignments found</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                <th className="pb-3 pr-4">Recipient</th>
-                <th className="pb-3 pr-4">Tier</th>
-                <th className="pb-3 pr-4">Occasion</th>
-                <th className="pb-3 pr-4">Next Delivery</th>
-                <th className="pb-3 pr-4">Address</th>
-                <th className="pb-3 pr-4">Customer</th>
-                <th className="pb-3 pr-4">Status</th>
-                <th className="pb-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((a) => {
-                const isExpanded = expandedId === a.id;
-                return (
-                  <React.Fragment key={a.id}>
-                    <tr className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 pr-4">
-                        <div className="font-medium text-gray-900">{a.recipient_name}</div>
-                        <div className="text-xs text-gray-400">
-                          {a.relationship || "N/A"}
-                          {a.is_pet && ` (Pet: ${a.pet_type || "pet"})`}
-                        </div>
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
-                          {a.gift_credits?.tier || "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4">
-                        {capitalize(a.occasion_type)}
-                        <div className="text-xs text-gray-400">
-                          {a.occasion_date ? formatDate(a.occasion_date) : "—"}
-                        </div>
-                      </td>
-                      <td className="py-3 pr-4 whitespace-nowrap">
-                        {a.occasion_date ? (
-                          <>
-                            <span className="font-medium">{formatDate(a.occasion_date)}</span>
-                            {(() => {
-                              const days = daysUntil(a.occasion_date);
-                              if (days < 0) return <span className="ml-1.5 text-xs text-red-600 font-medium">Overdue</span>;
-                              if (days <= 14) return <span className="ml-1.5 text-xs text-yellow-700 font-medium">{days}d</span>;
-                              return null;
-                            })()}
-                          </>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 pr-4 text-gray-500 text-xs">
-                        {a.city && a.state ? `${a.city}, ${a.state}` : "—"}
-                      </td>
-                      <td className="py-3 pr-4 text-gray-500 text-xs">
-                        {a.profiles?.email || "—"}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                          assignmentStatusColors[a.status] || "bg-gray-100 text-gray-700"
-                        }`}>
-                          {a.status}
-                        </span>
-                      </td>
-                      <td className="py-3 whitespace-nowrap">
-                        <button
-                          onClick={() => setExpandedId(isExpanded ? null : a.id)}
-                          className="rounded bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 text-xs font-medium hover:bg-gray-100 transition mr-1.5"
-                        >
-                          {isExpanded ? "Hide" : "Details"}
-                        </button>
-                        {a.status === "pending" && (
-                          <button
-                            onClick={() => handleUpdateStatus(a.id, "active")}
-                            disabled={updatingId === a.id}
-                            className="rounded bg-blue-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-blue-700 transition mr-1.5 disabled:opacity-50"
-                          >
-                            {updatingId === a.id ? "..." : "Activate"}
-                          </button>
-                        )}
-                        {(a.status === "pending" || a.status === "active") && (
-                          <button
-                            onClick={() => handleUpdateStatus(a.id, "completed")}
-                            disabled={updatingId === a.id}
-                            className="rounded bg-green-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-green-700 transition disabled:opacity-50"
-                          >
-                            {updatingId === a.id ? "..." : "Mark Fulfilled"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={8} className="p-0">
-                          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                              {/* Address */}
-                              <div>
-                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                  Delivery Address
-                                </h4>
-                                {a.address_line1 ? (
-                                  <div className="text-gray-700 space-y-0.5">
-                                    <p>{a.address_line1}</p>
-                                    {a.address_line2 && <p>{a.address_line2}</p>}
-                                    <p>{a.city}, {a.state} {a.postal_code}</p>
-                                    <p>{a.country || "US"}</p>
-                                  </div>
-                                ) : (
-                                  <p className="text-gray-400">No address</p>
-                                )}
-                              </div>
+      {/* Needs Action */}
+      {needsAction.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-red-700 mb-3 flex items-center gap-2">
+            Needs Action <span className="text-sm font-normal text-red-500">(due within 30 days)</span>
+          </h3>
+          {needsAction.map((a) => renderCard(a, "urgent"))}
+        </div>
+      )}
 
-                              {/* Recipient Profile */}
-                              <div>
-                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                  Recipient Profile
-                                </h4>
-                                <div className="space-y-1">
-                                  <DetailRow label="Age" value={a.age} />
-                                  <DetailRow label="Gender" value={a.gender} />
-                                  <DetailRow label="Interests" value={a.interests} />
-                                  <DetailRow label="Gift Notes" value={a.gift_notes} />
-                                  {a.is_professional && (
-                                    <DetailRow label="Industry" value={a.recipient_industry} />
-                                  )}
-                                </div>
-                              </div>
+      {/* Upcoming */}
+      {upcoming.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-yellow-700 mb-3 flex items-center gap-2">
+            Upcoming <span className="text-sm font-normal text-yellow-500">(31–90 days)</span>
+          </h3>
+          {upcoming.map((a) => renderCard(a, "upcoming"))}
+        </div>
+      )}
 
-                              {/* Customer + Status */}
-                              <div>
-                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                  Customer Info
-                                </h4>
-                                <div className="space-y-1">
-                                  <DetailRow label="Email" value={a.profiles?.email} />
-                                  <DetailRow label="Name" value={a.profiles?.full_name} />
-                                  <DetailRow label="Year" value={a.scheduled_year?.toString()} />
-                                  <DetailRow label="Created" value={formatDate(a.created_at.split("T")[0])} />
-                                </div>
+      {/* Scheduled */}
+      {scheduled.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+            Scheduled <span className="text-sm font-normal text-gray-400">(90+ days)</span>
+          </h3>
+          {scheduled.map((a) => renderCard(a, "scheduled"))}
+        </div>
+      )}
 
-                                {/* Status update buttons */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                    Update Status
-                                  </h4>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {["pending", "active", "completed"].map((s) => (
-                                      <button
-                                        key={s}
-                                        onClick={() => handleUpdateStatus(a.id, s)}
-                                        disabled={a.status === s || updatingId === a.id}
-                                        className={`rounded px-2 py-1 text-xs font-medium transition ${
-                                          a.status === s
-                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        }`}
-                                      >
-                                        {s}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* Fulfilled */}
+      {fulfilled.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-green-700 mb-3 flex items-center gap-2">
+            Fulfilled <span className="text-sm font-normal text-green-500">({fulfilled.length} completed)</span>
+          </h3>
+          {fulfilled.map((a) => renderCard(a, "fulfilled"))}
         </div>
       )}
     </div>

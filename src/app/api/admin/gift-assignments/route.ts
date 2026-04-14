@@ -29,6 +29,8 @@ export async function GET() {
       gift_notes,
       recipient_industry,
       status,
+      tracking_number,
+      admin_notes,
       created_at,
       gift_credits!inner(tier, quantity, user_id),
       profiles:user_id(email, full_name)
@@ -43,33 +45,51 @@ export async function GET() {
   return NextResponse.json({ assignments: data || [] });
 }
 
-// PATCH: Update assignment status
+// PATCH: Update assignment status, tracking number, and/or notes
 export async function PATCH(request: Request) {
   const body = await request.json();
-  const { id, status } = body as { id: string; status: string };
+  const { id, status, tracking_number, admin_notes } = body as {
+    id: string;
+    status?: string;
+    tracking_number?: string;
+    admin_notes?: string;
+  };
 
-  if (!id || !status) {
+  if (!id) {
     return NextResponse.json(
-      { error: "id and status are required" },
+      { error: "id is required" },
       { status: 400 }
     );
   }
 
-  const validStatuses = ["pending", "active", "completed"];
-  if (!validStatuses.includes(status)) {
+  const validStatuses = ["pending", "ordered", "fulfilled", "active", "completed"];
+
+  if (status && !validStatuses.includes(status)) {
     return NextResponse.json(
       { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
       { status: 400 }
     );
   }
 
+  const updatePayload: Record<string, string> = {};
+  if (status) updatePayload.status = status;
+  if (tracking_number !== undefined) updatePayload.tracking_number = tracking_number;
+  if (admin_notes !== undefined) updatePayload.admin_notes = admin_notes;
+
+  if (Object.keys(updatePayload).length === 0) {
+    return NextResponse.json(
+      { error: "No fields to update" },
+      { status: 400 }
+    );
+  }
+
   const { error } = await supabaseAdmin
     .from("gift_assignments")
-    .update({ status })
+    .update(updatePayload)
     .eq("id", id);
 
   if (error) {
-    console.error("Failed to update assignment status:", error);
+    console.error("Failed to update assignment:", error);
     return NextResponse.json(
       { error: "Failed to update" },
       { status: 500 }
