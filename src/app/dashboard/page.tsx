@@ -238,17 +238,19 @@ export default function DashboardPage() {
       const { data: memData } = await supabase
         .from("memory_requests")
         .select("*, memory_recordings(id)")
-        .eq("requester_id", (await supabase.auth.getUser()).data.user?.id || "")
+        .eq("requester_id", user.id)
         .order("created_at", { ascending: false });
       if (memData) setMemoryRequests(memData);
     } catch {
       // silently fail
     }
 
-    // Fetch vault credits
+    // Fetch vault credits directly from Supabase
     try {
-      const credRes = await fetch("/api/vault/credits", { credentials: "include" });
-      if (credRes.ok) { const credData = await credRes.json(); setVaultCredits(credData); }
+      const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits').eq('user_id', user.id);
+      const totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
+      const totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
