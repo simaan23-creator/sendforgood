@@ -3,20 +3,20 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Blog — SendForGood",
   description:
-    "Stories, guides, and insights about legacy gifting, prepaid gifts, and making every occasion meaningful.",
+    "Stories, guides, and insights about legacy gifting, gift credits, and making every occasion meaningful.",
 };
 
 const TEASER_ARTICLES = [
   {
     title: "The Art of Legacy Gifting",
     excerpt:
-      "What does it mean to give a gift that outlasts you? We explore the emotional power of prepaid gifting and why more families are planning gifts that arrive for decades.",
+      "What does it mean to give a gift that outlasts you? We explore the emotional power of gift credits and why more families are buying credits they can assign whenever they are ready.",
     tag: "Legacy",
   },
   {
-    title: "Why Prepaid Gifts Matter",
+    title: "Why Gift Credits Change Everything",
     excerpt:
-      "In a world of subscriptions and auto-renewals, there's something beautifully intentional about paying once for years of joy. Here's why prepaid gifting is the future.",
+      "In a world of subscriptions and auto-renewals, there's something beautifully intentional about buying gift credits you control. No rush, no pressure \u2014 assign recipients from your dashboard whenever you are ready.",
     tag: "Gifting",
   },
   {

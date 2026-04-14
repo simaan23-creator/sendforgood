@@ -11,16 +11,16 @@ const USE_CASES = [
     label: "Grandparents",
     headline: "Never miss a birthday again",
     description:
-      "Set up gifts for all your grandkids at once. They\u2019ll feel your love every year, no matter what.",
+      "Buy gift credits for all your grandkids at once. Assign each one a tier and birthday from your dashboard. They\u2019ll feel your love every year, no matter what.",
     quote:
-      "As I get older, keeping up with birthdays gets harder — and knowing what the grandkids actually want gets even harder. SendForGood solves both. The gifts are always perfect, and I never have to think about it.",
+      "I bought gift credits for all 6 grandkids in one sitting. Assigned each one a tier, set their birthdays. Done forever.",
   },
   {
     emoji: "🎁",
     label: "Treat Yourself",
     headline: "The gift you never buy yourself — delivered every year",
     description:
-      "Set up a birthday or holiday gift for YOU. Something you actually want, picked by our AI, arriving every year without you lifting a finger.",
+      "Buy a gift credit for yourself. Assign your own birthday or holiday from your dashboard. Something you actually want, picked by our AI, arriving every year.",
     quote:
       "I bought it for myself on my birthday after a long week. Best decision ever. It shows up every year and I genuinely forget until it arrives.",
   },
@@ -29,7 +29,7 @@ const USE_CASES = [
     label: "Realtors",
     headline: "Turn one sale into a lifetime relationship",
     description:
-      "Send your clients a gift every year on their home anniversary. The referrals will follow.",
+      "Buy gift credits for your clients. Assign each one their home anniversary from your dashboard. The referrals will follow.",
     quote:
       "My clients call ME when their friends are buying. This is why.",
   },
@@ -38,9 +38,9 @@ const USE_CASES = [
     label: "Couples",
     headline: "Love that shows up, every year",
     description:
-      "Prepay for anniversary gifts years in advance. Even when life gets busy, your partner feels remembered.",
+      "Buy anniversary gift credits and assign your partner from your dashboard. Even when life gets busy, they feel remembered.",
     quote:
-      "I set up years of anniversary gifts. It arrives every year without me doing a thing.",
+      "I bought 5 anniversary gift credits. Assigned one to my wife, kept the rest for our kids. One purchase, endless memories.",
   },
   {
     emoji: "🏢",
@@ -56,7 +56,7 @@ const USE_CASES = [
     label: "Parents",
     headline: "A gift from you, even when you can\u2019t be there",
     description:
-      "Set up birthday gifts for your kids \u2014 up to 25 years at a time. We handle everything, every year.",
+      "Buy gift credits for your kids and assign their birthdays from your dashboard. We handle everything, every year.",
     quote:
       "I still buy my kids gifts myself \u2014 but SendForGood delivers something extra every year without me lifting a finger. My kids think I\u2019m the most thoughtful parent alive. They\u2019re not wrong.",
   },
@@ -240,9 +240,8 @@ export default function HomePage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Whether you&rsquo;re a grandparent, a realtor, or a business &mdash;
-            SendForGood delivers gifts, letters, and voice messages so the
-            people you love never forget how much you care.
+            Buy gift credits by tier. Write letters. Record your voice or video.
+            Assign recipients from your dashboard whenever you are ready.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
             Now with Legacy Letters, Voice Messages, and Video Messages &mdash; your words, voice, and face, delivered forever.
@@ -441,16 +440,16 @@ export default function HomePage() {
               {
                 step: "1",
                 emoji: "🎯",
-                title: "Choose your recipient & occasion",
+                title: "Buy gift credits by tier",
                 description:
-                  "Pick who, what occasion, and how many years",
+                  "Choose from 5 tiers, from $20 to $200 per credit",
               },
               {
                 step: "2",
                 emoji: "🎁",
-                title: "Select your gift tier",
+                title: "Assign recipients from your dashboard",
                 description:
-                  "From quality gifts to premium selections",
+                  "Add names, dates, and preferences whenever you are ready. No rush.",
               },
               {
                 step: "3",
@@ -569,9 +568,9 @@ export default function HomePage() {
             Treat Yourself. Every Year.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            You buy gifts for everyone else. Who buys gifts for you? Set up a
-            birthday or holiday gift for yourself &mdash; something you actually
-            want, arriving every year automatically.
+            You buy gifts for everyone else. Who buys gifts for you? Buy a gift
+            credit for yourself &mdash; assign your birthday or holiday from your
+            dashboard. Something you actually want, arriving every year.
           </p>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -723,7 +722,7 @@ export default function HomePage() {
             Legacy Letters from $1/year &middot; Audio Messages $5/year &middot; Video Messages $10/year
           </p>
           <p className="mt-4 text-lg text-warm-gray">
-            One payment. Up to 25 years of joy. No subscriptions.
+            Buy credits. Assign when ready. We deliver forever. No subscriptions.
           </p>
           <p className="mt-2 text-sm text-warm-gray-light">
             Currently serving the continental United States
@@ -787,7 +786,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-5 text-sm text-cream/60">
-            47 gift plans scheduled and counting
+            47 gift credits purchased and counting
           </p>
         </div>
       </section>

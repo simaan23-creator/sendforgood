@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Service — SendForGood",
   description:
-    "Read the Terms of Service for SendForGood, the prepaid legacy gift delivery service.",
+    "Read the Terms of Service for SendForGood, the gift credit and delivery platform.",
 };
 
 export default function TermsPage() {
@@ -40,11 +40,11 @@ export default function TermsPage() {
               What SendForGood Does
             </h2>
             <p className="mt-3">
-              SendForGood is a prepaid gift delivery service. You choose a
-              recipient, select a gift tier, and prepay for one or more years of
-              gift deliveries. We then curate and ship a thoughtful gift to your
-              recipient on each scheduled occasion &mdash; birthdays, holidays,
-              anniversaries, or any date you choose.
+              SendForGood is a gift credit and delivery platform. You purchase
+              gift credits by tier, then assign recipients, occasions, and dates
+              from your dashboard whenever you are ready. We then curate and ship
+              a thoughtful gift to your recipient on each scheduled occasion
+              &mdash; birthdays, holidays, anniversaries, or any date you choose.
             </p>
             <p className="mt-3">
               We carefully select each gift based on the tier you&rsquo;ve
@@ -59,9 +59,9 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-navy">Payment Terms</h2>
             <ul className="mt-4 list-disc space-y-2 pl-6">
               <li>
-                All gift plans are <strong className="text-navy">prepaid</strong>{" "}
-                at the time of purchase. The total amount covers the selected
-                tier price multiplied by the number of years chosen.
+                All gift credits are <strong className="text-navy">purchased upfront</strong>.{" "}
+                The total amount covers the selected tier price multiplied by
+                the number of credits chosen.
               </li>
               <li>
                 Payments are processed securely through Stripe. We accept all
@@ -111,21 +111,21 @@ export default function TermsPage() {
             </p>
             <ul className="mt-4 list-disc space-y-2 pl-6">
               <li>
-                All prepaid gift plans will be fulfilled in their entirety,
+                All purchased gift credits will be fulfilled in their entirety,
                 regardless of your account status.
               </li>
               <li>
                 If your account becomes inactive (no login for 12 consecutive
                 months), we will attempt to reach you via email. If
                 unresponsive, your existing plans will continue to deliver as
-                scheduled until all prepaid years are fulfilled.
+                scheduled until all purchased credits are fulfilled.
               </li>
               <li>
                 A designated emergency contact or legal representative may
                 contact us to manage, update, or cancel remaining deliveries.
               </li>
               <li>
-                We will never cancel a prepaid plan due to account inactivity
+                We will never cancel purchased credits due to account inactivity
                 alone. Your gifts will arrive as promised.
               </li>
             </ul>

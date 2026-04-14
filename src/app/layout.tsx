@@ -14,7 +14,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SendForGood — Legacy Gift Giving, Made Simple",
   description:
-    "Prepay for gifts to be delivered to your loved ones every year — even after you're gone. Legacy giving made simple.",
+    "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
   icons: {
     icon: "/logo-icon.jpg",
     apple: "/logo-icon.jpg",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "SendForGood — Legacy Gift Giving, Made Simple",
     description:
-      "Prepay for gifts to be delivered to your loved ones every year — even after you're gone.",
+      "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
     url: "https://sendforgood.com",
     siteName: "SendForGood",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SendForGood — Legacy Gift Giving, Made Simple",
     description:
-      "Prepay for gifts to be delivered to your loved ones every year — even after you're gone.",
+      "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
     images: ["/og-image.jpg"],
   },
 };

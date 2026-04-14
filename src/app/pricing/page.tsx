@@ -5,24 +5,24 @@ import { TIERS } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Pricing — SendForGood",
   description:
-    "Explore SendForGood gift tiers from $29/yr to $199/yr. Prepay for years of joy — every tier includes gift curation, wrapping, and delivery.",
+    "Explore SendForGood gift credit tiers from $20 to $200. Buy credits, assign recipients from your dashboard — every tier includes gift curation, wrapping, and delivery.",
 };
 
 const FAQ = [
   {
-    question: "How does prepay work?",
+    question: "How do gift credits work?",
     answer:
-      "When you create a gift plan, you pay upfront for the number of years you choose (up to 25 years). For example, if you select the Premium tier ($80/yr) for 10 years, your one-time payment is $800. We then select and ship a gift on the scheduled occasion every year for the next 10 years \u2014 no subscriptions, no renewals, no surprises on your credit card.",
+      "You buy gift credits by tier \u2014 from Starter ($20) to Legacy ($200). Credits are stored in your dashboard. When you are ready, assign a recipient, occasion, and date to each credit. We then select and ship a gift on the scheduled occasion \u2014 no subscriptions, no renewals, no surprises on your credit card. Credits never expire, so there is no rush.",
   },
   {
     question: "What if I want to cancel?",
     answer:
-      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since gifts are prepaid and our team begins selection early, refunds for already-shipped years aren\u2019t available. For multi-year plans (up to 25 years) with remaining deliveries, please contact us and we\u2019ll work with you on a case-by-case basis.",
+      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since our team begins gift selection early, refunds for already-shipped credits aren\u2019t available. For unused credits, please contact us and we\u2019ll work with you on a case-by-case basis.",
   },
   {
     question: "What happens to my gifts if something happens to me?",
     answer:
-      "This is the heart of SendForGood. All prepaid gift plans are fulfilled in their entirety regardless of your account status. If your account becomes inactive, your scheduled gifts will continue to arrive as promised. A family member or legal representative can also contact us to manage remaining deliveries. Your love keeps arriving.",
+      "This is the heart of SendForGood. All purchased gift credits are fulfilled in their entirety regardless of your account status. If your account becomes inactive, your assigned gifts will continue to arrive as promised. A family member or legal representative can also contact us to manage remaining deliveries. Your love keeps arriving.",
   },
   {
     question: "Will the recipient know the gift was sent through SendForGood?",
@@ -74,8 +74,9 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray leading-relaxed">
-            Choose a tier, pick how many years (up to 25), and pay once. Every
-            plan includes gift selection, a personal message card, and delivery.
+            Buy gift credits by tier. Assign recipients from your dashboard
+            whenever you are ready. Every credit includes gift selection, a
+            personal message card, and delivery.
           </p>
         </div>
 
@@ -236,8 +237,8 @@ export default function PricingPage() {
         {/* Bottom CTA */}
         <div className="mt-20 text-center">
           <p className="text-warm-gray">
-            Not sure which tier is right? Start with any plan &mdash; you can
-            always upgrade later.
+            Not sure which tier is right? Start with any credit &mdash; you can
+            always buy more later.
           </p>
           <Link
             href="/gifts/buy"

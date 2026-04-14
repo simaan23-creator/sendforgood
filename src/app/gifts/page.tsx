@@ -452,8 +452,8 @@ export default function OurGiftsPage() {
             Ready to start sending?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-cream/80">
-            Tell us about your recipient and we&rsquo;ll handle everything from
-            there.
+            Buy gift credits by tier. Assign recipients from your dashboard
+            whenever you are ready &mdash; we handle the rest.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link

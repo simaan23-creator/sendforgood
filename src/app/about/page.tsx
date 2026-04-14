@@ -12,7 +12,7 @@ const useCases = [
     emoji: "\u{1F382}",
     title: "Never miss a birthday again",
     description:
-      "Set up annual birthday gifts for every grandchild, niece, nephew, or friend. Pay once, we deliver every year automatically.",
+      "Buy gift credits for every grandchild, niece, nephew, or friend. Assign their birthdays from your dashboard whenever you are ready. We deliver every year.",
   },
   {
     emoji: "\u{1F48D}",
@@ -36,7 +36,7 @@ const useCases = [
     emoji: "\u{1F43E}",
     title: "Because pets deserve birthdays too",
     description:
-      "Set up annual birthday treats for your dog, cat, or any pet you love. They deserve to feel special.",
+      "Buy gift credits for your dog, cat, or any pet you love. Assign their birthday and we deliver treats every year.",
   },
   {
     emoji: "\u2709\uFE0F",
@@ -54,7 +54,7 @@ const useCases = [
     emoji: "\u{1F4BC}",
     title: "Client retention, automated",
     description:
-      "Businesses use SendForGood to send gifts and letters to clients on birthdays, work anniversaries, and milestones. Set it up once, never think about it again.",
+      "Businesses use SendForGood to buy gift credits for clients on birthdays, work anniversaries, and milestones. Buy credits once, assign clients as you go.",
   },
   {
     emoji: "\u{1F56F}\uFE0F",
@@ -67,9 +67,9 @@ const useCases = [
 const products = [
   {
     emoji: "\u{1F381}",
-    name: "Gifts",
-    description: "Annual gifts delivered automatically.",
-    price: "From $20/year",
+    name: "Gift Credits",
+    description: "Buy credits. Assign recipients. We deliver.",
+    price: "From $20/credit",
     href: "/gifts/buy",
   },
   {
@@ -323,8 +323,8 @@ export default function AboutPage() {
             Ready to Start Your Legacy?
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-cream/80">
-            It only takes a few minutes to set up a gift plan that lasts for
-            years. Your loved ones deserve to feel your love&nbsp;&mdash; always.
+            It only takes a few minutes to buy gift credits and start assigning
+            recipients. Your loved ones deserve to feel your love&nbsp;&mdash; always.
           </p>
           <div className="mt-10">
             <Link

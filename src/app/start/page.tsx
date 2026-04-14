@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Start Sending - SendForGood",
   description:
-    "Choose how you want to show love - send annual gifts, write heartfelt letters, or both. Set it up once, we handle the rest.",
+    "Choose how you want to show love - buy gift credits, write heartfelt letters, or both. Assign recipients from your dashboard whenever you are ready.",
 };
 
 const CARDS = [
