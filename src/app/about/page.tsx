@@ -83,14 +83,14 @@ const products = [
     emoji: "\u{1F399}\uFE0F",
     name: "Voice Messages",
     description: "Your voice, delivered on schedule.",
-    price: "$1/year",
+    price: "$5/year",
     href: "/letters",
   },
   {
     emoji: "\u{1F3AC}",
     name: "Video Messages",
     description: "Your face, your voice, forever.",
-    price: "$1/year",
+    price: "$10/year",
     href: "/letters",
   },
   {
