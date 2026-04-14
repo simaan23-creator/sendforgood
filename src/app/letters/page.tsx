@@ -161,9 +161,9 @@ const FAQ = [
       "Annual letters are delivered once per year on a recurring date (like a birthday). You write one letter per year for as many years as you choose. Milestone letters are one-time deliveries timed to specific life events — graduation, wedding, first child, retirement, etc.",
   },
   {
-    question: "Can I add a letter to an existing gift plan?",
+    question: "Can I use letters alongside gift credits?",
     answer:
-      "Absolutely! When creating a new gift plan, you'll see the option to add a letter for just $8/year on top of your gift tier. The letter ships alongside the gift each year.",
+      "Yes! Letters are sold separately as their own credits. Buy letter credits and gift credits independently, then assign them to the same recipient from your dashboard. Everything stays in your cart and checks out together.",
   },
   {
     question: "What if the recipient moves?",
@@ -472,24 +472,6 @@ export default function LettersPage() {
             ))}
           </div>
 
-          {/* Add-on callout */}
-          <div className="mt-10 rounded-2xl border border-gold/30 bg-gold/5 p-6 text-center sm:p-8">
-            <p className="text-lg font-bold text-navy">
-              Already sending a gift?{" "}
-              <span className="text-gold">Add a letter for just $8/year</span>
-            </p>
-            <p className="mt-2 text-sm text-warm-gray">
-              When you create a gift plan, add a personal letter that ships
-              alongside each gift. The most meaningful $8 you&apos;ll ever
-              spend.
-            </p>
-            <Link
-              href="/gifts/buy"
-              className="mt-5 inline-flex items-center justify-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
-            >
-              Buy Gift Credits
-            </Link>
-          </div>
         </div>
       </section>
 
