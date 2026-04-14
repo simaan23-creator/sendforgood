@@ -118,59 +118,61 @@ export default function AboutPage() {
 
             <div className="space-y-6 pl-4 sm:pl-8 text-[17px] leading-[1.85] text-warm-gray font-[350]" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
               <p>
-                I work every day. I am an extremely busy businessman. My business
-                takes over my life. But that does not mean I do not love my nieces
-                and nephews.
+                I run a deli. I work every single day. The business consumes
+                me&nbsp;&mdash; early mornings, late nights, no off switch. But
+                loving the people in my life was never the problem. Remembering
+                to show it was.
               </p>
 
               <p>
-                I have so many of them that I can never keep track of their
-                birthdays. It keeps happening&nbsp;&mdash; my sister calls me the
-                same day and says,{" "}
+                I have more nieces and nephews than I can count, and I can never
+                keep their birthdays straight. It always goes the same way: my
+                sister calls me day-of and says,{" "}
                 <em className="text-navy/80">
-                  &ldquo;Hey, are you coming over for Braden&rsquo;s birthday
+                  &ldquo;Hey, you coming to Braden&rsquo;s birthday
                   tonight?&rdquo;
                 </em>{" "}
-                And I say yes, of course, but I feel like a schmuck because I did
-                not know it was his birthday and I did not buy him a present.
+                And I say yes. Of course I say yes. But I feel like a schmuck
+                because I had no idea, and I am showing up empty-handed.
               </p>
 
               <p>
-                I have so many close friends having kids, and I kept having the
-                same problem. And I kept forgetting my wife&rsquo;s anniversary
-                gift, too.
+                All my close friends started having kids. Same problem. My
+                wife&rsquo;s anniversary? Same problem.
               </p>
 
               <p>
-                Then I remembered a conversation with a friend of mine who is a
-                very successful real estate broker. He told me it is all about
-                client retention&nbsp;&mdash; that is why he always sends his
-                clients a small gift every holiday, just to remind them he is
-                thinking of them.
+                A friend of mine&nbsp;&mdash; very successful real estate
+                broker&nbsp;&mdash; once told me the secret to his business was
+                simple: he never let a client forget him. A small gift every
+                year, right on time. That is client retention. That is how
+                referrals happen.
               </p>
 
               <p>
-                My wife is an elementary school special education teacher. She said
-                she loves this idea because she can automate small gifts to all her
-                past students as they grow through life. She has maintained such a
-                close bond with her students that even years after they move on,
-                parents still call her with updates. She almost always ends up
-                going to their high school graduations. She also told me she has
-                always been afraid of forgetting to get someone a gift when they
-                got her one&nbsp;&mdash; and this takes care of that forever.
+                My wife is a special education teacher. When I told her about
+                this idea, she lit up. She still goes to her past
+                students&rsquo; high school graduations&nbsp;&mdash; years after
+                they leave her classroom, the parents still call her with
+                updates. She wanted a way to send those kids something as they
+                grew, to let them know she was still in their corner. She also
+                told me something that stuck with me: she has always been afraid
+                of forgetting to get someone a gift after they got her
+                one. This solves that forever.
               </p>
 
               <p>
-                My father passed away last year. He was sick, and he used to tell
-                me his time was running out. He always talked about buying
-                something for his grandkids that they could remember him by. He
-                never found the right thing.
+                My father passed away last year. Toward the end, he kept telling
+                me he wanted to leave something behind for his
+                grandkids&nbsp;&mdash; not money, but something they would
+                actually remember him by. He looked and looked. He never found
+                the right thing.
               </p>
 
               <p>
-                But I know&nbsp;&mdash; if he was around today, he would not even
-                hesitate. He would buy this for every one of his grandchildren, at
-                the highest tier, for as many years as we offered.
+                If my dad were alive today, he would not think twice. He would
+                buy this for every single grandchild, at the highest tier, for
+                as many years as we offered. I know that in my bones.
               </p>
 
               <p className="font-semibold text-navy">
@@ -199,48 +201,46 @@ export default function AboutPage() {
 
             <div className="space-y-6 pl-4 sm:pl-8 text-[17px] leading-[1.85] text-warm-gray font-[350]" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
               <p>
-                My father passed away last year. He was a first-generation
-                immigrant&nbsp;&mdash; one of the first people in my family to come
-                to the United States. He did not speak a word of English when he
-                arrived. He built a successful business, raised a great family, and
-                became one of the most intelligent businessmen I have ever known.
+                My father was a first-generation immigrant. He came to this
+                country without a word of English. No connections. No safety
+                net. He built a business from nothing, raised a family, and
+                became the sharpest man I have ever known.
               </p>
 
               <p>
-                Before he passed, he used to tell me that he wanted to leave his
-                grandchildren with more than just money. He wanted to pass on his
-                experience. His knowledge. The things he had learned the hard way,
-                so they would not have to.
+                Before he died, he told me over and over that he wanted to
+                leave his grandchildren something real. Not money. His
+                experience. His knowledge. The hard lessons he earned so they
+                would not have to learn them the same way.
               </p>
 
               <p>
-                He never found a way to do that.
+                He never found a way to do it.
               </p>
 
               <p>
-                My father will not be around to see my first child. But if I could
-                receive a letter that he wrote to me for that moment&nbsp;&mdash; a
-                letter that he sealed and set aside years ago, just waiting for the
-                right day&nbsp;&mdash; I cannot even put into words what that would
-                mean to me.
+                My first child has not been born yet. My father will never meet
+                them. But if I could open a letter he wrote for that
+                moment&nbsp;&mdash; something he sealed years ago and set aside,
+                waiting for exactly that day&nbsp;&mdash; I cannot put into
+                words what that would mean to me. I have tried. I cannot.
               </p>
 
               <p>
-                Any words of wisdom from my father would be worth far more than any
-                price we could put on them.
+                His words would be worth more than anything money could buy.
               </p>
 
               <p>
-                That is what Legacy Letters is really about. To the person writing
-                the letter, eight dollars might feel like a lot. But to the person
-                receiving it&nbsp;&mdash; especially if the writer is no longer
-                here&nbsp;&mdash; that letter could be priceless.
+                That is what Legacy Letters is about. The person writing pays a
+                few dollars. But the person receiving
+                it&nbsp;&mdash; especially after the writer is
+                gone&nbsp;&mdash; that letter is priceless.
               </p>
 
               <p className="font-semibold text-navy">
-                We built this so that no one has to wonder what their father, their
-                grandmother, their mentor would have said. Write it down. We will
-                make sure they read it.
+                Write it down. Seal it. We will make sure it arrives. No one
+                should have to wonder what the people they loved would have
+                said.
               </p>
 
               <p className="mt-4 text-right italic text-navy text-lg">
