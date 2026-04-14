@@ -114,6 +114,7 @@ export default function BuyCreditsPage() {
     }
 
     setAdded(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleReset() {

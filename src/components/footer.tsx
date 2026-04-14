@@ -2,9 +2,10 @@ import Link from "next/link";
 
 const FOOTER_LINKS = {
   Product: [
-    { href: "/#how-it-works", label: "How It Works" },
-    { href: "/gifts", label: "Our Gifts" },
-    { href: "/letters", label: "Legacy Letters" },
+    { href: "/gifts/buy", label: "Gift Credits" },
+    { href: "/messages/buy", label: "Messages" },
+    { href: "/vault", label: "Memory Vault" },
+    { href: "/weddings", label: "Weddings" },
     { href: "/pricing", label: "Pricing" },
   ],
   Company: [

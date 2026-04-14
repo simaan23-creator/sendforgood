@@ -12,22 +12,37 @@ const FAQ = [
   {
     question: "How do gift credits work?",
     answer:
-      "You buy gift credits by tier \u2014 from Starter ($20) to Legacy ($200). Credits are stored in your dashboard. When you are ready, assign a recipient, occasion, and date to each credit. We then select and ship a gift on the scheduled occasion \u2014 no subscriptions, no renewals, no surprises on your credit card. Credits never expire, so there is no rush.",
+      "Buy gift credits by tier \u2014 from Starter ($20) to Legacy ($200). Credits are stored in your dashboard. When you are ready, assign a recipient, occasion, and date to each credit. We handle gift selection, wrapping, and delivery. No subscriptions, no renewals. Credits never expire.",
   },
   {
-    question: "What if I want to cancel?",
+    question: "How do message credits work?",
     answer:
-      "You may request a full refund within 48 hours of purchase, as long as no gifts have shipped. After that, since our team begins gift selection early, refunds for already-shipped credits aren\u2019t available. For unused credits, please contact us and we\u2019ll work with you on a case-by-case basis.",
+      "Buy digital letter ($1), physical letter ($10), letter + photo ($15), audio ($5), or video ($10) credits. Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule. Credits never expire.",
   },
   {
-    question: "What happens to my gifts if something happens to me?",
+    question: "Can I assign the same credit to multiple years?",
     answer:
-      "This is the heart of SendForGood. All purchased gift credits are fulfilled in their entirety regardless of your account status. If your account becomes inactive, your assigned gifts will continue to arrive as promised. A family member or legal representative can also contact us to manage remaining deliveries. Your love keeps arriving.",
+      "Each credit covers one delivery. If you want to send a gift every year for 5 years, buy 5 credits. You can assign them all to the same person with different dates.",
   },
   {
-    question: "Will the recipient know the gift was sent through SendForGood?",
+    question: "What is the Memory Vault?",
     answer:
-      "Gifts are shipped from our fulfillment partners. The package may have retailer branding, but it will always include a card with your name and personal message \u2014 so to the recipient, it came from you.",
+      "The Memory Vault lets you collect audio and video messages from others. Buy credits, share a link, and people record for you. You can seal the vault until a future date \u2014 like a 10th anniversary or a birthday milestone. Perfect for group gifts and time capsules.",
+  },
+  {
+    question: "Do you ship internationally?",
+    answer:
+      "Physical gifts and letters are delivered within the continental United States only. Digital letters, audio messages, and video messages are delivered worldwide by email.",
+  },
+  {
+    question: "What is your refund policy?",
+    answer:
+      "We offer a full refund within 48 hours of purchase, as long as no credits have been used. Once a credit is assigned and fulfilled, that credit is non-refundable. Contact us at support@sendforgood.com or text (631) 707-4968.",
+  },
+  {
+    question: "Will the recipient know it was automated?",
+    answer:
+      "No. There is no SendForGood branding on anything we deliver. Gifts ship from our fulfillment partners with a card featuring your name and personal message. Letters and recordings arrive from you \u2014 not from us.",
   },
   {
     question: "Can I send gifts to pets?",
@@ -35,24 +50,9 @@ const FAQ = [
       "Absolutely! We love celebrating the furry, feathered, and finned members of the family. Select Pet Birthday or Pet Gotcha Day as your occasion type and we will select age and breed-appropriate treats and toys every year.",
   },
   {
-    question: "What is your refund policy?",
+    question: "Will you contact me before each delivery?",
     answer:
-      "We offer a full refund within 48 hours of purchase, as long as no gifts have been shipped yet. Once a gift has been sent, that year is non-refundable, but we can cancel future years (up to 25 year plans) for a prorated refund. Contact us at support@sendforgood.com or text (631) 707-4968.",
-  },
-  {
-    question: "Do you ship internationally?",
-    answer:
-      "At this time we only deliver within the continental United States. We do not ship to Alaska, Hawaii, US territories, or international addresses. We hope to expand in the future!",
-  },
-  {
-    question: "What about Legacy Letters?",
-    answer:
-      "Legacy Letters let you write letters today that arrive in the future \u2014 on birthdays, milestones, and more. Choose from three delivery types: Digital ($1/yr) delivered by email, Physical ($10/yr) printed and mailed, or Physical + Photo ($15/yr) mailed with a wallet-sized photo. Letters can also be added to any gift plan for $8/yr. Visit our Legacy Letters page to learn more.",
-  },
-  {
-    question: "Will you contact me before each gift ships?",
-    answer:
-      "Yes \u2014 about 2 weeks before each scheduled delivery, we will reach out by email (and text if you have added your number) to confirm your delivery details are still correct. If your address has changed or you want to update the gift preferences, just reply to our message and we will take care of it. If we do not hear back within 3 days, we will proceed with your gift as originally planned. If a gift is undeliverable due to an incorrect address and we were unable to reach you, we will attempt to contact your executor if one is on file. If we still cannot reach anyone, that year\u2019s delivery will be skipped \u2014 we do not offer refunds for failed deliveries due to outdated address information. We will attempt delivery again the following year once the address is updated.",
+      "Yes \u2014 about 2 weeks before each scheduled delivery, we will reach out by email (and text if you have added your number) to confirm your delivery details are still correct. If your address has changed or you want to update the gift preferences, just reply to our message and we will take care of it. If we do not hear back within 3 days, we will proceed as originally planned.",
   },
 ];
 
