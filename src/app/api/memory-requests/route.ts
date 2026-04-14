@@ -74,32 +74,46 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const TIMEOUT_MS = 5000;
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const result = await Promise.race([
+    (async () => {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  const { data: requests, error } = await supabaseAdmin
-    .from("memory_requests")
-    .select("*, memory_recordings(id)")
-    .eq("requester_id", user.id)
-    .order("created_at", { ascending: false });
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
 
-  if (error) {
-    console.error("Error fetching memory requests:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+      const { data: requests, error } = await supabaseAdmin
+        .from("memory_requests")
+        .select("*, memory_recordings(id)")
+        .eq("requester_id", user.id)
+        .order("created_at", { ascending: false });
 
-  // Add recording_count to each request
-  const result = (requests || []).map((req) => ({
-    ...req,
-    recording_count: req.memory_recordings?.length ?? 0,
-    memory_recordings: undefined,
-  }));
+      if (error) {
+        console.error("Error fetching memory requests:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
 
-  return NextResponse.json(result);
+      // Add recording_count to each request
+      const mapped = (requests || []).map((req) => ({
+        ...req,
+        recording_count: req.memory_recordings?.length ?? 0,
+        memory_recordings: undefined,
+      }));
+
+      return NextResponse.json(mapped);
+    })(),
+    new Promise<NextResponse>((resolve) =>
+      setTimeout(() => {
+        console.warn("Memory requests GET timed out after 5s");
+        resolve(NextResponse.json([]));
+      }, TIMEOUT_MS)
+    ),
+  ]);
+
+  return result;
 }
