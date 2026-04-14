@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { addLetterToCart } from "@/lib/cart";
-import { DELIVERY_TYPE_PRICES } from "@/lib/stripe";
+import { DELIVERY_TYPE_PRICES } from "@/lib/prices";
 
 type DeliveryType = "digital" | "physical" | "physical_photo";
 
