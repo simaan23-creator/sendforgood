@@ -7,12 +7,10 @@ import { getCombinedCartCount } from "@/lib/cart";
 import type { User } from "@supabase/supabase-js";
 
 const NAV_LINKS = [
-  { href: "/#how-it-works", label: "How It Works" },
   { href: "/gifts/buy", label: "Gift Credits" },
-  { href: "/letters", label: "Letters" },
   { href: "/messages/buy", label: "Messages" },
-  { href: "/wedding", label: "Weddings" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/wedding", label: "Weddings" },
   { href: "/business", label: "For Business" },
   { href: "/about", label: "About" },
 ] as const;

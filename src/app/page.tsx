@@ -255,16 +255,10 @@ export default function HomePage() {
               Buy Gift Credits &mdash; From $20
             </Link>
             <Link
-              href="/letters/write"
-              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
-            >
-              Send Your First Letter &mdash; From $1
-            </Link>
-            <Link
               href="/messages/buy"
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
-              Record a Message &mdash; From $5/yr
+              Send a Message &mdash; From $1
             </Link>
           </div>
 

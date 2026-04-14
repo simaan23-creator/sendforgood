@@ -23,7 +23,7 @@ const DELIVERY_TIERS = [
       "Continues even if something happens to you",
     ],
     cta: "Buy Digital Credits",
-    href: "/letters/write",
+    href: "/messages/buy",
     popular: false,
   },
   {
@@ -41,7 +41,7 @@ const DELIVERY_TIERS = [
       "Continues even if something happens to you",
     ],
     cta: "Buy Physical Credits",
-    href: "/letters/write",
+    href: "/messages/buy",
     popular: false,
   },
   {
@@ -59,7 +59,7 @@ const DELIVERY_TIERS = [
       "The most personal keepsake you can send",
     ],
     cta: "Buy Photo Credits",
-    href: "/letters/write",
+    href: "/messages/buy",
     popular: true,
   },
 ];
@@ -199,7 +199,7 @@ export default function LettersPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/letters/write"
+              href="/messages/buy"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               Buy Letter Credits
@@ -264,7 +264,7 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write"
+                href="/messages/buy"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
                 Start at $1/letter
@@ -290,7 +290,7 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write"
+                href="/messages/buy"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
                 Start at $10/letter
@@ -319,7 +319,7 @@ export default function LettersPage() {
                 ))}
               </ul>
               <Link
-                href="/letters/write"
+                href="/messages/buy"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
                 Start at $15/letter
@@ -577,7 +577,7 @@ export default function LettersPage() {
             arrive might be years from now.
           </p>
           <Link
-            href="/letters/write"
+            href="/messages/buy"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
             Buy Letter Credits &mdash; From $1/letter

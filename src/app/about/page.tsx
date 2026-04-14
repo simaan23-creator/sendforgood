@@ -74,24 +74,10 @@ const products = [
   },
   {
     emoji: "\u2709\uFE0F",
-    name: "Letters",
-    description: "Written letters delivered by mail or email.",
+    name: "Messages",
+    description: "Written letters, voice, or video \u2014 delivered by email or mail.",
     price: "From $1/year",
-    href: "/letters",
-  },
-  {
-    emoji: "\u{1F399}\uFE0F",
-    name: "Voice Messages",
-    description: "Your voice, delivered on schedule.",
-    price: "$5/year",
-    href: "/letters",
-  },
-  {
-    emoji: "\u{1F3AC}",
-    name: "Video Messages",
-    description: "Your face, your voice, forever.",
-    price: "$10/year",
-    href: "/letters",
+    href: "/messages/buy",
   },
   {
     emoji: "\u{1F510}",
@@ -291,7 +277,7 @@ export default function AboutPage() {
             One platform. Five ways to show love.
           </h2>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-14 grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
             {products.map((p) => (
               <Link
                 key={p.name}

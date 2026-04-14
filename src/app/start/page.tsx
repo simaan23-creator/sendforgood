@@ -22,55 +22,21 @@ const CARDS = [
     badge: null,
   },
   {
-    emoji: "✉️",
-    title: "Write a Letter",
+    emoji: "\u2709\uFE0F",
+    title: "Messages",
     subtitle: "From $1/year",
     description:
-      "Write letters to the people you love. Delivered by email, or printed and mailed. Annual or milestone letters stored safely until the moment is right.",
+      "Send written letters, voice messages, or video messages. Digital or physical. Your words, delivered forever.",
     features: [
-      "Digital from $1/yr",
-      "Physical from $10/yr",
-      "With photo from $15/yr",
-    ],
-    cta: "Write a Letter",
-    href: "/letters/write",
-    borderColor: "border-gold",
-    ctaBg: "bg-gold hover:bg-gold-dark",
-    badge: "New",
-  },
-  {
-    emoji: "🎁✉️",
-    title: "Gifts + Letters",
-    subtitle: "Best value",
-    description:
-      "The complete experience. Buy gift credits and write heartfelt letters - both managed from your dashboard. Credits never expire.",
-    features: [
-      "One checkout",
-      "Gifts and letters combined",
-      "Most meaningful option",
-    ],
-    cta: "Buy Gift Credits",
-    href: "/gifts/buy",
-    borderColor: "border-forest",
-    ctaBg: "bg-forest hover:bg-forest-light",
-    badge: "Most Popular",
-  },
-  {
-    emoji: "\uD83C\uDF99\uFE0F",
-    title: "Messages & Vault",
-    subtitle: "From $5/year",
-    description:
-      "Record audio or video messages for someone, or create a vault to collect messages from others. All credits are shared — $5 for audio, $10 for video.",
-    features: [
-      "Audio ($5/yr) or Video ($10/yr)",
-      "Record for someone or collect from others",
+      "Letters from $1/yr",
+      "Audio $5/yr, Video $10/yr",
       "Credits never expire",
     ],
-    cta: "Buy Credits",
+    cta: "Buy Message Credits",
     href: "/messages/buy",
-    borderColor: "border-navy/40",
-    ctaBg: "bg-navy/80 hover:bg-navy",
-    badge: "New",
+    borderColor: "border-gold",
+    ctaBg: "bg-gold hover:bg-gold-dark",
+    badge: null,
   },
 ] as const;
 
@@ -89,7 +55,7 @@ export default function StartPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
           {CARDS.map((card) => (
             <div
               key={card.title}
