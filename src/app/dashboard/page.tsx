@@ -168,6 +168,7 @@ export default function DashboardPage() {
   const [managingOrder, setManagingOrder] = useState<Order | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
+  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
@@ -242,6 +243,12 @@ export default function DashboardPage() {
     } catch {
       // silently fail
     }
+
+    // Fetch vault credits
+    try {
+      const credRes = await fetch("/api/vault/credits", { credentials: "include" });
+      if (credRes.ok) { const credData = await credRes.json(); setVaultCredits(credData); }
+    } catch { /* silently fail */ }
   }, [supabase, router]);
 
   useEffect(() => {
@@ -799,7 +806,12 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-warm-gray">
                 {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
-                {memoryRequests.reduce((sum, r) => sum + r.recording_count, 0)} total recordings
+                {memoryRequests.reduce((sum, r) => sum + (Array.isArray(r.memory_recordings) ? r.memory_recordings.length : 0), 0)} total recordings
+                {vaultCredits && (vaultCredits.audioCredits > 0 || vaultCredits.videoCredits > 0) && (
+                  <span className="ml-2 text-forest">
+                    &middot; {vaultCredits.audioCredits - vaultCredits.audioUsed} audio + {vaultCredits.videoCredits - vaultCredits.videoUsed} video credits available
+                  </span>
+                )}
               </p>
               <Link
                 href="/vault/my"
