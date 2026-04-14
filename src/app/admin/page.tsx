@@ -1745,18 +1745,22 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [shipmentsRes, ordersRes, lettersRes] = await Promise.all([
-      fetch("/api/admin/shipments"),
-      fetch("/api/admin/orders"),
-      fetch("/api/admin/letters"),
-    ]);
-    const shipmentsData = await shipmentsRes.json();
-    const ordersData = await ordersRes.json();
-    const lettersData = await lettersRes.json();
-    setShipments(shipmentsData.shipments || []);
-    setOrders(ordersData.orders || []);
-    setLetters(lettersData.letters || []);
-    setLoading(false);
+    // Fetch each independently with timeout so one slow API doesn't block others
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+    
+    const safeJson = async (url: string) => {
+      try {
+        const res = await Promise.race([fetch(url), timeout(8000)]) as Response;
+        return await res.json();
+      } catch { return null; }
+    };
+
+    setLoading(false); // Show dashboard immediately
+    
+    // Load data in parallel, each independently
+    safeJson("/api/admin/shipments").then(d => { if (d?.shipments) setShipments(d.shipments); });
+    safeJson("/api/admin/orders").then(d => { if (d?.orders) setOrders(d.orders); });
+    safeJson("/api/admin/letters").then(d => { if (d?.letters) setLetters(d.letters); });
   }, []);
 
   useEffect(() => {
