@@ -4,16 +4,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { addVaultToCart } from "@/lib/cart";
 
 export default function BuyCreditsPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [audioCredits, setAudioCredits] = useState(5);
   const [videoCredits, setVideoCredits] = useState(5);
   const [error, setError] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   // Existing balance
   const [existingAudio, setExistingAudio] = useState(0);
@@ -49,36 +50,24 @@ export default function BuyCreditsPage() {
   const videoTotal = videoCredits * 10;
   const grandTotal = audioTotal + videoTotal;
 
-  async function handleBuy() {
+  function handleAddToCart() {
     if (audioCredits <= 0 && videoCredits <= 0) {
       setError("Please select at least one credit to purchase.");
       return;
     }
 
     setError(null);
-    setSubmitting(true);
 
-    try {
-      const res = await fetch("/api/vault/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audioCredits: audioCredits > 0 ? audioCredits : 0,
-          videoCredits: videoCredits > 0 ? videoCredits : 0,
-        }),
-      });
+    addVaultToCart({
+      itemType: "vault",
+      audioCredits: audioCredits > 0 ? audioCredits : 0,
+      videoCredits: videoCredits > 0 ? videoCredits : 0,
+      unitPriceAudio: 500,
+      unitPriceVideo: 1000,
+      totalPrice: (audioCredits > 0 ? audioCredits * 500 : 0) + (videoCredits > 0 ? videoCredits * 1000 : 0),
+    });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setSubmitting(false);
-    }
+    setAddedToCart(true);
   }
 
   if (loading) {
@@ -203,13 +192,35 @@ export default function BuyCreditsPage() {
             <span className="text-3xl font-bold text-navy">${grandTotal}</span>
           </div>
 
-          <button
-            onClick={handleBuy}
-            disabled={submitting || grandTotal === 0}
-            className="mt-6 w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Redirecting to checkout..." : "Buy Credits"}
-          </button>
+          {addedToCart ? (
+            <div className="mt-6 space-y-3">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center text-sm font-semibold text-green-700">
+                Added to cart!
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  href="/cart"
+                  className="flex-1 rounded-lg bg-navy px-6 py-3 text-center text-base font-semibold text-cream shadow-md transition hover:bg-navy-light"
+                >
+                  View Cart
+                </Link>
+                <button
+                  onClick={() => setAddedToCart(false)}
+                  className="flex-1 rounded-lg border border-navy px-6 py-3 text-base font-semibold text-navy transition hover:bg-navy hover:text-cream"
+                >
+                  Add More
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={grandTotal === 0}
+              className="mt-6 w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Add to Cart
+            </button>
+          )}
         </div>
 
         <p className="mt-4 text-center text-sm text-warm-gray">

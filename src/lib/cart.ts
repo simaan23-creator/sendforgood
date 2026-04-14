@@ -194,14 +194,68 @@ export function getVoiceCartCount(): number {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   Vault Cart
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface VaultCartItem {
+  id: string;
+  itemType: "vault";
+  audioCredits: number;
+  videoCredits: number;
+  unitPriceAudio: number; // 500 cents
+  unitPriceVideo: number; // 1000 cents
+  totalPrice: number; // cents
+}
+
+const VAULT_CART_KEY = "sfg_vault_cart";
+
+export function getVaultCart(): VaultCartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(VAULT_CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addVaultToCart(item: Omit<VaultCartItem, "id">): VaultCartItem {
+  const cart = getVaultCart();
+  const newItem: VaultCartItem = { ...item, id: generateId() };
+  cart.push(newItem);
+  localStorage.setItem(VAULT_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+  return newItem;
+}
+
+export function removeVaultFromCart(id: string): void {
+  const cart = getVaultCart().filter((item) => item.id !== id);
+  localStorage.setItem(VAULT_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function clearVaultCart(): void {
+  localStorage.removeItem(VAULT_CART_KEY);
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function getVaultCartTotal(): number {
+  return getVaultCart().reduce((sum, item) => sum + item.totalPrice, 0);
+}
+
+export function getVaultCartCount(): number {
+  return getVaultCart().length;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    Combined Cart helpers
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function getCombinedCartCount(): number {
-  return getCartCount() + getLetterCartCount() + getVoiceCartCount();
+  return getCartCount() + getLetterCartCount() + getVoiceCartCount() + getVaultCartCount();
 }
 
 export function getCombinedCartTotal(): number {
-  // Gift cart totals are in dollars; letter + voice cart totals are in cents
-  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceCartTotal() / 100;
+  // Gift cart totals are in dollars; letter + voice + vault cart totals are in cents
+  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceCartTotal() / 100 + getVaultCartTotal() / 100;
 }

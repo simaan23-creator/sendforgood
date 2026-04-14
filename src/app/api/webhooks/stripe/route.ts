@@ -639,6 +639,23 @@ async function handleCartOrder(
     await supabaseAdmin.from("voice_messages").insert(voiceDraftMessages);
   }
 
+  // Process vault credit items
+  const vaultAudioCredits = parseInt(metadata.vaultAudioCredits) || 0;
+  const vaultVideoCredits = parseInt(metadata.vaultVideoCredits) || 0;
+
+  if (vaultAudioCredits > 0 || vaultVideoCredits > 0) {
+    const { error: creditError } = await supabaseAdmin
+      .from("memory_credits")
+      .insert({
+        user_id: userId,
+        audio_credits: vaultAudioCredits,
+        video_credits: vaultVideoCredits,
+        stripe_payment_intent_id: session.payment_intent as string,
+      });
+
+    if (creditError) throw creditError;
+  }
+
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 

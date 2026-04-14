@@ -65,15 +65,26 @@ interface VoiceItemPayload {
   totalPrice: number;
 }
 
+interface VaultItemPayload {
+  id: string;
+  itemType: "vault";
+  audioCredits: number;
+  videoCredits: number;
+  unitPriceAudio: number;
+  unitPriceVideo: number;
+  totalPrice: number;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const cookieStore = await cookies();
     const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
-    const { items, letterItems, voiceItems, email, fullName } = body as {
+    const { items, letterItems, voiceItems, vaultItems, email, fullName } = body as {
       items: CartItemPayload[];
       letterItems?: LetterItemPayload[];
       voiceItems?: VoiceItemPayload[];
+      vaultItems?: VaultItemPayload[];
       email: string;
       fullName: string;
     };
@@ -81,8 +92,9 @@ export async function POST(request: Request) {
     const hasGifts = items && items.length > 0;
     const hasLetters = letterItems && letterItems.length > 0;
     const hasVoice = voiceItems && voiceItems.length > 0;
+    const hasVault = vaultItems && vaultItems.length > 0;
 
-    if (!hasGifts && !hasLetters && !hasVoice) {
+    if (!hasGifts && !hasLetters && !hasVoice && !hasVault) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -185,6 +197,38 @@ export async function POST(request: Request) {
       }
     }
 
+    // Vault credit line items
+    if (hasVault) {
+      for (const vault of vaultItems) {
+        if (vault.audioCredits > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `Vault Audio Credits (${vault.audioCredits})`,
+                description: `${vault.audioCredits} audio credit${vault.audioCredits > 1 ? "s" : ""} at $5 each`,
+              },
+              unit_amount: 500,
+            },
+            quantity: vault.audioCredits,
+          });
+        }
+        if (vault.videoCredits > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `Vault Video Credits (${vault.videoCredits})`,
+                description: `${vault.videoCredits} video credit${vault.videoCredits > 1 ? "s" : ""} at $10 each`,
+              },
+              unit_amount: 1000,
+            },
+            quantity: vault.videoCredits,
+          });
+        }
+      }
+    }
+
     // Check if user is authenticated
     const supabase = await createClient();
     const {
@@ -230,6 +274,16 @@ export async function POST(request: Request) {
       }
     }
 
+    // Calculate total vault credits
+    let totalVaultAudio = 0;
+    let totalVaultVideo = 0;
+    if (hasVault) {
+      for (const vault of vaultItems) {
+        totalVaultAudio += vault.audioCredits || 0;
+        totalVaultVideo += vault.videoCredits || 0;
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -247,6 +301,8 @@ export async function POST(request: Request) {
         voiceItemCount: (voiceItems?.length || 0).toString(),
         voiceAudio: totalVoiceAudio.toString(),
         voiceVideo: totalVoiceVideo.toString(),
+        vaultAudioCredits: totalVaultAudio.toString(),
+        vaultVideoCredits: totalVaultVideo.toString(),
         affiliate_code: affiliateCode,
         ...metadataChunks,
       },
