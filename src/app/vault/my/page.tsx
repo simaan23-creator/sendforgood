@@ -55,22 +55,20 @@ export default function MyVaultsPage() {
         return;
       }
 
-      const [vaultsRes, creditsRes] = await Promise.all([
-        fetch("/api/memory-requests"),
-        fetch("/api/vault/credits"),
-      ]);
+      setLoading(false); // Show page immediately
 
-      if (vaultsRes.ok) {
-        const data = await vaultsRes.json();
-        setVaults(data);
-      }
+      // Load independently with timeout
+      const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+      
+      try {
+        const vaultsRes = await Promise.race([fetch("/api/memory-requests"), timeout(8000)]) as Response;
+        if (vaultsRes.ok) { const data = await vaultsRes.json(); setVaults(data); }
+      } catch { /* timeout */ }
 
-      if (creditsRes.ok) {
-        const data = await creditsRes.json();
-        setCredits(data);
-      }
-
-      setLoading(false);
+      try {
+        const creditsRes = await Promise.race([fetch("/api/vault/credits"), timeout(8000)]) as Response;
+        if (creditsRes.ok) { const data = await creditsRes.json(); setCredits(data); }
+      } catch { /* timeout */ }
     }
     load();
   }, [supabase, router]);
