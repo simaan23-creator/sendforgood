@@ -69,7 +69,7 @@ const products = [
     emoji: "\u{1F381}",
     name: "Gifts",
     description: "Annual gifts delivered automatically.",
-    price: "From $30/year",
+    price: "From $20/year",
     href: "/send",
   },
   {
