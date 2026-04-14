@@ -639,6 +639,32 @@ async function handleCartOrder(
     await supabaseAdmin.from("voice_messages").insert(voiceDraftMessages);
   }
 
+  // Process gift credit items
+  let giftCreditsJson = "";
+  let gcChunkIndex = 0;
+  while (metadata[`gift_credits_${gcChunkIndex}`] !== undefined) {
+    giftCreditsJson += metadata[`gift_credits_${gcChunkIndex}`];
+    gcChunkIndex++;
+  }
+
+  const giftCreditItems: Array<{ tier: string; quantity: number; unitPrice: number }> = giftCreditsJson ? JSON.parse(giftCreditsJson) : [];
+
+  for (const gc of giftCreditItems) {
+    const amountPaid = gc.unitPrice * gc.quantity;
+    const { error: gcError } = await supabaseAdmin
+      .from("gift_credits")
+      .insert({
+        user_id: userId,
+        tier: gc.tier,
+        quantity: gc.quantity,
+        quantity_used: 0,
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: amountPaid,
+      });
+
+    if (gcError) throw gcError;
+  }
+
   // Process vault credit items
   const vaultAudioCredits = parseInt(metadata.vaultAudioCredits) || 0;
   const vaultVideoCredits = parseInt(metadata.vaultVideoCredits) || 0;

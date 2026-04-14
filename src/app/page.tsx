@@ -250,10 +250,10 @@ export default function HomePage() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
-              Send Your First Gift &mdash; From $20
+              Buy Gift Credits &mdash; From $20
             </Link>
             <Link
               href="/letters/write"

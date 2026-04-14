@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 const CARDS = [
   {
     emoji: "🎁",
-    title: "Send a Gift",
-    subtitle: "From $20/year",
+    title: "Buy Gift Credits",
+    subtitle: "From $20/credit",
     description:
-      "Annual gifts delivered to anyone you love - birthdays, holidays, anniversaries, pets, and more. Set it up once, we handle the rest every year.",
-    features: ["All occasions", "5 tiers from $20-$200/yr", "Up to 25 years"],
-    cta: "Choose a Gift",
-    href: "/send",
+      "Buy gift credits by tier. Assign recipients, dates, and preferences from your dashboard whenever you are ready. Credits never expire.",
+    features: ["5 tiers from $20-$200", "Assign recipients later", "Credits never expire"],
+    cta: "Buy Gift Credits",
+    href: "/gifts/buy",
     borderColor: "border-navy",
     ctaBg: "bg-navy hover:bg-navy-light",
     badge: null,

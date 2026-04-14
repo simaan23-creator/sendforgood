@@ -248,14 +248,68 @@ export function getVaultCartCount(): number {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   Gift Credit Cart
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface GiftCreditCartItem {
+  id: string;
+  itemType: "gift_credit";
+  tier: string; // starter/classic/premium/deluxe/legacy
+  tierName: string;
+  quantity: number;
+  unitPrice: number; // cents
+  totalPrice: number; // cents
+}
+
+const GIFT_CREDIT_CART_KEY = "sfg_gift_credits_cart";
+
+export function getGiftCreditCart(): GiftCreditCartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(GIFT_CREDIT_CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addGiftCreditToCart(item: Omit<GiftCreditCartItem, "id">): GiftCreditCartItem {
+  const cart = getGiftCreditCart();
+  const newItem: GiftCreditCartItem = { ...item, id: generateId() };
+  cart.push(newItem);
+  localStorage.setItem(GIFT_CREDIT_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+  return newItem;
+}
+
+export function removeGiftCreditFromCart(id: string): void {
+  const cart = getGiftCreditCart().filter((item) => item.id !== id);
+  localStorage.setItem(GIFT_CREDIT_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function clearGiftCreditCart(): void {
+  localStorage.removeItem(GIFT_CREDIT_CART_KEY);
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function getGiftCreditCartTotal(): number {
+  return getGiftCreditCart().reduce((sum, item) => sum + item.totalPrice, 0);
+}
+
+export function getGiftCreditCartCount(): number {
+  return getGiftCreditCart().length;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    Combined Cart helpers
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function getCombinedCartCount(): number {
-  return getCartCount() + getLetterCartCount() + getVoiceCartCount() + getVaultCartCount();
+  return getCartCount() + getLetterCartCount() + getVoiceCartCount() + getVaultCartCount() + getGiftCreditCartCount();
 }
 
 export function getCombinedCartTotal(): number {
-  // Gift cart totals are in dollars; letter + voice + vault cart totals are in cents
-  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceCartTotal() / 100 + getVaultCartTotal() / 100;
+  // Gift cart totals are in dollars; letter + voice + vault + gift credit cart totals are in cents
+  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceCartTotal() / 100 + getVaultCartTotal() / 100 + getGiftCreditCartTotal() / 100;
 }

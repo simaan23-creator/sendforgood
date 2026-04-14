@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCart, clearCart, getLetterCart, clearLetterCart } from "@/lib/cart";
+import { getCart, clearCart, getLetterCart, clearLetterCart, clearVoiceCart, clearVaultCart, clearGiftCreditCart } from "@/lib/cart";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
 import type { CartItem, LetterCartItem } from "@/lib/cart";
 
@@ -20,6 +20,9 @@ export default function CartSuccessPage() {
       setLetterItems(cartLetters);
       clearCart();
       clearLetterCart();
+      clearVoiceCart();
+      clearVaultCart();
+      clearGiftCreditCart();
       setCleared(true);
     }
   }, [cleared]);

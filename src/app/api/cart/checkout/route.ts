@@ -75,16 +75,27 @@ interface VaultItemPayload {
   totalPrice: number;
 }
 
+interface GiftCreditItemPayload {
+  id: string;
+  itemType: "gift_credit";
+  tier: string;
+  tierName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const cookieStore = await cookies();
     const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
-    const { items, letterItems, voiceItems, vaultItems, email, fullName } = body as {
+    const { items, letterItems, voiceItems, vaultItems, giftCreditItems, email, fullName } = body as {
       items: CartItemPayload[];
       letterItems?: LetterItemPayload[];
       voiceItems?: VoiceItemPayload[];
       vaultItems?: VaultItemPayload[];
+      giftCreditItems?: GiftCreditItemPayload[];
       email: string;
       fullName: string;
     };
@@ -93,8 +104,9 @@ export async function POST(request: Request) {
     const hasLetters = letterItems && letterItems.length > 0;
     const hasVoice = voiceItems && voiceItems.length > 0;
     const hasVault = vaultItems && vaultItems.length > 0;
+    const hasGiftCredits = giftCreditItems && giftCreditItems.length > 0;
 
-    if (!hasGifts && !hasLetters && !hasVoice && !hasVault) {
+    if (!hasGifts && !hasLetters && !hasVoice && !hasVault && !hasGiftCredits) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -229,6 +241,23 @@ export async function POST(request: Request) {
       }
     }
 
+    // Gift credit line items
+    if (hasGiftCredits) {
+      for (const gc of giftCreditItems) {
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${gc.tierName} Gift Credit (${gc.quantity})`,
+              description: `${gc.quantity} ${gc.tierName} gift credit${gc.quantity > 1 ? "s" : ""} at $${(gc.unitPrice / 100).toFixed(0)} each`,
+            },
+            unit_amount: gc.unitPrice,
+          },
+          quantity: gc.quantity,
+        });
+      }
+    }
+
     // Check if user is authenticated
     const supabase = await createClient();
     const {
@@ -284,6 +313,19 @@ export async function POST(request: Request) {
       }
     }
 
+    // Serialize gift credit items for metadata
+    const giftCreditsJson = hasGiftCredits
+      ? JSON.stringify(giftCreditItems.map((gc) => ({ tier: gc.tier, quantity: gc.quantity, unitPrice: gc.unitPrice })))
+      : "";
+    if (giftCreditsJson) {
+      for (let i = 0; i < giftCreditsJson.length; i += CHUNK_SIZE) {
+        metadataChunks[`gift_credits_${Math.floor(i / CHUNK_SIZE)}`] = giftCreditsJson.slice(
+          i,
+          i + CHUNK_SIZE
+        );
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -303,6 +345,7 @@ export async function POST(request: Request) {
         voiceVideo: totalVoiceVideo.toString(),
         vaultAudioCredits: totalVaultAudio.toString(),
         vaultVideoCredits: totalVaultVideo.toString(),
+        giftCreditItemCount: (giftCreditItems?.length || 0).toString(),
         affiliate_code: affiliateCode,
         ...metadataChunks,
       },

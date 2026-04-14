@@ -170,6 +170,7 @@ export default function DashboardPage() {
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
+  const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
@@ -251,6 +252,16 @@ export default function DashboardPage() {
       const totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
       const totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
       setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
+    } catch { /* silently fail */ }
+
+    // Fetch gift credits
+    try {
+      const { data: gcData } = await supabase
+        .from('gift_credits')
+        .select('id, tier, quantity, quantity_used, amount_paid, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (gcData) setGiftCredits(gcData);
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -491,6 +502,74 @@ export default function DashboardPage() {
               {deliveredCount}
             </p>
           </div>
+        </div>
+
+        {/* My Gift Credits */}
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-navy">My Gift Credits</h2>
+            <Link
+              href="/gifts/buy"
+              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+            >
+              Buy More Credits
+            </Link>
+          </div>
+
+          {giftCredits.length === 0 ? (
+            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
+              <p className="text-warm-gray">
+                No gift credits yet. Buy some to get started.{" "}
+                <Link href="/gifts/buy" className="font-medium text-navy underline hover:text-gold">
+                  Buy Gift Credits
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {giftCredits.map((gc) => {
+                const available = gc.quantity - gc.quantity_used;
+                return (
+                  <div
+                    key={gc.id}
+                    className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(gc.tier)}`}
+                      >
+                        {getTierName(gc.tier)}
+                      </span>
+                      <span className={`text-xs font-medium ${available > 0 ? "text-forest" : "text-warm-gray-light"}`}>
+                        {available} of {gc.quantity} available
+                      </span>
+                    </div>
+                    <div className="mt-3">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-cream-dark">
+                        <div
+                          className="h-full rounded-full bg-forest transition-all duration-300"
+                          style={{ width: `${gc.quantity > 0 ? ((gc.quantity - available) / gc.quantity) * 100 : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-warm-gray-light">
+                      ${(gc.amount_paid / 100).toFixed(0)} paid
+                    </p>
+                    {available > 0 && (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-3 w-full rounded-lg border-2 border-navy px-3 py-2 text-xs font-semibold text-navy opacity-50 cursor-not-allowed"
+                        title="Coming soon in Phase 2"
+                      >
+                        Assign Recipient (Coming Soon)
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Orders list */}

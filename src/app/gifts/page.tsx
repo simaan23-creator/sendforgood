@@ -457,10 +457,10 @@ export default function OurGiftsPage() {
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
-              href="/send"
+              href="/gifts/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-10 py-4 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
-              Start Sending
+              Buy Gift Credits
             </Link>
             <Link
               href="/business"
