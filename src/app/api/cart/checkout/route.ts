@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES, VOICE_MESSAGE_PRICES } from "@/lib/stripe";
+import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,15 +57,11 @@ interface LetterItemPayload {
 
 interface VoiceItemPayload {
   id: string;
-  itemType: "voice-message";
-  recipientName: string;
-  recipientEmail: string;
-  messageType: "annual" | "milestone";
-  messageFormat?: "audio" | "video";
-  title: string;
-  quantity: number;
-  durationSeconds: number;
-  unitPrice: number;
+  itemType: "voice";
+  audioQuantity: number;
+  videoQuantity: number;
+  unitPriceAudio: number;
+  unitPriceVideo: number;
   totalPrice: number;
 }
 
@@ -160,24 +156,32 @@ export async function POST(request: Request) {
     // Voice message line items
     if (hasVoice) {
       for (const voice of voiceItems) {
-        const fmt = voice.messageFormat || "audio";
-        const voicePriceInfo = VOICE_MESSAGE_PRICES[fmt];
-        const quantityLabel =
-          voice.messageType === "annual"
-            ? `${voice.quantity} yr${voice.quantity > 1 ? "s" : ""}`
-            : `${voice.quantity} message${voice.quantity > 1 ? "s" : ""}`;
-
-        lineItems.push({
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${voicePriceInfo.label} — ${voice.recipientName} (${quantityLabel})`,
-              description: `${voicePriceInfo.label} for ${voice.recipientName}`,
+        if (voice.audioQuantity > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `Audio Messages (${voice.audioQuantity})`,
+                description: `${voice.audioQuantity} audio message${voice.audioQuantity > 1 ? "s" : ""} at $5/yr each`,
+              },
+              unit_amount: 500,
             },
-            unit_amount: voice.totalPrice,
-          },
-          quantity: 1,
-        });
+            quantity: voice.audioQuantity,
+          });
+        }
+        if (voice.videoQuantity > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `Video Messages (${voice.videoQuantity})`,
+                description: `${voice.videoQuantity} video message${voice.videoQuantity > 1 ? "s" : ""} at $10/yr each`,
+              },
+              unit_amount: 1000,
+            },
+            quantity: voice.videoQuantity,
+          });
+        }
       }
     }
 
@@ -216,6 +220,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Calculate total voice audio and video counts
+    let totalVoiceAudio = 0;
+    let totalVoiceVideo = 0;
+    if (hasVoice) {
+      for (const voice of voiceItems) {
+        totalVoiceAudio += voice.audioQuantity || 0;
+        totalVoiceVideo += voice.videoQuantity || 0;
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -231,6 +245,8 @@ export async function POST(request: Request) {
         itemCount: (items?.length || 0).toString(),
         letterItemCount: (letterItems?.length || 0).toString(),
         voiceItemCount: (voiceItems?.length || 0).toString(),
+        voiceAudio: totalVoiceAudio.toString(),
+        voiceVideo: totalVoiceVideo.toString(),
         affiliate_code: affiliateCode,
         ...metadataChunks,
       },

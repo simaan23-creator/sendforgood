@@ -140,26 +140,22 @@ export function getLetterCartCount(): number {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Voice Message Cart
+   Voice Cart
    ═══════════════════════════════════════════════════════════════════════════ */
 
-export interface VoiceMessageCartItem {
+export interface VoiceCartItem {
   id: string;
-  itemType: "voice-message";
-  recipientName: string;
-  recipientEmail: string;
-  messageType: "annual" | "milestone";
-  messageFormat: "audio" | "video";
-  title: string;
-  quantity: number;
-  durationSeconds: number;
-  unitPrice: number; // cents
+  itemType: "voice";
+  audioQuantity: number;
+  videoQuantity: number;
+  unitPriceAudio: number; // 500 cents
+  unitPriceVideo: number; // 1000 cents
   totalPrice: number; // cents
 }
 
 const VOICE_CART_KEY = "sfg_voice_cart";
 
-export function getVoiceMessageCart(): VoiceMessageCartItem[] {
+export function getVoiceCart(): VoiceCartItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(VOICE_CART_KEY);
@@ -169,32 +165,32 @@ export function getVoiceMessageCart(): VoiceMessageCartItem[] {
   }
 }
 
-export function addVoiceMessageToCart(item: Omit<VoiceMessageCartItem, "id">): VoiceMessageCartItem {
-  const cart = getVoiceMessageCart();
-  const newItem: VoiceMessageCartItem = { ...item, id: generateId() };
+export function addVoiceToCart(item: Omit<VoiceCartItem, "id">): VoiceCartItem {
+  const cart = getVoiceCart();
+  const newItem: VoiceCartItem = { ...item, id: generateId() };
   cart.push(newItem);
   localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));
   window.dispatchEvent(new Event("cart-updated"));
   return newItem;
 }
 
-export function removeVoiceMessageFromCart(id: string): void {
-  const cart = getVoiceMessageCart().filter((item) => item.id !== id);
+export function removeVoiceFromCart(id: string): void {
+  const cart = getVoiceCart().filter((item) => item.id !== id);
   localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));
   window.dispatchEvent(new Event("cart-updated"));
 }
 
-export function clearVoiceMessageCart(): void {
+export function clearVoiceCart(): void {
   localStorage.removeItem(VOICE_CART_KEY);
   window.dispatchEvent(new Event("cart-updated"));
 }
 
-export function getVoiceMessageCartTotal(): number {
-  return getVoiceMessageCart().reduce((sum, item) => sum + item.totalPrice, 0);
+export function getVoiceCartTotal(): number {
+  return getVoiceCart().reduce((sum, item) => sum + item.totalPrice, 0);
 }
 
-export function getVoiceMessageCartCount(): number {
-  return getVoiceMessageCart().length;
+export function getVoiceCartCount(): number {
+  return getVoiceCart().length;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -202,10 +198,10 @@ export function getVoiceMessageCartCount(): number {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function getCombinedCartCount(): number {
-  return getCartCount() + getLetterCartCount() + getVoiceMessageCartCount();
+  return getCartCount() + getLetterCartCount() + getVoiceCartCount();
 }
 
 export function getCombinedCartTotal(): number {
   // Gift cart totals are in dollars; letter + voice cart totals are in cents
-  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceMessageCartTotal() / 100;
+  return getCartTotal() + getLetterCartTotal() / 100 + getVoiceCartTotal() / 100;
 }

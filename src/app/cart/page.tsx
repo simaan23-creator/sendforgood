@@ -14,20 +14,20 @@ import {
   removeLetterFromCart,
   getLetterCartTotal,
   getLetterCartCount,
-  getVoiceMessageCart,
-  removeVoiceMessageFromCart,
-  getVoiceMessageCartTotal,
-  getVoiceMessageCartCount,
+  getVoiceCart,
+  removeVoiceFromCart,
+  getVoiceCartTotal,
+  getVoiceCartCount,
   getCombinedCartCount,
   getCombinedCartTotal,
 } from "@/lib/cart";
-import type { CartItem, LetterCartItem, VoiceMessageCartItem } from "@/lib/cart";
+import type { CartItem, LetterCartItem, VoiceCartItem } from "@/lib/cart";
 
 export default function CartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
   const [letterItems, setLetterItems] = useState<LetterCartItem[]>([]);
-  const [voiceItems, setVoiceItems] = useState<VoiceMessageCartItem[]>([]);
+  const [voiceItems, setVoiceItems] = useState<VoiceCartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [count, setCount] = useState(0);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -42,7 +42,7 @@ export default function CartPage() {
   function refreshCart() {
     setItems(getCart());
     setLetterItems(getLetterCart());
-    setVoiceItems(getVoiceMessageCart());
+    setVoiceItems(getVoiceCart());
     setTotal(getCombinedCartTotal());
     setCount(getCombinedCartCount());
   }
@@ -76,7 +76,7 @@ export default function CartPage() {
   }
 
   function handleRemoveVoice(id: string) {
-    removeVoiceMessageFromCart(id);
+    removeVoiceFromCart(id);
     refreshCart();
   }
 
@@ -336,65 +336,66 @@ export default function CartPage() {
                 </div>
               </div>
             ))}
-            {/* Voice message items */}
-            {voiceItems.map((voice) => (
-              <div
-                key={voice.id}
-                className="rounded-xl border border-gold/30 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-navy truncate">
-                        {voice.recipientName}
-                      </h3>
-                      <span className="shrink-0 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">
-                        {voice.messageFormat === "video" ? "Video" : "Audio"}
-                      </span>
+            {/* Voice/video message items */}
+            {voiceItems.map((voice) => {
+              const parts: string[] = [];
+              if (voice.audioQuantity > 0) parts.push(`${voice.audioQuantity} audio message${voice.audioQuantity > 1 ? "s" : ""}`);
+              if (voice.videoQuantity > 0) parts.push(`${voice.videoQuantity} video message${voice.videoQuantity > 1 ? "s" : ""}`);
+              const label = parts.join(" + ");
+
+              return (
+                <div
+                  key={voice.id}
+                  className="rounded-xl border border-gold/30 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-navy">
+                          Voice &amp; Video Messages
+                        </h3>
+                        <span className="shrink-0 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">
+                          Voice
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-warm-gray">
+                        {label}
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-warm-gray capitalize">
-                      {voice.messageType} &middot; {voice.messageFormat === "video" ? "Video" : "Audio"} (Email)
-                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVoice(voice.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-red-50 hover:text-red-500"
+                      aria-label="Remove voice messages"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveVoice(voice.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-red-50 hover:text-red-500"
-                    aria-label={`Remove voice message for ${voice.recipientName}`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                      <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-                  <div>
-                    <span className="text-warm-gray-light">Type</span>
-                    <p className="font-medium text-navy capitalize">{voice.messageType}</p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Quantity</span>
-                    <p className="font-medium text-navy">
-                      {voice.quantity} {voice.messageType === "annual" ? (voice.quantity === 1 ? "year" : "years") : (voice.quantity === 1 ? "message" : "messages")}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Per Unit</span>
-                    <p className="font-medium text-navy">${(voice.unitPrice / 100).toFixed(0)}</p>
-                  </div>
-                  <div>
-                    <span className="text-warm-gray-light">Total</span>
-                    <p className="font-bold text-forest">${(voice.totalPrice / 100).toFixed(0)}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+                    {voice.audioQuantity > 0 && (
+                      <div>
+                        <span className="text-warm-gray-light">Audio</span>
+                        <p className="font-medium text-navy">{voice.audioQuantity} &times; $5/yr</p>
+                      </div>
+                    )}
+                    {voice.videoQuantity > 0 && (
+                      <div>
+                        <span className="text-warm-gray-light">Video</span>
+                        <p className="font-medium text-navy">{voice.videoQuantity} &times; $10/yr</p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-warm-gray-light">Total</span>
+                      <p className="font-bold text-forest">${(voice.totalPrice / 100).toFixed(0)}</p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="mt-3 text-xs text-warm-gray-light">
-                  {voice.recipientEmail}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* ──────────── Order Summary Sidebar ──────────── */}
@@ -419,14 +420,19 @@ export default function CartPage() {
                     <span className="font-medium text-navy">${(letter.totalPrice / 100).toFixed(0)}</span>
                   </div>
                 ))}
-                {voiceItems.map((voice) => (
-                  <div key={voice.id} className="flex items-center justify-between text-sm">
-                    <span className="text-warm-gray truncate max-w-[60%]">
-                      {voice.messageFormat === "video" ? "Video" : "Audio"} &mdash; {voice.recipientName}
-                    </span>
-                    <span className="font-medium text-navy">${(voice.totalPrice / 100).toFixed(0)}</span>
-                  </div>
-                ))}
+                {voiceItems.map((voice) => {
+                  const parts: string[] = [];
+                  if (voice.audioQuantity > 0) parts.push(`${voice.audioQuantity} audio`);
+                  if (voice.videoQuantity > 0) parts.push(`${voice.videoQuantity} video`);
+                  return (
+                    <div key={voice.id} className="flex items-center justify-between text-sm">
+                      <span className="text-warm-gray truncate max-w-[60%]">
+                        {parts.join(" + ")}
+                      </span>
+                      <span className="font-medium text-navy">${(voice.totalPrice / 100).toFixed(0)}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="mt-4 border-t border-cream-dark pt-4">

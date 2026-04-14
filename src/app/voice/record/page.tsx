@@ -2,71 +2,42 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-type MediaFormat = "audio" | "video";
+import { addVoiceToCart } from "@/lib/cart";
 
 const AUDIO_PRICE_CENTS = 500;
 const VIDEO_PRICE_CENTS = 1000;
 
-export default function RecordVoiceMessagePage() {
-  const [step, setStep] = useState(1);
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [messageFormat, setMessageFormat] = useState<MediaFormat>("audio");
-  const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export default function BuyVoiceMessagesPage() {
+  const [audioQty, setAudioQty] = useState(0);
+  const [videoQty, setVideoQty] = useState(0);
+  const [added, setAdded] = useState(false);
 
-  const unitPriceCents =
-    messageFormat === "video" ? VIDEO_PRICE_CENTS : AUDIO_PRICE_CENTS;
-  const totalCents = unitPriceCents * quantity;
-  const totalDollars = totalCents / 100;
-  const unitDollars = unitPriceCents / 100;
+  const audioSubtotal = audioQty * AUDIO_PRICE_CENTS;
+  const videoSubtotal = videoQty * VIDEO_PRICE_CENTS;
+  const total = audioSubtotal + videoSubtotal;
+  const canAdd = audioQty > 0 || videoQty > 0;
 
-  const canAdvanceToStep2 =
-    recipientName.trim().length > 0 &&
-    recipientEmail.trim().length > 0 &&
-    recipientEmail.includes("@");
-
-  async function handleCheckout() {
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/voice/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipientName: recipientName.trim(),
-          recipientEmail: recipientEmail.trim(),
-          messageFormat,
-          quantity,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Something went wrong");
-        setLoading(false);
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
-    }
+  function handleAddToCart() {
+    addVoiceToCart({
+      itemType: "voice",
+      audioQuantity: audioQty,
+      videoQuantity: videoQty,
+      unitPriceAudio: AUDIO_PRICE_CENTS,
+      unitPriceVideo: VIDEO_PRICE_CENTS,
+      totalPrice: total,
+    });
+    setAdded(true);
   }
 
-  const totalSteps = 2;
-  const progressPercent = (step / totalSteps) * 100;
+  function handleAddMore() {
+    setAudioQty(0);
+    setVideoQty(0);
+    setAdded(false);
+  }
 
   return (
     <div className="min-h-screen bg-cream">
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
         {/* Header */}
         <div className="mb-8 text-center">
           <Link
@@ -76,208 +47,109 @@ export default function RecordVoiceMessagePage() {
             &larr; Back to Voice Messages
           </Link>
           <h1 className="mt-4 text-3xl font-bold text-navy">
-            Send a {messageFormat === "video" ? "Video" : "Voice"} Message
+            Buy Voice &amp; Video Messages
           </h1>
           <p className="mt-2 text-warm-gray">
-            Step {step} of {totalSteps}
+            Buy credits and configure recipients, dates, and record from your dashboard.
           </p>
         </div>
 
-        {/* Progress bar */}
-        <div className="mb-10 h-2 w-full overflow-hidden rounded-full bg-cream-dark">
-          <div
-            className="h-full rounded-full bg-gold transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        {/* Step 1: Who + Format + Quantity */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-navy">
-              Who is this for &amp; how many?
-            </h2>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Recipient&apos;s Name
-              </label>
-              <input
-                type="text"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="e.g. Sarah"
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Their Email Address
-              </label>
-              <input
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="recipient@example.com"
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-              />
-              <p className="mt-1 text-xs text-warm-gray">
-                We&apos;ll deliver your message to this email
+        {/* Success state */}
+        {added ? (
+          <div className="space-y-6 text-center">
+            <div className="rounded-xl border border-forest/30 bg-forest/5 p-8">
+              <span className="text-4xl">&#10003;</span>
+              <h2 className="mt-3 text-xl font-bold text-navy">Added to Cart!</h2>
+              <p className="mt-2 text-warm-gray">
+                Your voice &amp; video messages have been added to your cart.
               </p>
             </div>
-
-            {/* Format selection */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Message Format
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMessageFormat("audio")}
-                  className={`rounded-lg border-2 p-5 text-center transition ${
-                    messageFormat === "audio"
-                      ? "border-gold bg-gold/5"
-                      : "border-cream-dark bg-white hover:border-gold/50"
-                  }`}
-                >
-                  <span className="text-3xl">🎙️</span>
-                  <p className="mt-2 font-semibold text-navy">Audio</p>
-                  <p className="mt-1 text-lg font-bold text-gold">$5/yr</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMessageFormat("video")}
-                  className={`rounded-lg border-2 p-5 text-center transition ${
-                    messageFormat === "video"
-                      ? "border-gold bg-gold/5"
-                      : "border-cream-dark bg-white hover:border-gold/50"
-                  }`}
-                >
-                  <span className="text-3xl">🎥</span>
-                  <p className="mt-2 font-semibold text-navy">Video</p>
-                  <p className="mt-1 text-lg font-bold text-gold">$10/yr</p>
-                </button>
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href="/cart"
+                className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light"
+              >
+                View Cart
+              </Link>
+              <button
+                type="button"
+                onClick={handleAddMore}
+                className="inline-flex items-center justify-center rounded-lg border-2 border-navy px-8 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
+              >
+                Add More
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Audio row */}
+            <div className="rounded-xl border border-cream-dark bg-white p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-navy">Audio Messages</h3>
+                  <p className="text-sm text-warm-gray">$5/year each</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={0}
+                    value={audioQty}
+                    onChange={(e) =>
+                      setAudioQty(Math.max(0, parseInt(e.target.value) || 0))
+                    }
+                    className="w-20 rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-center text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
               </div>
+              {audioQty > 0 && (
+                <div className="mt-3 text-right text-sm font-medium text-navy">
+                  Subtotal: ${(audioSubtotal / 100).toFixed(0)}
+                </div>
+              )}
             </div>
 
-            {/* Quantity */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                How many years/messages?
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-              />
+            {/* Video row */}
+            <div className="rounded-xl border border-cream-dark bg-white p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-navy">Video Messages</h3>
+                  <p className="text-sm text-warm-gray">$10/year each</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={0}
+                    value={videoQty}
+                    onChange={(e) =>
+                      setVideoQty(Math.max(0, parseInt(e.target.value) || 0))
+                    }
+                    className="w-20 rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-center text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
+              </div>
+              {videoQty > 0 && (
+                <div className="mt-3 text-right text-sm font-medium text-navy">
+                  Subtotal: ${(videoSubtotal / 100).toFixed(0)}
+                </div>
+              )}
             </div>
 
             {/* Total */}
             <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
               <p className="text-sm text-warm-gray">Total</p>
               <p className="text-2xl font-extrabold text-navy">
-                ${totalDollars}
-              </p>
-              <p className="text-xs text-warm-gray">
-                ${unitDollars}/yr &times; {quantity} year
-                {quantity > 1 ? "s" : ""}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Review & Pay */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-navy">Review &amp; Pay</h2>
-
-            <div className="rounded-xl border border-cream-dark bg-white p-6 space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm text-warm-gray">Recipient</span>
-                <span className="text-sm font-medium text-navy">
-                  {recipientName}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-warm-gray">Delivery Email</span>
-                <span className="text-sm font-medium text-navy">
-                  {recipientEmail}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-warm-gray">Format</span>
-                <span className="text-sm font-medium text-navy">
-                  {messageFormat === "video" ? "Video Message" : "Audio Message"}{" "}
-                  &mdash; ${unitDollars}/yr
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-warm-gray">Quantity</span>
-                <span className="text-sm font-medium text-navy">
-                  {quantity} year{quantity > 1 ? "s" : ""}
-                </span>
-              </div>
-
-              <div className="border-t border-cream-dark pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-navy">Total</span>
-                  <span className="text-2xl font-extrabold text-navy">
-                    ${totalDollars}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
-              <p className="text-sm text-navy">
-                After purchase, set the delivery date and record your message
-                from your dashboard. No rush.
+                ${(total / 100).toFixed(0)}
               </p>
             </div>
 
-            {error && (
-              <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-center">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
-
+            {/* Add to Cart button */}
             <button
-              onClick={handleCheckout}
-              disabled={loading}
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!canAdd}
               className="w-full rounded-lg bg-forest px-6 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Redirecting to payment..." : `Pay $${totalDollars}`}
-            </button>
-          </div>
-        )}
-
-        {/* Navigation */}
-        {step === 1 && (
-          <div className="mt-10 flex justify-end">
-            <button
-              onClick={() => setStep(2)}
-              disabled={!canAdvanceToStep2}
-              className="rounded-lg bg-navy px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="mt-10">
-            <button
-              onClick={() => setStep(1)}
-              className="rounded-lg border border-cream-dark px-6 py-3 text-sm font-medium text-warm-gray transition hover:bg-cream-dark"
-            >
-              Back
+              Add to Cart
             </button>
           </div>
         )}

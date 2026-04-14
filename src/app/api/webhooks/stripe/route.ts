@@ -331,15 +331,11 @@ interface LetterItemMeta {
 
 interface VoiceItemMeta {
   id: string;
-  itemType: "voice-message";
-  recipientName: string;
-  recipientEmail: string;
-  messageType: "annual" | "milestone";
-  messageFormat?: "audio" | "video";
-  title: string;
-  quantity: number;
-  durationSeconds: number;
-  unitPrice: number;
+  itemType: "voice";
+  audioQuantity: number;
+  videoQuantity: number;
+  unitPriceAudio: number;
+  unitPriceVideo: number;
   totalPrice: number;
 }
 
@@ -601,86 +597,46 @@ async function handleCartOrder(
     });
   }
 
-  // Process voice message items
-  const processedVoice: Array<{ recipientName: string; messageType: string; messageFormat: string; quantity: number; totalPrice: number }> = [];
+  // Process voice message items — create draft voice_message records
+  const voiceAudioCount = parseInt(metadata.voiceAudio) || 0;
+  const voiceVideoCount = parseInt(metadata.voiceVideo) || 0;
 
-  for (const voice of voiceItems) {
-    // Create recipient for voice message
-    const { data: voiceRecipient, error: vrError } = await supabaseAdmin
-      .from("recipients")
-      .insert({
-        user_id: userId,
-        name: voice.recipientName,
-        country: "US",
-      })
-      .select()
-      .single();
+  const voiceDraftMessages: Array<{
+    user_id: string;
+    letter_type: string;
+    title: string;
+    status: string;
+    stripe_payment_intent_id: string;
+    amount_paid: number;
+    message_format: string;
+  }> = [];
 
-    if (vrError) throw vrError;
-
-    const pricePerUnit = voice.unitPrice;
-
-    if (voice.messageType === "annual") {
-      for (let i = 0; i < voice.quantity; i++) {
-        const deliveryDate = new Date();
-        deliveryDate.setFullYear(currentYear + i);
-
-        await supabaseAdmin.from("voice_messages").insert({
-          user_id: userId,
-          recipient_id: voiceRecipient.id,
-          letter_type: "annual",
-          title: voice.title || `Voice Message for ${voice.recipientName} — Year ${i + 1}`,
-          scheduled_date: deliveryDate.toISOString().split("T")[0],
-          status: "draft",
-          stripe_payment_intent_id: session.payment_intent as string,
-          amount_paid: pricePerUnit,
-          recipient_email: voice.recipientEmail || null,
-          duration_seconds: voice.durationSeconds || 0,
-          message_format: voice.messageFormat || "audio",
-        });
-      }
-    } else {
-      // Milestone voice messages
-      await supabaseAdmin.from("voice_messages").insert({
-        user_id: userId,
-        recipient_id: voiceRecipient.id,
-        letter_type: "milestone",
-        title: voice.title || `Milestone Voice Message for ${voice.recipientName}`,
-        status: "draft",
-        stripe_payment_intent_id: session.payment_intent as string,
-        amount_paid: pricePerUnit,
-        recipient_email: voice.recipientEmail || null,
-        duration_seconds: voice.durationSeconds || 0,
-        message_format: voice.messageFormat || "audio",
-      });
-
-      if (voice.quantity > 1) {
-        const draftMessages = [];
-        for (let i = 1; i < voice.quantity; i++) {
-          draftMessages.push({
-            user_id: userId,
-            recipient_id: voiceRecipient.id,
-            letter_type: "milestone" as const,
-            title: `Milestone Voice Message ${i + 1} for ${voice.recipientName}`,
-            status: "draft" as const,
-            stripe_payment_intent_id: session.payment_intent as string,
-            amount_paid: pricePerUnit,
-            recipient_email: voice.recipientEmail || null,
-            duration_seconds: 0,
-            message_format: voice.messageFormat || "audio",
-          });
-        }
-        await supabaseAdmin.from("voice_messages").insert(draftMessages);
-      }
-    }
-
-    processedVoice.push({
-      recipientName: voice.recipientName,
-      messageType: voice.messageType,
-      messageFormat: voice.messageFormat || "audio",
-      quantity: voice.quantity,
-      totalPrice: voice.totalPrice,
+  for (let i = 0; i < voiceAudioCount; i++) {
+    voiceDraftMessages.push({
+      user_id: userId,
+      letter_type: "annual",
+      title: `Audio Message ${i + 1}`,
+      status: "draft",
+      stripe_payment_intent_id: session.payment_intent as string,
+      amount_paid: 500,
+      message_format: "audio",
     });
+  }
+
+  for (let i = 0; i < voiceVideoCount; i++) {
+    voiceDraftMessages.push({
+      user_id: userId,
+      letter_type: "annual",
+      title: `Video Message ${i + 1}`,
+      status: "draft",
+      stripe_payment_intent_id: session.payment_intent as string,
+      amount_paid: 1000,
+      message_format: "video",
+    });
+  }
+
+  if (voiceDraftMessages.length > 0) {
+    await supabaseAdmin.from("voice_messages").insert(voiceDraftMessages);
   }
 
   const customerEmail = metadata.email || session.customer_email!;
@@ -711,25 +667,22 @@ async function handleCartOrder(
     )
     .join("");
 
-  // Build voice message rows for emails
-  const voiceRows = processedVoice
-    .map(
-      (v) =>
-        `<tr>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.recipientName}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.messageType}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.messageFormat === "video" ? "Video" : "Audio"} (Email)</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${v.quantity}</td>
-        </tr>`
-    )
-    .join("");
+  // Build voice message summary for emails
+  const voiceRows = (voiceAudioCount > 0 || voiceVideoCount > 0)
+    ? `<tr>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">${voiceAudioCount} audio + ${voiceVideoCount} video</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">Draft</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">Email</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">${voiceAudioCount + voiceVideoCount}</td>
+      </tr>`
+    : "";
 
   // Send customer confirmation email
   try {
     const subjectParts = [];
     if (cartItems.length > 0) subjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
     if (letterItems.length > 0) subjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
-    if (voiceItems.length > 0) subjectParts.push(`${voiceItems.length} voice message${voiceItems.length > 1 ? "s" : ""}`);
+    if (voiceAudioCount + voiceVideoCount > 0) subjectParts.push(`${voiceAudioCount + voiceVideoCount} voice/video message${(voiceAudioCount + voiceVideoCount) > 1 ? "s" : ""}`);
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -743,7 +696,7 @@ async function handleCartOrder(
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
             ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
             ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
-            ${voiceItems.length > 0 ? `<p><strong>Voice Messages:</strong> ${voiceItems.length}</p>` : ""}
+            ${(voiceAudioCount + voiceVideoCount) > 0 ? `<p><strong>Voice Messages:</strong> ${voiceAudioCount} audio, ${voiceVideoCount} video</p>` : ""}
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
           ${cartItems.length > 0 ? `
@@ -772,13 +725,13 @@ async function handleCartOrder(
               ${letterRows}
             </table>
           </div>` : ""}
-          ${voiceItems.length > 0 ? `
+          ${(voiceAudioCount + voiceVideoCount) > 0 ? `
           <div style="margin: 24px 0;">
-            <h2 style="font-size: 18px;">Your Voice Messages</h2>
+            <h2 style="font-size: 18px;">Your Voice &amp; Video Messages</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
               <tr style="background: #f5ede0;">
-                <th style="padding: 8px; text-align: left;">Recipient</th>
-                <th style="padding: 8px; text-align: left;">Type</th>
+                <th style="padding: 8px; text-align: left;">Messages</th>
+                <th style="padding: 8px; text-align: left;">Status</th>
                 <th style="padding: 8px; text-align: left;">Delivery</th>
                 <th style="padding: 8px; text-align: left;">Qty</th>
               </tr>
@@ -824,22 +777,19 @@ async function handleCartOrder(
       )
       .join("");
 
-    const ownerVoiceRows = voiceItems
-      .map(
-        (v) =>
-          `<tr>
-            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.recipientName}</td>
-            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.messageType}</td>
-            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${v.quantity}</td>
-            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${(v.totalPrice / 100).toFixed(0)}</td>
+    const ownerVoiceRows = (voiceAudioCount > 0 || voiceVideoCount > 0)
+      ? `<tr>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${voiceAudioCount} audio + ${voiceVideoCount} video</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">Draft</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${voiceAudioCount + voiceVideoCount}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${((voiceAudioCount * 500 + voiceVideoCount * 1000) / 100).toFixed(0)}</td>
           </tr>`
-      )
-      .join("");
+      : "";
 
     const ownerSubjectParts = [];
     if (cartItems.length > 0) ownerSubjectParts.push(`${cartItems.length} gift${cartItems.length > 1 ? "s" : ""}`);
     if (letterItems.length > 0) ownerSubjectParts.push(`${letterItems.length} letter${letterItems.length > 1 ? "s" : ""}`);
-    if (voiceItems.length > 0) ownerSubjectParts.push(`${voiceItems.length} voice${voiceItems.length > 1 ? "s" : ""}`);
+    if (voiceAudioCount + voiceVideoCount > 0) ownerSubjectParts.push(`${voiceAudioCount + voiceVideoCount} voice/video`);
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -853,7 +803,7 @@ async function handleCartOrder(
             <p><strong>Customer:</strong> ${metadata.fullName} (${customerEmail})</p>
             ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
             ${letterItems.length > 0 ? `<p><strong>Letters:</strong> ${letterItems.length}</p>` : ""}
-            ${voiceItems.length > 0 ? `<p><strong>Voice Messages:</strong> ${voiceItems.length}</p>` : ""}
+            ${(voiceAudioCount + voiceVideoCount) > 0 ? `<p><strong>Voice Messages:</strong> ${voiceAudioCount} audio, ${voiceVideoCount} video</p>` : ""}
             <p><strong>Total Amount:</strong> ${amountFormatted}</p>
           </div>
           ${cartItems.length > 0 ? `
@@ -885,13 +835,13 @@ async function handleCartOrder(
               ${ownerLetterRows}
             </table>
           </div>` : ""}
-          ${voiceItems.length > 0 ? `
+          ${(voiceAudioCount + voiceVideoCount) > 0 ? `
           <div style="margin: 24px 0;">
-            <h2 style="font-size: 18px;">Voice Messages</h2>
+            <h2 style="font-size: 18px;">Voice &amp; Video Messages</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
               <tr style="background: #fce4ec;">
-                <th style="padding: 6px 8px; text-align: left;">Recipient</th>
-                <th style="padding: 6px 8px; text-align: left;">Type</th>
+                <th style="padding: 6px 8px; text-align: left;">Messages</th>
+                <th style="padding: 6px 8px; text-align: left;">Status</th>
                 <th style="padding: 6px 8px; text-align: left;">Qty</th>
                 <th style="padding: 6px 8px; text-align: left;">Price</th>
               </tr>

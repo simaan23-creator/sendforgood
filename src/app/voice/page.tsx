@@ -145,7 +145,7 @@ export default function VoiceMessagesPage() {
               href="/voice/record"
               className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Record Your First Message
+              Buy Voice &amp; Video Messages
             </Link>
             <Link
               href="#how-it-works"
