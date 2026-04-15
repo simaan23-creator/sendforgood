@@ -332,7 +332,7 @@ export default function DashboardPage() {
 
   async function handleCancelOrder(orderId: string) {
     const confirmed = window.confirm(
-      "Are you sure you want to cancel this gift plan? This cannot be undone."
+      "Are you sure you want to cancel this gift credit? This cannot be undone."
     );
     if (!confirmed) return;
 
@@ -431,7 +431,7 @@ export default function DashboardPage() {
           {/* Header */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-navy">Your Gift Plans</h1>
+              <h1 className="text-3xl font-bold text-navy">Your Gift Credits</h1>
               {userEmail && (
                 <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
               )}
@@ -497,7 +497,7 @@ export default function DashboardPage() {
         {/* Page header */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-navy">Your Gift Plans</h1>
+            <h1 className="text-3xl font-bold text-navy">Your Gift Credits</h1>
             {userEmail && (
               <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
             )}
@@ -895,11 +895,11 @@ export default function DashboardPage() {
           {letters.length === 0 ? (
             <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
               <p className="text-warm-gray">
-                No letters yet. Add a letter add-on to any gift plan, or purchase letters standalone.{" "}
-                <Link href="/letters" className="font-medium text-navy underline hover:text-gold">
-                  Browse letters
+                No messages yet. Buy message credits to get started.{
+                  " "}
+                <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
+                  Buy Message Credits
                 </Link>
-              </p>
             </div>
           ) : (
             <div className="space-y-4">
