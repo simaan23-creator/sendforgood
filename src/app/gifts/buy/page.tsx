@@ -199,7 +199,7 @@ export default function BuyGiftCreditsPage() {
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div>
               <p className="text-sm text-warm-gray">
-                {totalCredits} credit{totalCredits !== 1 ? "s" : ""} selected
+                {totalCredits} gift{totalCredits !== 1 ? "s" : ""} selected
               </p>
               <p className="text-2xl font-bold text-navy">
                 Total: <span className="text-forest">${(totalCents / 100).toFixed(0)}</span>
@@ -222,7 +222,7 @@ export default function BuyGiftCreditsPage() {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
               <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
             </svg>
-            Credits never expire
+            Gifts never expire
           </span>
           <span className="inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
