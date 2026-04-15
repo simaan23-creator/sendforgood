@@ -146,10 +146,10 @@ export default function CartPage() {
               </svg>
             </Link>
             <Link
-              href="/letters/write"
+              href="/messages/buy"
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
             >
-              Add a Legacy Letter
+              Buy Message Credits
             </Link>
             <Link
               href="/messages/buy"
@@ -158,7 +158,7 @@ export default function CartPage() {
               Buy Message Credits
             </Link>
             <Link
-              href="/vault"
+              href="/messages/buy"
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
             >
               🔐 Create a Vault
@@ -187,7 +187,7 @@ export default function CartPage() {
               Buy Credits
             </Link>
             <Link
-              href="/letters/write"
+              href="/messages/buy"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
