@@ -12,22 +12,22 @@ const FAQ = [
   {
     question: "How do gifts work?",
     answer:
-      "Buy gift credits by tier \u2014 from Starter ($20) to Legacy ($200). Credits are stored in your dashboard. When you are ready, assign a recipient, occasion, and date to each credit. We handle gift selection, wrapping, and delivery. No subscriptions, no renewals. Credits never expire.",
+      "Choose a gift tier \u2014 from Starter ($20) to Legacy ($200). Your gifts are managed in your dashboard. When you are ready, assign a recipient, occasion, and date to each gift. We handle gift selection, wrapping, and delivery. No subscriptions, no renewals. Your gifts never expire.",
   },
   {
-    question: "How do message credits work?",
+    question: "How do messages work?",
     answer:
-      "Buy digital letter ($1), physical letter ($10), letter + photo ($15), audio ($5), or video ($10) credits. Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule. Credits never expire.",
+      "Buy digital digital letters ($1), physical letters ($10), letter + photo ($15), audio messages ($5), or video messages ($10). Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule. Your gifts never expire.",
   },
   {
-    question: "Can I assign the same credit to multiple years?",
+    question: "Can I assign the same gift to multiple years?",
     answer:
-      "Each credit covers one delivery. If you want to send a gift every year for 5 years, buy 5 credits. You can assign them all to the same person with different dates.",
+      "Each gift covers one delivery. If you want to send a gift every year for 5 years, buy 5 gifts. You can assign them all to the same person with different dates.",
   },
   {
     question: "What is the Memory Vault?",
     answer:
-      "The Memory Vault lets you collect audio and video messages from others. Buy credits, share a link, and people record for you. You can seal the vault until a future date \u2014 like a 10th anniversary or a birthday milestone. Perfect for group gifts and time capsules.",
+      "The Memory Vault lets you collect audio and video messages from others. Share a link, share a link, and people record for you. You can seal the vault until a future date \u2014 like a 10th anniversary or a birthday milestone. Perfect for group gifts and time capsules.",
   },
   {
     question: "Do you ship internationally?",
@@ -37,7 +37,7 @@ const FAQ = [
   {
     question: "What is your refund policy?",
     answer:
-      "We offer a full refund within 48 hours of purchase, as long as no credits have been used. Once a credit is assigned and fulfilled, that credit is non-refundable. Contact us at support@sendforgood.com or text (631) 707-4968.",
+      "We offer a full refund within 48 hours of purchase, as long as no gifts have been sent. Once a gift is sent, it is non-refundable. Contact us at support@sendforgood.com or text (631) 707-4968.",
   },
   {
     question: "Will the recipient know it was automated?",
@@ -74,8 +74,8 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray leading-relaxed">
-            Buy gift credits by tier. Assign recipients from your dashboard
-            whenever you are ready. Every credit includes gift selection, a
+            Choose a gift tier. Assign recipients from your dashboard
+            whenever you are ready. Every gift includes gift selection, a
             personal message card, and delivery.
           </p>
         </div>
@@ -256,14 +256,14 @@ export default function PricingPage() {
         {/* Bottom CTA */}
         <div className="mt-20 text-center">
           <p className="text-warm-gray">
-            Not sure which tier is right? Start with any credit &mdash; you can
+            Not sure which tier is right? Start with any tier &mdash; you can
             always buy more later.
           </p>
           <Link
             href="/gifts/buy"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Buy Gift Credits &mdash; From $20
+            Send a Gift &mdash; From $20
           </Link>
         </div>
       </div>
