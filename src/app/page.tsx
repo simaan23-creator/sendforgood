@@ -56,7 +56,7 @@ const USE_CASES = [
     label: "Parents",
     headline: "A gift from you, even when you can\u2019t be there",
     description:
-      "Buy gift credits for your kids and assign their birthdays from your dashboard. We handle everything, every year.",
+      "Send gifts to your kids and assign their birthdays from your dashboard. We handle everything, every year.",
     quote:
       "I still buy my kids gifts myself \u2014 but SendForGood delivers something extra every year without me lifting a finger. My kids think I\u2019m the most thoughtful parent alive. They\u2019re not wrong.",
   },
@@ -240,7 +240,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Buy gift credits by tier. Write letters. Record your voice or video.
+            Choose your gift tier. Write letters. Record your voice or video.
             Assign recipients from your dashboard whenever you are ready.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
@@ -252,7 +252,7 @@ export default function HomePage() {
               href="/gifts/buy"
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:w-auto"
             >
-              Buy Gift Credits &mdash; From $20
+              Send a Gift &mdash; From $20
             </Link>
             <Link
               href="/messages/buy"
@@ -434,9 +434,9 @@ export default function HomePage() {
               {
                 step: "1",
                 emoji: "🎯",
-                title: "Buy gift credits by tier",
+                title: "Choose a gift tier",
                 description:
-                  "Choose from 5 tiers, from $20 to $200 per credit",
+                  "Choose from 5 tiers, from $20 to $200 per gift",
               },
               {
                 step: "2",
@@ -563,7 +563,7 @@ export default function HomePage() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
             You buy gifts for everyone else. Who buys gifts for you? Buy a gift
-            credit for yourself &mdash; assign your birthday or holiday from your
+            gift for yourself &mdash; assign your birthday or holiday from your
             dashboard. Something you actually want, arriving every year.
           </p>
 
@@ -713,10 +713,10 @@ export default function HomePage() {
             As little as <span className="text-gold">$1.67/month</span> — gifts delivered every year.
           </h2>
           <p className="mt-3 text-base font-medium text-navy/80">
-            Legacy Letters from $1/year &middot; Audio Messages $5/year &middot; Video Messages $10/year
+            Messages from $1 &middot; Gifts from $20
           </p>
           <p className="mt-4 text-lg text-warm-gray">
-            Buy credits. Assign when ready. We deliver forever. No subscriptions.
+            Send gifts. Assign when ready. We deliver forever. No subscriptions.
           </p>
           <p className="mt-2 text-sm text-warm-gray-light">
             Currently serving the continental United States
@@ -780,7 +780,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-5 text-sm text-cream/60">
-            47 gift credits purchased and counting
+            47 gifts sent and counting
           </p>
         </div>
       </section>
