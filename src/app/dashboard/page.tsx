@@ -470,10 +470,10 @@ export default function DashboardPage() {
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-navy">
-              No gift plans yet
+              No gift credits yet
             </h2>
             <p className="mt-2 max-w-sm text-warm-gray">
-              Start your first gift plan and make someone&apos;s year, every
+              Buy gift credits and assign them to the people you love.
               year.
             </p>
             <Link
