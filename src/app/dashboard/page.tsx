@@ -901,11 +901,12 @@ export default function DashboardPage() {
           {letters.length === 0 ? (
             <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
               <p className="text-warm-gray">
-                No messages yet. Buy message credits to get started.{
-                  " "}
+                No messages yet.{" "}
                 <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
                   Buy Message Credits
-                </Link>
+                </Link>{" "}
+                to get started.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
