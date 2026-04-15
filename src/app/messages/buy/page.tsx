@@ -134,7 +134,7 @@ export default function BuyCreditsPage() {
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-navy sm:text-4xl">
-            Buy Message Credits
+            Send Messages
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-warm-gray">
             Send your words in any format. Written letters, voice messages, or
@@ -148,7 +148,7 @@ export default function BuyCreditsPage() {
             <div className="text-5xl mb-4">&#10003;</div>
             <h2 className="text-2xl font-bold text-navy">Added to Cart!</h2>
             <p className="mt-2 text-warm-gray">
-              Your message credits have been added. You can continue shopping or
+              Your messages have been added. You can continue shopping or
               head to checkout.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -269,7 +269,7 @@ export default function BuyCreditsPage() {
             <div className="mt-6 rounded-lg border border-gold/30 bg-gold/5 p-4 text-center">
               <p className="text-sm text-navy">
                 After purchase, write your letters, record your messages, and set
-                delivery dates from your dashboard. Credits never expire.
+                delivery dates from your dashboard. Never expire.
               </p>
             </div>
           </>

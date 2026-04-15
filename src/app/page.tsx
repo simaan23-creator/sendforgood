@@ -11,16 +11,16 @@ const USE_CASES = [
     label: "Grandparents",
     headline: "Never miss a birthday again",
     description:
-      "Buy gift credits for all your grandkids at once. Assign each one a tier and birthday from your dashboard. They\u2019ll feel your love every year, no matter what.",
+      "Buy gifts for all your grandkids at once. Assign each one a tier and birthday from your dashboard. They\u2019ll feel your love every year, no matter what.",
     quote:
-      "I bought gift credits for all 6 grandkids in one sitting. Assigned each one a tier, set their birthdays. Done forever.",
+      "I bought gifts for all 6 grandkids in one sitting. Assigned each one a tier, set their birthdays. Done forever.",
   },
   {
     emoji: "🎁",
     label: "Treat Yourself",
     headline: "The gift you never buy yourself — delivered every year",
     description:
-      "Buy a gift credit for yourself. Assign your own birthday or holiday from your dashboard. Something you actually want, picked by our AI, arriving every year.",
+      "Buy a gift for yourself. Assign your own birthday or holiday from your dashboard. Something you actually want, picked by our AI, arriving every year.",
     quote:
       "I bought it for myself on my birthday after a long week. Best decision ever. It shows up every year and I genuinely forget until it arrives.",
   },
@@ -29,7 +29,7 @@ const USE_CASES = [
     label: "Realtors",
     headline: "Turn one sale into a lifetime relationship",
     description:
-      "Buy gift credits for your clients. Assign each one their home anniversary from your dashboard. The referrals will follow.",
+      "Buy gifts for your clients. Assign each one their home anniversary from your dashboard. The referrals will follow.",
     quote:
       "My clients call ME when their friends are buying. This is why.",
   },
@@ -38,9 +38,9 @@ const USE_CASES = [
     label: "Couples",
     headline: "Love that shows up, every year",
     description:
-      "Buy anniversary gift credits and assign your partner from your dashboard. Even when life gets busy, they feel remembered.",
+      "Buy anniversary gifts and assign your partner from your dashboard. Even when life gets busy, they feel remembered.",
     quote:
-      "I bought 5 anniversary gift credits. Assigned one to my wife, kept the rest for our kids. One purchase, endless memories.",
+      "I bought 5 anniversary gifts. Assigned one to my wife, kept the rest for our kids. One purchase, endless memories.",
   },
   {
     emoji: "🏢",

@@ -431,7 +431,7 @@ export default function DashboardPage() {
           {/* Header */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-navy">Your Gift Credits</h1>
+              <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
               {userEmail && (
                 <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
               )}
@@ -447,13 +447,13 @@ export default function DashboardPage() {
                 href="/gifts/buy"
                 className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
               >
-                Buy Gift Credits
+                Send Gifts
               </Link>
               <Link
                 href="/messages/buy"
                 className="rounded-lg border border-forest px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
               >
-                Buy Message Credits
+                Send Messages
               </Link>
             </div>
           </div>
@@ -476,17 +476,17 @@ export default function DashboardPage() {
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-navy">
-              No gift credits yet
+              No gifts yet
             </h2>
             <p className="mt-2 max-w-sm text-warm-gray">
-              Buy gift credits and assign them to the people you love.
+              Buy gifts and assign them to the people you love.
 
             </p>
             <Link
               href="/gifts/buy"
               className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Buy Gift Credits
+              Send Gifts
             </Link>
           </div>
         </div>
@@ -503,7 +503,7 @@ export default function DashboardPage() {
         {/* Page header */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-navy">Your Gift Credits</h1>
+            <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
             {userEmail && (
               <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
             )}
@@ -519,7 +519,7 @@ export default function DashboardPage() {
               href="/gifts/buy"
               className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Buy Gift Credits
+              Send Gifts
             </Link>
           </div>
         </div>
@@ -553,7 +553,7 @@ export default function DashboardPage() {
         {/* Assignment success banner */}
         {assignSuccess && (
           <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
-            <span>Gift credit assigned successfully! We&apos;ll handle the rest.</span>
+            <span>Gift assigned successfully! We&apos;ll handle the rest.</span>
             <button onClick={() => setAssignSuccess(false)} className="ml-4 font-semibold hover:underline">Dismiss</button>
           </div>
         )}
@@ -561,7 +561,7 @@ export default function DashboardPage() {
         {/* My Gift Credits */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Gift Credits</h2>
+            <h2 className="text-xl font-bold text-navy">My Gifts</h2>
             <div className="flex gap-2">
               <Link
                 href="/gifts/give"

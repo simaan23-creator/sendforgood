@@ -5,12 +5,12 @@ import { TIERS } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Pricing — SendForGood",
   description:
-    "Explore SendForGood gift credit tiers from $20 to $200. Buy credits, assign recipients from your dashboard — every tier includes gift curation, wrapping, and delivery.",
+    "Explore SendForGood gift tiers from $20 to $200. Buy gifts, assign recipients from your dashboard — every tier includes gift curation, wrapping, and delivery.",
 };
 
 const FAQ = [
   {
-    question: "How do gift credits work?",
+    question: "How do gifts work?",
     answer:
       "Buy gift credits by tier \u2014 from Starter ($20) to Legacy ($200). Credits are stored in your dashboard. When you are ready, assign a recipient, occasion, and date to each credit. We handle gift selection, wrapping, and delivery. No subscriptions, no renewals. Credits never expire.",
   },

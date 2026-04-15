@@ -72,7 +72,7 @@ export default function BuyGiftCreditsPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Added to cart!</h1>
           <p className="mt-3 text-warm-gray">
-            Your gift credits have been added to your cart.
+            Your gifts have been added to your cart.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
@@ -103,11 +103,11 @@ export default function BuyGiftCreditsPage() {
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-navy sm:text-4xl">
-            Buy Gift Credits
+            Send Gifts
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-lg text-warm-gray">
-            Buy gift credits by tier. Assign recipients, dates, and preferences
-            from your dashboard whenever you are ready. Credits never expire.
+            Buy gifts by tier. Assign recipients, dates, and preferences
+            from your dashboard whenever you are ready. Never expire.
           </p>
         </div>
 
@@ -140,7 +140,7 @@ export default function BuyGiftCreditsPage() {
                   </span>
                   <p className="mt-2 text-2xl font-bold text-navy">
                     ${(priceCents / 100).toFixed(0)}
-                    <span className="text-sm font-normal text-warm-gray">/credit</span>
+                    <span className="text-sm font-normal text-warm-gray">/gift</span>
                   </p>
                 </div>
 

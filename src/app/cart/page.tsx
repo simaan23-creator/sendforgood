@@ -133,14 +133,14 @@ export default function CartPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your cart is empty</h1>
           <p className="mt-3 text-warm-gray">
-            Start adding gift credits and message credits to your cart.
+            Start adding gifts and messages to your cart.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/gifts/buy"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-navy-light"
             >
-              Buy Gift Credits
+              Send Gifts
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
               </svg>

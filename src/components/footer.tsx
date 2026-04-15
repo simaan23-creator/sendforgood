@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const FOOTER_LINKS = {
   Product: [
-    { href: "/gifts/buy", label: "Gift Credits" },
+    { href: "/gifts/buy", label: "Gifts" },
     { href: "/messages/buy", label: "Messages" },
     { href: "/vault", label: "Memory Vault" },
     { href: "/weddings", label: "Weddings" },

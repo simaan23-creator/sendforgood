@@ -4,17 +4,17 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Start Sending - SendForGood",
   description:
-    "Choose how you want to show love - buy gift credits, write heartfelt letters, or both. Assign recipients from your dashboard whenever you are ready.",
+    "Choose how you want to show love - buy gifts, write heartfelt letters, or both. Assign recipients from your dashboard whenever you are ready.",
 };
 
 const CARDS = [
   {
     emoji: "🎁",
-    title: "Buy Gift Credits",
-    subtitle: "From $20/credit",
+    title: "Send Gifts",
+    subtitle: "From $20/gift",
     description:
-      "Buy gift credits by tier. Assign recipients, dates, and preferences from your dashboard whenever you are ready. Credits never expire.",
-    features: ["5 tiers from $20-$200", "Assign recipients later", "Credits never expire"],
+      "Buy gifts by tier. Assign recipients, dates, and preferences from your dashboard whenever you are ready. Never expire.",
+    features: ["5 tiers from $20-$200", "Assign recipients later", "Never expire"],
     cta: "Buy Gift Credits",
     href: "/gifts/buy",
     borderColor: "border-navy",

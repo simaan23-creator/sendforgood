@@ -12,7 +12,7 @@ const useCases = [
     emoji: "\u{1F382}",
     title: "Never miss a birthday again",
     description:
-      "Buy gift credits for every grandchild, niece, nephew, or friend. Assign their birthdays from your dashboard whenever you are ready. We deliver every year.",
+      "Buy gifts for every grandchild, niece, nephew, or friend. Assign their birthdays from your dashboard whenever you are ready. We deliver every year.",
   },
   {
     emoji: "\u{1F48D}",
@@ -36,7 +36,7 @@ const useCases = [
     emoji: "\u{1F43E}",
     title: "Because pets deserve birthdays too",
     description:
-      "Buy gift credits for your dog, cat, or any pet you love. Assign their birthday and we deliver treats every year.",
+      "Buy gifts for your dog, cat, or any pet you love. Assign their birthday and we deliver treats every year.",
   },
   {
     emoji: "\u2709\uFE0F",

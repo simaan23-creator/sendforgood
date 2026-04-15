@@ -148,14 +148,14 @@ export default function VaultPage() {
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            How credits work
+            How recording slots work
           </h2>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-2">
             <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
               <span className="text-5xl">\uD83C\uDFA4</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Audio Credits &mdash; $5 each
+                Audio Recording &mdash; $5 each
               </h3>
               <p className="mt-3 text-warm-gray">
                 Each credit allows one person to record a voice message for you.

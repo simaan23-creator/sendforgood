@@ -213,7 +213,7 @@ export default function GiftAssignPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <p className="text-warm-gray mb-4">No credit selected.</p>
+          <p className="text-warm-gray mb-4">No gift selected.</p>
           <Link href="/dashboard" className="text-navy underline hover:text-gold">
             Back to Dashboard
           </Link>
@@ -237,7 +237,7 @@ export default function GiftAssignPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <p className="text-warm-gray mb-4">No available credits for this purchase.</p>
+          <p className="text-warm-gray mb-4">No available gifts for this purchase.</p>
           <Link href="/dashboard" className="text-navy underline hover:text-gold">
             Back to Dashboard
           </Link>
@@ -266,7 +266,7 @@ export default function GiftAssignPage() {
           >
             &larr; Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-navy">Assign Gift Credit</h1>
+          <h1 className="text-3xl font-bold text-navy">Assign Gift</h1>
           <p className="mt-1 text-warm-gray">
             {tierName} tier &middot; {creditAvailable} credit{creditAvailable !== 1 ? "s" : ""} available
           </p>

@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     emoji: "\u{1F6D2}",
-    title: "Buy video credits",
+    title: "Buy video recordings",
     description:
-      "$10 per credit. Buy as many as you have guests. Unused credits never expire.",
+      "$10 per recording. Buy as many as you have guests. Unused recordings never expire.",
   },
   {
     emoji: "\u{1F517}",
