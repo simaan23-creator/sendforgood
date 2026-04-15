@@ -244,7 +244,7 @@ export default function CartPage() {
                   <div>
                     <span className="text-warm-gray-light">Quantity</span>
                     <p className="font-medium text-navy">
-                      {letter.quantity} {letter.quantity === 1 ? "year" : "years"}
+                      {letter.quantity} {letter.quantity === 1 ? "credit" : "credits"}
                     </p>
                   </div>
                   <div>
