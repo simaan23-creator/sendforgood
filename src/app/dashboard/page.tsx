@@ -480,7 +480,7 @@ export default function DashboardPage() {
             </h2>
             <p className="mt-2 max-w-sm text-warm-gray">
               Buy gift credits and assign them to the people you love.
-              year.
+
             </p>
             <Link
               href="/gifts/buy"
