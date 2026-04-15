@@ -151,18 +151,6 @@ export default function CartPage() {
             >
               Buy Message Credits
             </Link>
-            <Link
-              href="/messages/buy"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
-            >
-              Buy Message Credits
-            </Link>
-            <Link
-              href="/messages/buy"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy px-6 py-3 text-sm font-semibold text-navy transition hover:bg-navy hover:text-cream"
-            >
-              Buy Message Credits
-            </Link>
           </div>
         </div>
       </main>
