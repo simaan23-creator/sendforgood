@@ -54,7 +54,7 @@ const useCases = [
     emoji: "\u{1F4BC}",
     title: "Client retention, automated",
     description:
-      "Businesses use SendForGood to buy gift credits for clients on birthdays, work anniversaries, and milestones. Buy credits once, assign clients as you go.",
+      "Businesses use SendForGood to send gifts to clients on birthdays, work anniversaries, and milestones. Send gifts once, assign clients as you go.",
   },
   {
     emoji: "\u{1F56F}\uFE0F",
@@ -67,9 +67,9 @@ const useCases = [
 const products = [
   {
     emoji: "\u{1F381}",
-    name: "Gift Credits",
-    description: "Buy credits. Assign recipients. We deliver.",
-    price: "From $20/credit",
+    name: "Gifts",
+    description: "Send gifts. Assign recipients. We deliver.",
+    price: "From $20/gift",
     href: "/gifts/buy",
   },
   {
@@ -84,7 +84,7 @@ const products = [
     name: "Memory Vault",
     description:
       "Collect messages from others. Sealed until the right moment.",
-    price: "From $5/credit",
+    price: "From $5/recording",
     href: "/vault",
   },
 ];
@@ -309,7 +309,7 @@ export default function AboutPage() {
             Ready to Start Your Legacy?
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-cream/80">
-            It only takes a few minutes to buy gift credits and start assigning
+            It only takes a few minutes to buy Gifts and start assigning
             recipients. Your loved ones deserve to feel your love&nbsp;&mdash; always.
           </p>
           <div className="mt-10">
