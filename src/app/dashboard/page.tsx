@@ -449,6 +449,12 @@ export default function DashboardPage() {
               >
                 Buy Gift Credits
               </Link>
+              <Link
+                href="/messages/buy"
+                className="rounded-lg border border-forest px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
+              >
+                Buy Message Credits
+              </Link>
             </div>
           </div>
 
