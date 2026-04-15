@@ -1130,7 +1130,7 @@ function LettersTab({
 
 function AccessRequestsTab() {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -1298,7 +1298,7 @@ function AffiliatesTab() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [totalUnpaid, setTotalUnpaid] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
 
@@ -1346,7 +1346,7 @@ function AffiliatesTab() {
   }
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-400">Loading affiliates...</div>;
+    return <div className="text-center py-12 text-gray-400">No affiliates yet.</div>;
   }
 
   return (
@@ -2204,7 +2204,7 @@ export default function AdminDashboard() {
                     : "border-transparent text-gray-400 hover:text-gray-600"
                 }`}
               >
-                Legacy Letters
+                Messages
                 {letters.length > 0 && (
                   <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-100 px-1.5 text-xs font-bold text-indigo-700">
                     {letters.length}
