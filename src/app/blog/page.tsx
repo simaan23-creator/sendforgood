@@ -3,20 +3,20 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Blog — SendForGood",
   description:
-    "Stories, guides, and insights about legacy gifting, gift credits, and making every occasion meaningful.",
+    "Stories, guides, and insights about legacy gifting, gifts, and making every occasion meaningful.",
 };
 
 const TEASER_ARTICLES = [
   {
     title: "The Art of Legacy Gifting",
     excerpt:
-      "What does it mean to give a gift that outlasts you? We explore the emotional power of gift credits and why more families are buying credits they can assign whenever they are ready.",
+      "What does it mean to give a gift that outlasts you? We explore the emotional power of gifts and why more families are sending them they can assign whenever they are ready.",
     tag: "Legacy",
   },
   {
-    title: "Why Gift Credits Change Everything",
+    title: "Why SendForGood Changes Everything",
     excerpt:
-      "In a world of subscriptions and auto-renewals, there's something beautifully intentional about buying gift credits you control. No rush, no pressure \u2014 assign recipients from your dashboard whenever you are ready.",
+      "In a world of subscriptions and auto-renewals, there's something beautifully intentional about sending gifts you control. No rush, no pressure \u2014 assign recipients from your dashboard whenever you are ready.",
     tag: "Gifting",
   },
   {
