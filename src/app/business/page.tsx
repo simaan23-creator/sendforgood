@@ -78,7 +78,7 @@ export default function BusinessPage() {
             Gifting that grows your business
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-warm-gray max-w-2xl mx-auto leading-relaxed">
-            Buy gift credits once, assign clients as you go. Automated,
+            Send gifts once, assign clients as you go. Automated,
             effortless, memorable &mdash; we handle the rest.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -166,8 +166,8 @@ export default function BusinessPage() {
             Simple, transparent pricing
           </h2>
           <p className="text-warm-gray mb-3 leading-relaxed">
-            Business accounts use the same gift credit tiers as individual senders —
-            credits from $20 to $200 per gift. Buy credits in bulk, assign
+            Business accounts use the same gift tiers as individual senders —
+            from $20 to $200 per gift. Send gifts in bulk, assign
             clients from your dashboard.
           </p>
           <p className="text-sm text-warm-gray-light mb-3">
