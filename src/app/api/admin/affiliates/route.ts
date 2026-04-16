@@ -40,7 +40,7 @@ export async function GET() {
 // POST: create a new affiliate
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, email, code, first_commission_rate, repeat_commission_rate, notes } = body;
+  const { name, email, code, first_commission_rate, repeat_commission_rate, notes, portal_password } = body;
 
   if (!name || !email || !code) {
     return NextResponse.json({ error: "Name, email, and code are required" }, { status: 400 });
@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       first_commission_rate: first_commission_rate ?? 15,
       repeat_commission_rate: repeat_commission_rate ?? 10,
       notes: notes || null,
+      portal_password: portal_password || null,
       active: true,
       total_earned: 0,
       total_paid: 0,
@@ -105,6 +106,7 @@ export async function PATCH(request: Request) {
   if (updates.notes !== undefined) allowedFields.notes = updates.notes;
   if (updates.name !== undefined) allowedFields.name = updates.name;
   if (updates.email !== undefined) allowedFields.email = updates.email;
+  if (updates.portal_password !== undefined) allowedFields.portal_password = updates.portal_password;
 
   const { data: affiliate, error } = await supabaseAdmin
     .from("affiliates")

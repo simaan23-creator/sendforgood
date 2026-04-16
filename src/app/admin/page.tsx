@@ -101,6 +101,7 @@ interface Affiliate {
   repeat_commission_rate: number;
   active: boolean;
   notes: string | null;
+  portal_password: string | null;
   total_earned: number;
   total_paid: number;
   created_at: string;
@@ -1451,6 +1452,12 @@ function AffiliatesTab() {
                         >
                           Copy Link
                         </button>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(`https://sendforgood.com/affiliate/${a.code}`)}
+                          className="rounded bg-purple-50 border border-purple-200 text-purple-600 px-2.5 py-1 text-xs font-medium hover:bg-purple-100 transition mr-1"
+                        >
+                          Copy Portal
+                        </button>
                         {a.total_unpaid > 0 && (
                           <button
                             onClick={() => handleMarkPaid(a.id)}
@@ -1583,6 +1590,7 @@ function AffiliateFormModal({
   const [firstRate, setFirstRate] = useState(affiliate?.first_commission_rate ?? 15);
   const [repeatRate, setRepeatRate] = useState(affiliate?.repeat_commission_rate ?? 10);
   const [notes, setNotes] = useState(affiliate?.notes || "");
+  const [portalPassword, setPortalPassword] = useState(affiliate?.portal_password || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -1603,8 +1611,8 @@ function AffiliateFormModal({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(
         isEdit
-          ? { id: affiliate.id, name, email, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes }
-          : { name, email, code, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes }
+          ? { id: affiliate.id, name, email, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes, portal_password: portalPassword || null }
+          : { name, email, code, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes, portal_password: portalPassword || null }
       ),
     });
 
@@ -1692,6 +1700,18 @@ function AffiliateFormModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Portal Password <span className="text-gray-400 font-normal">(affiliate uses this to access their stats page)</span>
+            </label>
+            <input
+              type="text"
+              value={portalPassword}
+              onChange={(e) => setPortalPassword(e.target.value)}
+              placeholder="e.g. james2024"
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
