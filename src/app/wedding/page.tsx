@@ -122,6 +122,9 @@ export default function WeddingPage() {
               See How It Works
             </a>
           </div>
+          <p className="mt-5 text-sm text-warm-gray">
+            After purchase, get your printable Wedding Kit &mdash; table cards, MC script, and guest invitations all ready to go.
+          </p>
         </div>
       </section>
 
