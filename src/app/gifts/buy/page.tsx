@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { addGiftCreditToCart } from "@/lib/cart";
 import { TIERS } from "@/lib/constants";
@@ -26,6 +26,10 @@ export default function BuyGiftCreditsPage() {
     Object.fromEntries(TIERS.map((t) => [t.id, 0]))
   );
   const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    if (added) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [added]);
 
   const totalCents = TIERS.reduce(
     (sum, tier) => sum + (quantities[tier.id] || 0) * TIER_PRICES[tier.id],
