@@ -172,7 +172,7 @@ export default function CartPage() {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
               </svg>
-              Buy Credits
+              Send Messages
             </Link>
             <Link
               href="/messages/buy"
@@ -232,7 +232,7 @@ export default function CartPage() {
                   <div>
                     <span className="text-warm-gray-light">Quantity</span>
                     <p className="font-medium text-navy">
-                      {letter.quantity} {letter.quantity === 1 ? "credit" : "credits"}
+                      {letter.quantity} {letter.quantity === 1 ? "letter" : "letters"}
                     </p>
                   </div>
                   <div>
@@ -289,13 +289,13 @@ export default function CartPage() {
                     {voice.audioQuantity > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Audio</span>
-                        <p className="font-medium text-navy">{voice.audioQuantity} &times; $5/credit</p>
+                        <p className="font-medium text-navy">{voice.audioQuantity} &times; $5 each</p>
                       </div>
                     )}
                     {voice.videoQuantity > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Video</span>
-                        <p className="font-medium text-navy">{voice.videoQuantity} &times; $10/credit</p>
+                        <p className="font-medium text-navy">{voice.videoQuantity} &times; $10 each</p>
                       </div>
                     )}
                     <div>
@@ -310,8 +310,8 @@ export default function CartPage() {
             {/* Vault credit items */}
             {vaultItems.map((vault) => {
               const parts: string[] = [];
-              if (vault.audioCredits > 0) parts.push(`${vault.audioCredits} audio credit${vault.audioCredits > 1 ? "s" : ""}`);
-              if (vault.videoCredits > 0) parts.push(`${vault.videoCredits} video credit${vault.videoCredits > 1 ? "s" : ""}`);
+              if (vault.audioCredits > 0) parts.push(`${vault.audioCredits} audio recording${vault.audioCredits > 1 ? "s" : ""}`);
+              if (vault.videoCredits > 0) parts.push(`${vault.videoCredits} video recording${vault.videoCredits > 1 ? "s" : ""}`);
               const label = parts.join(" + ");
 
               return (
@@ -323,7 +323,7 @@ export default function CartPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-bold text-navy">
-                          Memory Vault Credits
+                          Memory Vault
                         </h3>
                         <span className="shrink-0 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-600">
                           Vault
@@ -377,14 +377,14 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-lg font-bold text-navy">
-                        {gc.tierName} Gift Credit
+                        {gc.tierName} Gift
                       </h3>
                       <span className="shrink-0 rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
                         Credit
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-warm-gray">
-                      {gc.quantity} credit{gc.quantity > 1 ? "s" : ""} &middot; Assign recipients later
+                      {gc.quantity} gift{gc.quantity > 1 ? "s" : ""} &middot; Assign recipients later
                     </p>
                   </div>
 
@@ -392,7 +392,7 @@ export default function CartPage() {
                     type="button"
                     onClick={() => handleRemoveGiftCredit(gc.id)}
                     className="shrink-0 rounded-lg p-1.5 text-warm-gray-light transition hover:bg-red-50 hover:text-red-500"
-                    aria-label={`Remove ${gc.tierName} gift credits`}
+                    aria-label={`Remove ${gc.tierName} Gifts`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                       <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
@@ -410,7 +410,7 @@ export default function CartPage() {
                     <p className="font-medium text-navy">{gc.quantity}</p>
                   </div>
                   <div>
-                    <span className="text-warm-gray-light">Per Credit</span>
+                    <span className="text-warm-gray-light">Per Gift</span>
                     <p className="font-medium text-navy">${(gc.unitPrice / 100).toFixed(0)}</p>
                   </div>
                   <div>
@@ -465,7 +465,7 @@ export default function CartPage() {
                 {giftCreditItems.map((gc) => (
                   <div key={gc.id} className="flex items-center justify-between text-sm">
                     <span className="text-warm-gray truncate max-w-[60%]">
-                      {gc.tierName} Credit &times; {gc.quantity}
+                      {gc.tierName} Gift &times; {gc.quantity}
                     </span>
                     <span className="font-medium text-navy">${(gc.totalPrice / 100).toFixed(0)}</span>
                   </div>
