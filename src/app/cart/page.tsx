@@ -380,7 +380,7 @@ export default function CartPage() {
                         {gc.tierName} Gift
                       </h3>
                       <span className="shrink-0 rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                        Credit
+                        Gift
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-warm-gray">
