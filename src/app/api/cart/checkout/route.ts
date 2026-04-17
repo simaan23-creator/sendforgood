@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
 
@@ -91,8 +90,8 @@ interface GiftCreditItemPayload {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const cookieStore = await cookies();
-    const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
+    // Get affiliate code from request header instead of cookies (cookies() can hang)
+    const affiliateCode = request.headers.get("cookie")?.match(/sfg_affiliate=([^;]+)/)?.[1] || "";
     const { items, letterItems, voiceItems, vaultItems, giftCreditItems, email, fullName } = body as {
       items: CartItemPayload[];
       letterItems?: LetterItemPayload[];
