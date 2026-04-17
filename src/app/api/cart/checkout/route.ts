@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
 
@@ -263,9 +264,6 @@ export async function POST(request: Request) {
       }
     }
 
-        // User auth is handled by the webhook - skip here to prevent timeout
-    const user = null;
-
     // Serialize cart items to metadata (chunked for Stripe's 500-char limit)
     const cartJson = JSON.stringify(items || []);
     const metadataChunks: Record<string, string> = {};
@@ -342,11 +340,11 @@ export async function POST(request: Request) {
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-      customer_email: user?.email || email,
+      customer_email: email,
       metadata: {
         isCartOrder: "true",
-        userId: user?.id || "",
-        email: email || user?.email || "",
+        userId: "",
+        email: email || "",
         fullName: fullName || "",
         itemCount: (items?.length || 0).toString(),
         letterItemCount: (letterItems?.length || 0).toString(),
