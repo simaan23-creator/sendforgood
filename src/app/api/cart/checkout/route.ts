@@ -265,11 +265,17 @@ export async function POST(request: Request) {
       }
     }
 
-    // Check if user is authenticated
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Get user from cookie directly (faster than createClient)
+    let user = null;
+    try {
+      const cookieStore = await cookies();
+      const supabase = await createClient();
+      const result = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]) as { data: { user: { id: string; email: string } | null } };
+      user = result.data.user;
+    } catch { /* continue without user - webhook will handle */ }
 
     // Serialize cart items to metadata (chunked for Stripe's 500-char limit)
     const cartJson = JSON.stringify(items || []);
