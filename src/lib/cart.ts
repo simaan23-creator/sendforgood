@@ -105,6 +105,15 @@ export function getLetterCart(): LetterCartItem[] {
 
 export function addLetterToCart(item: Omit<LetterCartItem, "id">): LetterCartItem {
   const cart = getLetterCart();
+  // Merge with existing item of same deliveryType
+  const existing = cart.find((i) => i.deliveryType === item.deliveryType);
+  if (existing) {
+    existing.quantity += item.quantity;
+    existing.totalPrice = existing.unitPrice * existing.quantity;
+    localStorage.setItem(LETTER_CART_KEY, JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart-updated"));
+    return existing;
+  }
   const newItem: LetterCartItem = { ...item, id: generateId() };
   cart.push(newItem);
   localStorage.setItem(LETTER_CART_KEY, JSON.stringify(cart));
@@ -159,6 +168,16 @@ export function getVoiceCart(): VoiceCartItem[] {
 
 export function addVoiceToCart(item: Omit<VoiceCartItem, "id">): VoiceCartItem {
   const cart = getVoiceCart();
+  // Merge with existing voice item (combine quantities)
+  if (cart.length > 0) {
+    const existing = cart[0];
+    existing.audioQuantity += item.audioQuantity;
+    existing.videoQuantity += item.videoQuantity;
+    existing.totalPrice = (existing.audioQuantity * existing.unitPriceAudio) + (existing.videoQuantity * existing.unitPriceVideo);
+    localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart-updated"));
+    return existing;
+  }
   const newItem: VoiceCartItem = { ...item, id: generateId() };
   cart.push(newItem);
   localStorage.setItem(VOICE_CART_KEY, JSON.stringify(cart));

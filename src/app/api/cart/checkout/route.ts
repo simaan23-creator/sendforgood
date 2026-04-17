@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase/server";
 
 interface CartItemPayload {
   id: string;
@@ -265,17 +263,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Get user from cookie directly (faster than createClient)
-    let user = null;
-    try {
-      const cookieStore = await cookies();
-      const supabase = await createClient();
-      const result = await Promise.race([
-        supabase.auth.getUser(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-      ]) as { data: { user: { id: string; email: string } | null } };
-      user = result.data.user;
-    } catch { /* continue without user - webhook will handle */ }
+        // User auth is handled by the webhook - skip here to prevent timeout
+    const user = null;
 
     // Serialize cart items to metadata (chunked for Stripe's 500-char limit)
     const cartJson = JSON.stringify(items || []);
