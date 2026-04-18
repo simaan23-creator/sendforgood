@@ -7,6 +7,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS } from "@/lib/constants";
 import ManagePlanModal from "@/components/manage-plan-modal";
+import GiftItemModal from "@/components/gift-item-modal";
 
 interface Shipment {
   id: string;
@@ -186,6 +187,11 @@ export default function DashboardPage() {
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
+  const [giftingItem, setGiftingItem] = useState<{
+    itemType: "letter" | "voice_message" | "gift_credit";
+    itemId: string;
+    itemLabel: string;
+  } | null>(null);
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
@@ -664,14 +670,28 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    {available > 0 && (
-                      <Link
-                        href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
-                        className="mt-3 block w-full rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                    <div className="mt-3 flex gap-2">
+                      {available > 0 && (
+                        <Link
+                          href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
+                          className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                        >
+                          Assign Recipient
+                        </Link>
+                      )}
+                      <button
+                        onClick={() =>
+                          setGiftingItem({
+                            itemType: "gift_credit",
+                            itemId: gc.id,
+                            itemLabel: `${getTierName(gc.tier)} Gift Credit`,
+                          })
+                        }
+                        className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
                       >
-                        Assign Recipient
-                      </Link>
-                    )}
+                        Gift
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -968,6 +988,18 @@ export default function DashboardPage() {
 
                     {/* Actions */}
                     <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                      <button
+                        onClick={() =>
+                          setGiftingItem({
+                            itemType: "letter",
+                            itemId: letter.id,
+                            itemLabel: `Letter: ${letter.title || "Untitled"} (to ${letter.recipients?.name || "recipient"})`,
+                          })
+                        }
+                        className="rounded-lg border-2 border-gold px-3 py-2 text-sm font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
+                      >
+                        Gift
+                      </button>
                       {/* Release button for milestone letters that are written */}
                       {letter.letter_type === "milestone" && letter.status === "pending_release" && (
                         <button
@@ -1063,12 +1095,26 @@ export default function DashboardPage() {
                     <p className="mt-1 text-xs text-warm-gray-light">
                       {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
-                    <Link
-                      href={`/voice/record/${vm.id}`}
-                      className="mt-3 block w-full rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                    >
-                      Record Message
-                    </Link>
+                    <div className="mt-3 flex gap-2">
+                      <Link
+                        href={`/voice/record/${vm.id}`}
+                        className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                      >
+                        Record Message
+                      </Link>
+                      <button
+                        onClick={() =>
+                          setGiftingItem({
+                            itemType: "voice_message",
+                            itemId: vm.id,
+                            itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"} Message: ${vm.title || "Untitled"}`,
+                          })
+                        }
+                        className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
+                      >
+                        Gift
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1183,6 +1229,19 @@ export default function DashboardPage() {
           onClose={() => setManagingOrder(null)}
           onOrderUpdated={handleOrderUpdated}
           hasRefundRequest={hasRefundRequest(managingOrder.id)}
+        />
+      )}
+
+      {/* Gift Item Modal */}
+      {giftingItem && (
+        <GiftItemModal
+          itemType={giftingItem.itemType}
+          itemId={giftingItem.itemId}
+          itemLabel={giftingItem.itemLabel}
+          onClose={() => {
+            setGiftingItem(null);
+            loadDashboard();
+          }}
         />
       )}
 
