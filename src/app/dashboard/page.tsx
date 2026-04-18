@@ -220,7 +220,8 @@ export default function DashboardPage() {
         .from("letters")
         .select("*, recipients(name, relationship)")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
 
     if (!ordersResult.error && ordersResult.data) {
