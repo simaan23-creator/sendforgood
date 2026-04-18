@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe, TIER_PRICES, DELIVERY_TYPE_PRICES } from "@/lib/stripe";
 import type { DeliveryType } from "@/lib/stripe";
+import { createClient } from "@/lib/supabase/server";
 
 interface CartItemPayload {
   id: string;
@@ -101,6 +102,10 @@ export async function POST(request: Request) {
       email: string;
       fullName: string;
     };
+
+    // Check if user is authenticated
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     const hasGifts = items && items.length > 0;
     const hasLetters = letterItems && letterItems.length > 0;
@@ -342,7 +347,7 @@ export async function POST(request: Request) {
       customer_email: email,
       metadata: {
         isCartOrder: "true",
-        userId: "",
+        userId: user?.id || "",
         email: email || "",
         fullName: fullName || "",
         itemCount: (items?.length || 0).toString(),

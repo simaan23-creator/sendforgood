@@ -205,7 +205,7 @@ export default function DashboardPage() {
       .single();
     if (profile?.phone) setPhone(profile.phone);
 
-    const [ordersResult, refundsResult, lettersResult] = await Promise.all([
+    const [ordersResult, refundsResult, lettersResult, gcResult, givenResult] = await Promise.all([
       supabase
         .from("orders")
         .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number, photo_url)")
@@ -222,6 +222,16 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50),
+      supabase
+        .from('gift_credits')
+        .select('id, tier, quantity, quantity_used, amount_paid, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('gifted_credits')
+        .select('id, recipient_name, recipient_email, tier, status, claim_code, created_at')
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false }),
     ]);
 
     if (!ordersResult.error && ordersResult.data) {
@@ -236,7 +246,35 @@ export default function DashboardPage() {
       setLetters(lettersResult.data as Letter[]);
     }
 
-    // Show dashboard immediately, load memory requests in background
+    // Process gift credits + fetch their assignments
+    if (!gcResult.error && gcResult.data && gcResult.data.length > 0) {
+      const creditIds = gcResult.data.map((c: { id: string }) => c.id);
+      const { data: assignData } = await supabase
+        .from('gift_assignments')
+        .select('id, credit_id, recipient_name, occasion_type, occasion_date, scheduled_year, status')
+        .in('credit_id', creditIds)
+        .order('occasion_date', { ascending: true });
+
+      const assignmentsByCredit: Record<string, typeof assignData> = {};
+      for (const a of assignData || []) {
+        const cid = (a as { credit_id: string }).credit_id;
+        if (!assignmentsByCredit[cid]) assignmentsByCredit[cid] = [];
+        assignmentsByCredit[cid]!.push(a);
+      }
+
+      setGiftCredits(gcResult.data.map((gc: { id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string }) => ({
+        ...gc,
+        assignments: assignmentsByCredit[gc.id] || [],
+      })));
+    } else {
+      setGiftCredits([]);
+    }
+
+    if (!givenResult.error && givenResult.data) {
+      setGiftsGiven(givenResult.data);
+    }
+
+    // Show dashboard, load remaining data in background
     setLoading(false);
 
     try {
@@ -256,48 +294,6 @@ export default function DashboardPage() {
       const totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
       const totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
       setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
-    } catch { /* silently fail */ }
-
-    // Fetch gift credits + assignments
-    try {
-      const { data: gcData } = await supabase
-        .from('gift_credits')
-        .select('id, tier, quantity, quantity_used, amount_paid, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (gcData && gcData.length > 0) {
-        const creditIds = gcData.map((c: { id: string }) => c.id);
-        const { data: assignData } = await supabase
-          .from('gift_assignments')
-          .select('id, credit_id, recipient_name, occasion_type, occasion_date, scheduled_year, status')
-          .in('credit_id', creditIds)
-          .order('occasion_date', { ascending: true });
-
-        const assignmentsByCredit: Record<string, typeof assignData> = {};
-        for (const a of assignData || []) {
-          const cid = (a as { credit_id: string }).credit_id;
-          if (!assignmentsByCredit[cid]) assignmentsByCredit[cid] = [];
-          assignmentsByCredit[cid]!.push(a);
-        }
-
-        setGiftCredits(gcData.map((gc: { id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string }) => ({
-          ...gc,
-          assignments: assignmentsByCredit[gc.id] || [],
-        })));
-      } else {
-        setGiftCredits([]);
-      }
-    } catch { /* silently fail */ }
-
-    // Fetch gifts you've given
-    try {
-      const { data: givenData } = await supabase
-        .from('gifted_credits')
-        .select('id, recipient_name, recipient_email, tier, status, claim_code, created_at')
-        .eq('sender_id', user.id)
-        .order('created_at', { ascending: false });
-      if (givenData) setGiftsGiven(givenData);
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -425,7 +421,7 @@ export default function DashboardPage() {
   // ---------------------------------------------------------------------------
   // Empty state
   // ---------------------------------------------------------------------------
-  if (orders.length === 0) {
+  if (orders.length === 0 && giftCredits.length === 0 && letters.length === 0 && giftsGiven.length === 0) {
     return (
       <div className="min-h-screen bg-cream">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
