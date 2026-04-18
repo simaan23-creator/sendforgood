@@ -57,6 +57,7 @@ export async function PATCH(request: Request) {
       deliveryType,
       recipientEmail,
       photoUrl,
+      letterType,
     } = body;
 
     if (!letterId) {
@@ -115,6 +116,7 @@ export async function PATCH(request: Request) {
     if (deliveryType !== undefined) updates.delivery_type = deliveryType;
     if (recipientEmail !== undefined) updates.recipient_email = recipientEmail;
     if (photoUrl !== undefined) updates.photo_url = photoUrl;
+    if (letterType !== undefined) updates.letter_type = letterType;
 
     const { data: updated, error } = await supabase
       .from("letters")

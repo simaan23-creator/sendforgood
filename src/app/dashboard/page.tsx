@@ -79,6 +79,14 @@ interface Letter {
   };
 }
 
+interface VoiceMessage {
+  id: string;
+  title: string | null;
+  message_format: "audio" | "video";
+  status: string;
+  created_at: string;
+}
+
 interface MemoryRequest {
   id: string;
   title: string;
@@ -170,6 +178,7 @@ export default function DashboardPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [managingOrder, setManagingOrder] = useState<Order | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
@@ -284,6 +293,18 @@ export default function DashboardPage() {
         .eq("requester_id", user.id)
         .order("created_at", { ascending: false });
       if (memData) setMemoryRequests(memData);
+    } catch {
+      // silently fail
+    }
+
+    // Fetch voice messages
+    try {
+      const { data: vmData } = await supabase
+        .from("voice_messages")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (vmData) setVoiceMessages(vmData);
     } catch {
       // silently fail
     }
@@ -939,13 +960,6 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                          letter.letter_type === "annual"
-                            ? "bg-navy/10 text-navy"
-                            : "bg-gold/20 text-gold-dark"
-                        }`}>
-                          {letter.letter_type === "annual" ? "Annual" : "Milestone"}
-                        </span>
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
                           {statusInfo.label}
                         </span>
@@ -988,6 +1002,73 @@ export default function DashboardPage() {
                         </Link>
                       )}
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* My Voice Messages */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-navy">My Voice Messages</h2>
+            <Link
+              href="/messages/buy"
+              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
+            >
+              Buy Message Credits
+            </Link>
+          </div>
+
+          {voiceMessages.length === 0 ? (
+            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
+              <p className="text-warm-gray">
+                No voice messages yet. Buy message credits to get started.{" "}
+                <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
+                  Buy Message Credits
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {voiceMessages.map((vm) => {
+                const statusMap: Record<string, { label: string; classes: string }> = {
+                  draft: { label: "Not recorded", classes: "bg-yellow-100 text-yellow-800" },
+                  recorded: { label: "Recorded", classes: "bg-green-100 text-green-800" },
+                  delivered: { label: "Delivered", classes: "bg-forest/10 text-forest" },
+                };
+                const statusInfo = statusMap[vm.status] ?? { label: vm.status, classes: "bg-gray-100 text-gray-700" };
+
+                return (
+                  <div
+                    key={vm.id}
+                    className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                        vm.message_format === "video"
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-navy/10 text-navy"
+                      }`}>
+                        {vm.message_format === "video" ? "Video" : "Audio"}
+                      </span>
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <p className="mt-3 font-semibold text-navy">
+                      {vm.title || "Untitled Message"}
+                    </p>
+                    <p className="mt-1 text-xs text-warm-gray-light">
+                      {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                    <Link
+                      href={`/voice/record/${vm.id}`}
+                      className="mt-3 block w-full rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                    >
+                      Record Message
+                    </Link>
                   </div>
                 );
               })}

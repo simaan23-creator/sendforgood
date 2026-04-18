@@ -117,6 +117,7 @@ export default function EditLetterPage() {
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("physical");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [letterType, setLetterType] = useState<"annual" | "milestone">("annual");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
   const [useGiftExecutor, setUseGiftExecutor] = useState(false);
@@ -168,6 +169,7 @@ export default function EditLetterPage() {
       setExecutorEmail(data.executor_email || "");
       setExecutorPhone(data.executor_phone || "");
       setExecutorAddress(data.executor_address || "");
+      setLetterType(data.letter_type === "milestone" ? "milestone" : "annual");
       setDeliveryType(data.delivery_type || "physical");
       setRecipientEmail(data.recipient_email || "");
       setPhotoUrl(data.photo_url || "");
@@ -218,6 +220,7 @@ export default function EditLetterPage() {
           letterId,
           title,
           content,
+          letterType,
           scheduledDate: scheduledDate || null,
           milestoneLabel: effectiveMilestone || null,
           executorName: executorName || null,
@@ -279,17 +282,9 @@ export default function EditLetterPage() {
             )}
           </p>
           <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy capitalize">
-              {letter.letter_type}
-            </span>
             <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 capitalize">
               {letter.status.replace(/_/g, " ")}
             </span>
-            {letter.milestone_label && (
-              <span className="text-xs text-warm-gray">
-                {letter.milestone_label}
-              </span>
-            )}
           </div>
         </div>
 
@@ -300,6 +295,109 @@ export default function EditLetterPage() {
         )}
 
         <div className="space-y-6">
+          {/* Letter Type Toggle */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-navy">
+              Letter Type
+            </label>
+            <div className="flex gap-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLocked) {
+                    setLetterType("annual");
+                    setSaved(false);
+                  }
+                }}
+                disabled={isLocked}
+                className={`rounded-l-lg border-2 px-5 py-2.5 text-sm font-semibold transition-colors ${
+                  letterType === "annual"
+                    ? "border-navy bg-navy text-white"
+                    : "border-cream-dark bg-white text-warm-gray hover:border-navy/30 hover:text-navy"
+                } disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                Annual
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLocked) {
+                    setLetterType("milestone");
+                    setSaved(false);
+                  }
+                }}
+                disabled={isLocked}
+                className={`rounded-r-lg border-2 border-l-0 px-5 py-2.5 text-sm font-semibold transition-colors ${
+                  letterType === "milestone"
+                    ? "border-navy bg-navy text-white"
+                    : "border-cream-dark bg-white text-warm-gray hover:border-navy/30 hover:text-navy"
+                } disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                Milestone
+              </button>
+            </div>
+          </div>
+
+          {/* Annual: Delivery date picker (month/day) */}
+          {letterType === "annual" && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-navy">
+                Delivery date each year (month/day)
+              </label>
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => {
+                  setScheduledDate(e.target.value);
+                  setSaved(false);
+                }}
+                disabled={isLocked}
+                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+          )}
+
+          {/* Milestone: dropdown */}
+          {letterType === "milestone" && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-navy">
+                What is this letter for?
+              </label>
+              <select
+                value={milestoneLabel}
+                onChange={(e) => {
+                  setMilestoneLabel(e.target.value);
+                  if (e.target.value !== "Other Milestone") {
+                    setCustomMilestone("");
+                  }
+                  setSaved(false);
+                }}
+                disabled={isLocked}
+                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <option value="">Select a milestone...</option>
+                {MILESTONE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              {milestoneLabel === "Other Milestone" && (
+                <input
+                  type="text"
+                  value={customMilestone}
+                  onChange={(e) => {
+                    setCustomMilestone(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isLocked}
+                  placeholder="Describe the milestone..."
+                  className="mt-3 w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+              )}
+            </div>
+          )}
+
           {/* Delivery Type (read-only) */}
           <div>
             <label className="mb-3 block text-sm font-medium text-navy">
@@ -452,7 +550,7 @@ export default function EditLetterPage() {
           </div>
 
           {/* Info box for milestone letters */}
-          {letter.letter_type === "milestone" && (
+          {letterType === "milestone" && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
               <div className="flex gap-3">
                 <span className="text-xl leading-none">📋</span>
@@ -473,7 +571,7 @@ export default function EditLetterPage() {
           )}
 
           {/* Info note for annual letters */}
-          {letter.letter_type === "annual" && (
+          {letterType === "annual" && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-sm text-green-800">
                 ✅ This letter will be delivered automatically on the scheduled date each year.
@@ -512,85 +610,6 @@ export default function EditLetterPage() {
               </p>
             </div>
           </div>
-
-          {/* Milestone field for milestone letters */}
-          {letter.letter_type === "milestone" && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                What is this letter for?
-              </label>
-              <select
-                value={milestoneLabel}
-                onChange={(e) => {
-                  setMilestoneLabel(e.target.value);
-                  if (e.target.value !== "Other Milestone") {
-                    setCustomMilestone("");
-                  }
-                  setSaved(false);
-                }}
-                disabled={isLocked}
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <option value="">Select a milestone...</option>
-                {MILESTONE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              {milestoneLabel === "Other Milestone" && (
-                <input
-                  type="text"
-                  value={customMilestone}
-                  onChange={(e) => {
-                    setCustomMilestone(e.target.value);
-                    setSaved(false);
-                  }}
-                  disabled={isLocked}
-                  placeholder="Describe the milestone..."
-                  className="mt-3 w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Scheduled Date for annual letters */}
-          {letter.letter_type === "annual" && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Scheduled Date
-              </label>
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => {
-                  setScheduledDate(e.target.value);
-                  setSaved(false);
-                }}
-                disabled={isLocked}
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-              />
-            </div>
-          )}
-
-          {/* Fallback date field for other letter types */}
-          {letter.letter_type !== "milestone" && letter.letter_type !== "annual" && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Delivery Date
-              </label>
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => {
-                  setScheduledDate(e.target.value);
-                  setSaved(false);
-                }}
-                disabled={isLocked}
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-              />
-            </div>
-          )}
 
           {/* Executor Section */}
           <div>
