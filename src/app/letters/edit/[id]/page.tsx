@@ -57,16 +57,14 @@ async function convertToJpeg(file: File): Promise<Blob> {
 
 const MILESTONE_OPTIONS = [
   "Wedding Day",
-  "Birth of First Child",
-  "High School Graduation",
-  "College Graduation",
-  "First Home Purchase",
+  "Graduation",
+  "First Child",
   "Retirement",
   "18th Birthday",
   "21st Birthday",
   "30th Birthday",
   "50th Birthday",
-  "Other Milestone",
+  "Other",
 ];
 
 type DeliveryType = "digital" | "physical" | "physical_photo";
@@ -117,7 +115,7 @@ export default function EditLetterPage() {
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("physical");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [letterType, setLetterType] = useState<"annual" | "milestone">("annual");
+  const [deliveryMode, setDeliveryMode] = useState<"date" | "milestone">("date");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
   const [useGiftExecutor, setUseGiftExecutor] = useState(false);
@@ -160,7 +158,7 @@ export default function EditLetterPage() {
       const savedLabel = data.milestone_label || "";
       if (savedLabel && !MILESTONE_OPTIONS.includes(savedLabel)) {
         // It's a custom milestone
-        setMilestoneLabel("Other Milestone");
+        setMilestoneLabel("Other");
         setCustomMilestone(savedLabel);
       } else {
         setMilestoneLabel(savedLabel);
@@ -169,7 +167,7 @@ export default function EditLetterPage() {
       setExecutorEmail(data.executor_email || "");
       setExecutorPhone(data.executor_phone || "");
       setExecutorAddress(data.executor_address || "");
-      setLetterType(data.letter_type === "milestone" ? "milestone" : "annual");
+      setDeliveryMode(data.letter_type === "milestone" ? "milestone" : "date");
       setDeliveryType(data.delivery_type || "physical");
       setRecipientEmail(data.recipient_email || "");
       setPhotoUrl(data.photo_url || "");
@@ -211,7 +209,7 @@ export default function EditLetterPage() {
 
     try {
       const effectiveMilestone =
-        milestoneLabel === "Other Milestone" ? customMilestone : milestoneLabel;
+        milestoneLabel === "Other" ? customMilestone : milestoneLabel;
 
       const res = await fetch("/api/letters", {
         method: "PATCH",
@@ -220,9 +218,9 @@ export default function EditLetterPage() {
           letterId,
           title,
           content,
-          letterType,
-          scheduledDate: scheduledDate || null,
-          milestoneLabel: effectiveMilestone || null,
+          letterType: deliveryMode === "milestone" ? "milestone" : "annual",
+          scheduledDate: deliveryMode === "date" ? (scheduledDate || null) : null,
+          milestoneLabel: deliveryMode === "milestone" ? (effectiveMilestone || null) : null,
           executorName: executorName || null,
           executorEmail: executorEmail || null,
           executorPhone: executorPhone || null,
@@ -295,54 +293,60 @@ export default function EditLetterPage() {
         )}
 
         <div className="space-y-6">
-          {/* Letter Type Toggle */}
+          {/* When should this be delivered? */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-navy">
-              Letter Type
+            <label className="mb-3 block text-sm font-semibold text-navy">
+              When should this be delivered?
             </label>
-            <div className="flex gap-0">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => {
                   if (!isLocked) {
-                    setLetterType("annual");
+                    setDeliveryMode("date");
                     setSaved(false);
                   }
                 }}
                 disabled={isLocked}
-                className={`rounded-l-lg border-2 px-5 py-2.5 text-sm font-semibold transition-colors ${
-                  letterType === "annual"
-                    ? "border-navy bg-navy text-white"
-                    : "border-cream-dark bg-white text-warm-gray hover:border-navy/30 hover:text-navy"
+                className={`rounded-xl border-2 p-4 text-left transition-colors ${
+                  deliveryMode === "date"
+                    ? "border-navy bg-navy/5"
+                    : "border-cream-dark bg-white hover:border-navy/30"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                Annual
+                <span className="text-2xl">📅</span>
+                <p className={`mt-2 text-sm font-semibold ${deliveryMode === "date" ? "text-navy" : "text-warm-gray"}`}>
+                  On a specific date
+                </p>
               </button>
               <button
                 type="button"
                 onClick={() => {
                   if (!isLocked) {
-                    setLetterType("milestone");
+                    setDeliveryMode("milestone");
                     setSaved(false);
                   }
                 }}
                 disabled={isLocked}
-                className={`rounded-r-lg border-2 border-l-0 px-5 py-2.5 text-sm font-semibold transition-colors ${
-                  letterType === "milestone"
-                    ? "border-navy bg-navy text-white"
-                    : "border-cream-dark bg-white text-warm-gray hover:border-navy/30 hover:text-navy"
+                className={`rounded-xl border-2 p-4 text-left transition-colors ${
+                  deliveryMode === "milestone"
+                    ? "border-navy bg-navy/5"
+                    : "border-cream-dark bg-white hover:border-navy/30"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                Milestone
+                <span className="text-2xl">🎯</span>
+                <p className={`mt-2 text-sm font-semibold ${deliveryMode === "milestone" ? "text-navy" : "text-warm-gray"}`}>
+                  On a milestone
+                </p>
               </button>
             </div>
           </div>
 
-          {/* Annual: Delivery date picker (month/day) */}
-          {letterType === "annual" && (
+          {/* Option A: Specific Date */}
+          {deliveryMode === "date" && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-navy">
-                Delivery date each year (month/day)
+                Delivery Date
               </label>
               <input
                 type="date"
@@ -354,20 +358,23 @@ export default function EditLetterPage() {
                 disabled={isLocked}
                 className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
               />
+              <p className="mt-1.5 text-xs text-warm-gray">
+                Your letter will be delivered on this date.
+              </p>
             </div>
           )}
 
-          {/* Milestone: dropdown */}
-          {letterType === "milestone" && (
+          {/* Option B: Milestone */}
+          {deliveryMode === "milestone" && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-navy">
-                What is this letter for?
+                What milestone?
               </label>
               <select
                 value={milestoneLabel}
                 onChange={(e) => {
                   setMilestoneLabel(e.target.value);
-                  if (e.target.value !== "Other Milestone") {
+                  if (e.target.value !== "Other") {
                     setCustomMilestone("");
                   }
                   setSaved(false);
@@ -382,7 +389,7 @@ export default function EditLetterPage() {
                   </option>
                 ))}
               </select>
-              {milestoneLabel === "Other Milestone" && (
+              {milestoneLabel === "Other" && (
                 <input
                   type="text"
                   value={customMilestone}
@@ -395,6 +402,9 @@ export default function EditLetterPage() {
                   className="mt-3 w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               )}
+              <p className="mt-1.5 text-xs text-warm-gray">
+                Your letter will be held until you or your executor releases it.
+              </p>
             </div>
           )}
 
@@ -549,8 +559,8 @@ export default function EditLetterPage() {
             />
           </div>
 
-          {/* Info box for milestone letters */}
-          {letterType === "milestone" && (
+          {/* Info box */}
+          {deliveryMode === "milestone" && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
               <div className="flex gap-3">
                 <span className="text-xl leading-none">📋</span>
@@ -561,20 +571,18 @@ export default function EditLetterPage() {
                   <p className="mt-1 text-sm text-amber-800 leading-relaxed">
                     This letter will NOT be sent automatically. It stays safely stored in
                     your vault until you or your executor logs in and releases it. When the
-                    moment arrives — whether that is a wedding, a new baby, or any milestone
-                    — simply come back to your dashboard and click Release, or ask your
-                    executor to do it on your behalf.
+                    moment arrives, simply come back to your dashboard and click Release, or
+                    ask your executor to do it on your behalf.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Info note for annual letters */}
-          {letterType === "annual" && (
+          {deliveryMode === "date" && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-sm text-green-800">
-                ✅ This letter will be delivered automatically on the scheduled date each year.
+                This letter will be delivered once on the scheduled date.
               </p>
             </div>
           )}
