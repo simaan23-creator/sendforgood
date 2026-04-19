@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { use_type, format, item_id, item_type, recipient_name, recipient_email, sealed_until, content_text } = body;
+  const { use_type, format, item_id, item_type, recipient_name, recipient_email, sealed_until, milestone_label, content_text } = body;
 
   if (!use_type || !["vault", "gift", "request"].includes(use_type)) {
     return NextResponse.json({ error: "Invalid use_type" }, { status: 400 });
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
       use_type,
       recipient_name: recipient_name || null,
       recipient_email: recipient_email || null,
-      sealed_until: use_type === "vault" ? sealed_until : null,
+      sealed_until: ["vault", "request"].includes(use_type) ? sealed_until || null : null,
+      milestone_label: milestone_label || null,
       content_text: content_text || null,
       claim_code: claimCode,
       status: use_type === "request" ? "pending_request" : "draft",

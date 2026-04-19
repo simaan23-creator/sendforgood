@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 
+const MILESTONE_OPTIONS = [
+  "Wedding Day",
+  "Graduation",
+  "First Child",
+  "Retirement",
+  "18th Birthday",
+  "21st Birthday",
+  "30th Birthday",
+  "50th Birthday",
+  "Other",
+];
+
 interface RequestModalProps {
   itemLabel: string;
   itemType: string;
@@ -17,10 +29,30 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
   const [error, setError] = useState("");
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [deliveryMode, setDeliveryMode] = useState<"open" | "date" | "milestone">("open");
+  const [sealedUntil, setSealedUntil] = useState("");
+  const [milestoneLabel, setMilestoneLabel] = useState("");
+  const [customMilestone, setCustomMilestone] = useState("");
 
   async function handleSubmit() {
+    if (deliveryMode === "date" && !sealedUntil) {
+      setError("Please choose a date.");
+      return;
+    }
+    if (deliveryMode === "milestone" && !sealedUntil) {
+      setError("Please choose a date for the milestone.");
+      return;
+    }
+    if (deliveryMode === "milestone" && !milestoneLabel) {
+      setError("Please choose a milestone.");
+      return;
+    }
+
     setSending(true);
     setError("");
+
+    const finalMilestone = milestoneLabel === "Other" ? customMilestone.trim() : milestoneLabel;
+
     try {
       const res = await fetch("/api/message-uses", {
         method: "POST",
@@ -32,6 +64,8 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
           item_id: itemId,
           recipient_email: recipientEmail.trim() || undefined,
           content_text: prompt.trim() || undefined,
+          sealed_until: deliveryMode !== "open" ? sealedUntil : undefined,
+          milestone_label: deliveryMode === "milestone" ? finalMilestone : undefined,
         }),
       });
       const data = await res.json();
@@ -124,6 +158,77 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
                     className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none"
                   />
                   <p className="mt-1 text-right text-xs text-warm-gray-light">{prompt.length}/300</p>
+                </div>
+
+                {/* Delivery Mode */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-navy">
+                    When can you view this?
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { value: "open", label: "Open Anytime" },
+                      { value: "date", label: "Locked Until Date" },
+                      { value: "milestone", label: "Milestone" },
+                    ] as const).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setDeliveryMode(opt.value)}
+                        className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
+                          deliveryMode === opt.value
+                            ? "border-gold bg-gold/10 text-navy"
+                            : "border-cream-dark text-warm-gray hover:bg-cream-dark"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {deliveryMode !== "open" && (
+                    <div className="mt-3 space-y-3">
+                      {deliveryMode === "milestone" && (
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-navy">Milestone</label>
+                          <select
+                            value={milestoneLabel}
+                            onChange={(e) => setMilestoneLabel(e.target.value)}
+                            className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                          >
+                            <option value="">Select a milestone...</option>
+                            {MILESTONE_OPTIONS.map((m) => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                          {milestoneLabel === "Other" && (
+                            <input
+                              type="text"
+                              value={customMilestone}
+                              onChange={(e) => setCustomMilestone(e.target.value)}
+                              placeholder="e.g. Moving Abroad"
+                              className="mt-2 w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                            />
+                          )}
+                        </div>
+                      )}
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-navy">
+                          {deliveryMode === "milestone" ? "Sealed until this date" : "Locked until"}
+                        </label>
+                        <input
+                          type="date"
+                          value={sealedUntil}
+                          onChange={(e) => setSealedUntil(e.target.value)}
+                          min={new Date().toISOString().split("T")[0]}
+                          className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                        />
+                      </div>
+                      <p className="text-xs text-warm-gray-light">
+                        The recording will be sealed and cannot be viewed until this date.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

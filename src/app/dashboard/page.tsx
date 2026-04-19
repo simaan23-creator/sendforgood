@@ -92,6 +92,20 @@ interface VoiceMessage {
   created_at: string;
 }
 
+interface ReceivedMessage {
+  id: string;
+  format: string;
+  content_url: string | null;
+  content_text: string | null;
+  recipient_name: string | null;
+  sealed_until: string | null;
+  milestone_label: string | null;
+  claim_code: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface MemoryRequest {
   id: string;
   title: string;
@@ -185,6 +199,7 @@ export default function DashboardPage() {
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
+  const [receivedMessages, setReceivedMessages] = useState<ReceivedMessage[]>([]);
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
@@ -328,6 +343,20 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (vmData) setVoiceMessages(vmData);
+    } catch {
+      // silently fail
+    }
+
+    // Fetch received messages (contributed requests)
+    try {
+      const { data: rmData } = await supabase
+        .from("message_uses")
+        .select("id, format, content_url, content_text, recipient_name, sealed_until, milestone_label, claim_code, status, created_at, updated_at")
+        .eq("user_id", user.id)
+        .eq("use_type", "request")
+        .in("status", ["completed", "pending_request"])
+        .order("created_at", { ascending: false });
+      if (rmData) setReceivedMessages(rmData);
     } catch {
       // silently fail
     }
@@ -1251,6 +1280,113 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Received Messages */}
+        {receivedMessages.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-xl font-bold text-navy mb-4">Received Messages</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {receivedMessages.map((rm) => {
+                const isSealed = rm.sealed_until && new Date(rm.sealed_until + "T00:00:00") > new Date();
+                const isPending = rm.status === "pending_request";
+                const isAudioOrVideo = rm.format === "audio" || rm.format === "video";
+                const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+                return (
+                  <div key={rm.id} className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md">
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                        rm.format === "video" ? "bg-purple-100 text-purple-800"
+                        : rm.format === "audio" ? "bg-navy/10 text-navy"
+                        : "bg-forest/10 text-forest"
+                      }`}>
+                        {rm.format === "video" ? "Video" : rm.format === "audio" ? "Audio" : "Text"}
+                      </span>
+                      {isPending ? (
+                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                          Waiting for response
+                        </span>
+                      ) : isSealed ? (
+                        <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy">
+                          Sealed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                          Ready to view
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-3 font-semibold text-navy">
+                      {isPending ? "Awaiting contribution" : `From ${rm.recipient_name || "Anonymous"}`}
+                    </p>
+
+                    <p className="mt-1 text-xs text-warm-gray-light">
+                      {isPending ? "Sent" : "Received"} {new Date(rm.updated_at || rm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+
+                    {/* Sealed info */}
+                    {isSealed && rm.sealed_until && (
+                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                        <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                        <div>
+                          <p className="text-xs font-medium text-navy">
+                            {rm.milestone_label
+                              ? `Sealed until ${rm.milestone_label}`
+                              : "Sealed until"}
+                          </p>
+                          <p className="text-xs text-warm-gray">
+                            {new Date(rm.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Playback for unlocked completed messages */}
+                    {!isPending && !isSealed && rm.content_url && isAudioOrVideo && (
+                      <div className="mt-3">
+                        {rm.format === "video" ? (
+                          <video
+                            controls
+                            className="w-full rounded-lg"
+                            src={rm.content_url}
+                          />
+                        ) : (
+                          <audio
+                            controls
+                            className="w-full"
+                            src={rm.content_url}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Text content for unlocked text messages */}
+                    {!isPending && !isSealed && rm.content_text && !isAudioOrVideo && (
+                      <div className="mt-3 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                        <p className="text-sm text-navy italic">&ldquo;{rm.content_text}&rdquo;</p>
+                      </div>
+                    )}
+
+                    {/* Share link for pending requests */}
+                    {isPending && rm.claim_code && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${baseUrl}/contribute/${rm.claim_code}`);
+                        }}
+                        className="mt-3 w-full rounded-lg border-2 border-navy px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                      >
+                        Copy Request Link
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* My Memory Vaults */}
         <div className="mt-12">
