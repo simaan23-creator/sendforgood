@@ -88,6 +88,7 @@ interface VoiceMessage {
   title: string | null;
   message_format: "audio" | "video";
   status: string;
+  scheduled_date: string | null;
   created_at: string;
 }
 
@@ -638,8 +639,10 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-warm-gray-light">
-                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned &middot;{" "}
-                      {new Date(gc.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned
+                    </p>
+                    <p className="mt-1 text-xs text-warm-gray-light">
+                      Purchase Date: {new Date(gc.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
 
                     {/* Assigned recipients */}
@@ -1002,9 +1005,14 @@ export default function DashboardPage() {
                               &middot; {letter.recipients.relationship}
                             </span>
                           )}
-                          <span className="text-warm-gray-light">
-                            {" "}&middot; {new Date(letter.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
+                        </p>
+                        <p className="mt-1 text-xs text-warm-gray-light">
+                          Purchase Date: {new Date(letter.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {letter.scheduled_date && (
+                            <span>
+                              {" "}&middot; Scheduled Send Date: {new Date(letter.scheduled_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -1173,7 +1181,12 @@ export default function DashboardPage() {
                       </p>
                     )}
                     <p className="mt-1 text-xs text-warm-gray-light">
-                      Purchased {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      Purchase Date: {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {vm.scheduled_date && (
+                        <span>
+                          {" "}&middot; Scheduled Send Date: {new Date(vm.scheduled_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      )}
                     </p>
                     <div className="mt-3 flex gap-2">
                       <Link
