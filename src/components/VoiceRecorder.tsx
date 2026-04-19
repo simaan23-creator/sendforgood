@@ -29,6 +29,7 @@ export default function VoiceRecorder({
   const [elapsed, setElapsed] = useState(0);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mirrored, setMirrored] = useState(true);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -242,11 +243,23 @@ export default function VoiceRecorder({
             muted
             playsInline
             className="mx-auto aspect-video w-full max-w-md object-cover"
+            style={mirrored ? { transform: "scaleX(-1)" } : undefined}
           />
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-2.5 py-1 text-xs font-bold text-white">
             <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
             Video
           </span>
+          <button
+            type="button"
+            onClick={() => setMirrored((m) => !m)}
+            className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-black/70"
+            title={mirrored ? "Un-mirror preview" : "Mirror preview"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+              <path fillRule="evenodd" d="M13.2 2.24a.75.75 0 0 0 .04 1.06l2.1 1.95H6.75a.75.75 0 0 0 0 1.5h8.59l-2.1 1.95a.75.75 0 1 0 1.02 1.1l3.5-3.25a.75.75 0 0 0 0-1.1l-3.5-3.25a.75.75 0 0 0-1.06.04Zm-6.4 8a.75.75 0 0 0-1.06-.04l-3.5 3.25a.75.75 0 0 0 0 1.1l3.5 3.25a.75.75 0 1 0 1.02-1.1l-2.1-1.95h8.59a.75.75 0 0 0 0-1.5H4.66l2.1-1.95a.75.75 0 0 0 .04-1.06Z" clipRule="evenodd" />
+            </svg>
+            {mirrored ? "Mirrored" : "Normal"}
+          </button>
         </div>
       )}
 
