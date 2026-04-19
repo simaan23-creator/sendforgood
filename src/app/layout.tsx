@@ -49,6 +49,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <head>
+        <Script id="scroll-restoration" strategy="beforeInteractive">{`
+          if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+          window.scrollTo(0, 0);
+        `}</Script>
         <Script src="https://www.googletagmanager.com/gtag/js?id=AW-17462992858" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
