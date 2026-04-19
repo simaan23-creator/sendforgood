@@ -1073,7 +1073,7 @@ export default function DashboardPage() {
               href="/messages/buy"
               className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
             >
-              Buy Message Credits
+              Buy More
             </Link>
           </div>
 

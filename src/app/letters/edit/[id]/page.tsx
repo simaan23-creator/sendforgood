@@ -78,16 +78,13 @@ interface LetterData {
   milestone_label: string | null;
   status: string;
   delivery_type: DeliveryType;
+  recipient_name: string | null;
   recipient_email: string | null;
   photo_url: string | null;
   executor_name: string | null;
   executor_email: string | null;
   executor_phone: string | null;
   executor_address: string | null;
-  recipients: {
-    name: string;
-    relationship: string;
-  };
 }
 
 interface GiftExecutor {
@@ -113,6 +110,7 @@ export default function EditLetterPage() {
   const [executorPhone, setExecutorPhone] = useState("");
   const [executorAddress, setExecutorAddress] = useState("");
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("physical");
+  const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<"date" | "milestone">("date");
@@ -139,7 +137,7 @@ export default function EditLetterPage() {
 
       const { data, error } = await supabase
         .from("letters")
-        .select("*, recipients(name, relationship)")
+        .select("*")
         .eq("id", letterId)
         .eq("user_id", user.id)
         .single();
@@ -169,6 +167,7 @@ export default function EditLetterPage() {
       setExecutorAddress(data.executor_address || "");
       setDeliveryMode(data.letter_type === "milestone" ? "milestone" : "date");
       setDeliveryType(data.delivery_type || "physical");
+      setRecipientName(data.recipient_name || "");
       setRecipientEmail(data.recipient_email || "");
       setPhotoUrl(data.photo_url || "");
 
@@ -225,6 +224,7 @@ export default function EditLetterPage() {
           executorEmail: executorEmail || null,
           executorPhone: executorPhone || null,
           executorAddress: executorAddress || null,
+          recipientName: recipientName || null,
           recipientEmail: recipientEmail || null,
           photoUrl: photoUrl || null,
         }),
@@ -271,14 +271,11 @@ export default function EditLetterPage() {
             &larr; Back to Dashboard
           </Link>
           <h1 className="mt-4 text-3xl font-bold text-navy">Edit Letter</h1>
-          <p className="mt-2 text-warm-gray">
-            To: {letter.recipients?.name}{" "}
-            {letter.recipients?.relationship && (
-              <span className="text-warm-gray-light">
-                ({letter.recipients.relationship})
-              </span>
-            )}
-          </p>
+          {letter.recipient_name && (
+            <p className="mt-2 text-warm-gray">
+              To: {letter.recipient_name}
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 capitalize">
               {letter.status.replace(/_/g, " ")}
@@ -293,6 +290,42 @@ export default function EditLetterPage() {
         )}
 
         <div className="space-y-6">
+          {/* Recipient */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-navy">
+              Recipient Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={recipientName}
+              onChange={(e) => {
+                setRecipientName(e.target.value);
+                setSaved(false);
+              }}
+              disabled={isLocked}
+              required
+              placeholder="Who is this letter for?"
+              className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-navy">
+              Recipient Email
+            </label>
+            <input
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => {
+                setRecipientEmail(e.target.value);
+                setSaved(false);
+              }}
+              disabled={isLocked}
+              placeholder="Their email address (for digital delivery)"
+              className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+          </div>
+
           {/* When should this be delivered? */}
           <div>
             <label className="mb-3 block text-sm font-semibold text-navy">
@@ -429,14 +462,6 @@ export default function EditLetterPage() {
                       : deliveryType === "physical_photo"
                         ? "Physical Letter + Photo"
                         : "Physical Letter"}
-                    {" \u2014 "}
-                    <span className="text-forest">
-                      {deliveryType === "digital"
-                        ? "$1/year"
-                        : deliveryType === "physical_photo"
-                          ? "$15/year"
-                          : "$10/year"}
-                    </span>
                   </p>
                   <p className="mt-0.5 text-xs text-warm-gray">
                     {deliveryType === "digital"
@@ -453,28 +478,6 @@ export default function EditLetterPage() {
             </p>
           </div>
 
-          {/* Recipient Email (for digital delivery) */}
-          {deliveryType === "digital" && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Recipient Email Address
-              </label>
-              <input
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => {
-                  setRecipientEmail(e.target.value);
-                  setSaved(false);
-                }}
-                disabled={isLocked}
-                placeholder="recipient@example.com"
-                className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
-              />
-              <p className="mt-1.5 text-xs text-warm-gray-light">
-                We will send the letter to this email on the scheduled date.
-              </p>
-            </div>
-          )}
 
           {/* Photo Upload (for physical+photo delivery) */}
           {deliveryType === "physical_photo" && (

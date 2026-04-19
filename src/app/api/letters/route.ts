@@ -55,6 +55,7 @@ export async function PATCH(request: Request) {
       executorPhone,
       executorAddress,
       deliveryType,
+      recipientName,
       recipientEmail,
       photoUrl,
       letterType,
@@ -114,6 +115,7 @@ export async function PATCH(request: Request) {
     if (executorPhone !== undefined) updates.executor_phone = executorPhone;
     if (executorAddress !== undefined) updates.executor_address = executorAddress;
     if (deliveryType !== undefined) updates.delivery_type = deliveryType;
+    if (recipientName !== undefined) updates.recipient_name = recipientName;
     if (recipientEmail !== undefined) updates.recipient_email = recipientEmail;
     if (photoUrl !== undefined) updates.photo_url = photoUrl;
     if (letterType !== undefined) updates.letter_type = letterType;
