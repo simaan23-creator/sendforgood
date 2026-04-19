@@ -240,8 +240,9 @@ export default function HomePage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Choose your gift tier. Write letters. Record your voice or video.
-            Assign recipients from your dashboard whenever you are ready.
+            Choose your gift tier. Write letters. Record voice or video messages.
+            Tell us who you want them sent to and let us know when you want them delivered.
+            Thats it. We take care of the rest.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
