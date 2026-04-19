@@ -672,28 +672,12 @@ export default function DashboardPage() {
                         </Link>
                       )}
                       <button
-                        onClick={() => setVaultItem({ itemType: "gift_credit", itemId: gc.id, itemLabel: `${getTierName(gc.tier)} Gift Credit` })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Vault"
-                      >
-                        <span>🔐</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Vault</span>
-                      </button>
-                      <button
                         onClick={() => setGiftingItem({ itemType: "gift_credit", itemId: gc.id, itemLabel: `${getTierName(gc.tier)} Gift Credit` })}
                         className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
                         title="Gift"
                       >
                         <span>🎁</span>
                         <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
-                      </button>
-                      <button
-                        onClick={() => setRequestItem({ itemType: "gift_credit", itemId: gc.id, itemLabel: `${getTierName(gc.tier)} Gift Credit` })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Request"
-                      >
-                        <span>📨</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Request</span>
                       </button>
                     </div>
                   </div>
