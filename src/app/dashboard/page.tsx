@@ -245,7 +245,7 @@ export default function DashboardPage() {
         .eq("status", "pending"),
       supabase
         .from("letters")
-        .select("*, recipients(name, relationship)")
+        .select("*, recipient_name, recipients(name, relationship)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50),
@@ -959,7 +959,7 @@ export default function DashboardPage() {
                           {letter.title || "Untitled Letter"}
                         </h3>
                         <p className="mt-1 text-sm text-warm-gray">
-                          To: {letter.recipients?.name || "Unknown"}{" "}
+                          To: {letter.recipient_name || letter.recipients?.name || "Not set"}{" "}
                           {letter.recipients?.relationship && (
                             <span className="text-warm-gray-light">
                               &middot; {letter.recipients.relationship}
