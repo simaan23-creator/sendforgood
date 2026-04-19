@@ -91,11 +91,10 @@ function GiftInstructions({ gift }: { gift: GiftedItem }) {
         <h2 className="text-lg font-bold text-navy">
           You received a Legacy Letter
         </h2>
-          A Legacy Letter is a blank letter slot — yours to use however you want. {senderName} has gifted it to you. Write a letter to anyone you love, schedule a delivery date, and we handle everything from there.
-
-
-
-
+        <p className="mt-3 text-sm text-navy/70 leading-relaxed">
+          {senderName} has gifted you a letter slot â€” a blank canvas for you to
+          use however you want. Write a letter to anyone you love, choose a
+          delivery date, and we handle everything from there.
         </p>
 
         <h3 className="mt-5 text-sm font-semibold text-navy/90">
@@ -107,11 +106,12 @@ function GiftInstructions({ gift }: { gift: GiftedItem }) {
             dashboard under <span className="font-semibold">My Messages</span>.
           </NumberedStep>
           <NumberedStep number={2}>
-            Click <span className="font-semibold">Write Letter</span> to write your message and choose who receives it.
+            Click <span className="font-semibold">Write Letter</span> to write
+            your message and choose who receives it.
           </NumberedStep>
           <NumberedStep number={3}>
-            Set the delivery date and recipient address. We handle delivery automatically.
-            any time.
+            Set when and where it is delivered. We handle the rest
+            automatically.
           </NumberedStep>
         </div>
 
