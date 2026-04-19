@@ -35,6 +35,13 @@ export default function VoiceRecorder({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
+  const elapsedRef = useRef(0);
+  const onCompleteRef = useRef(onRecordingComplete);
+
+  // Keep the callback ref up to date without causing re-renders
+  useEffect(() => {
+    onCompleteRef.current = onRecordingComplete;
+  }, [onRecordingComplete]);
 
   useEffect(() => {
     return () => {
@@ -42,34 +49,54 @@ export default function VoiceRecorder({
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
       }
-      if (mediaUrl) URL.revokeObjectURL(mediaUrl);
     };
-  }, [mediaUrl]);
+  }, []);
 
   function handleFormatChange(newFormat: MediaFormat) {
     if (isRecording) return;
-    // Discard any existing recording when switching format
     if (mediaUrl) {
       URL.revokeObjectURL(mediaUrl);
       setMediaUrl(null);
       setElapsed(0);
+      elapsedRef.current = 0;
       chunksRef.current = [];
     }
     setFormat(newFormat);
     onFormatChange?.(newFormat);
   }
 
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    clearTimer();
+    setIsRecording(false);
+    setIsPaused(false);
+  }, [clearTimer]);
+
   const startTimer = useCallback(() => {
+    clearTimer();
     timerRef.current = setInterval(() => {
-      setElapsed((prev) => {
-        const next = prev + 1;
-        if (next >= maxDurationSeconds) {
-          stopRecording();
+      elapsedRef.current += 1;
+      setElapsed(elapsedRef.current);
+      if (elapsedRef.current >= maxDurationSeconds) {
+        // Auto-stop: directly stop recorder and clear timer
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+          mediaRecorderRef.current.stop();
         }
-        return next;
-      });
+        clearTimer();
+        setIsRecording(false);
+        setIsPaused(false);
+      }
     }, 1000);
-  }, [maxDurationSeconds]);
+  }, [maxDurationSeconds, clearTimer]);
 
   const startRecording = useCallback(async () => {
     setError(null);
@@ -109,18 +136,18 @@ export default function VoiceRecorder({
         const blob = new Blob(chunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setMediaUrl(url);
-        onRecordingComplete(blob, elapsed);
+        onCompleteRef.current(blob, elapsedRef.current);
         stream.getTracks().forEach((t) => t.stop());
-        // Clear video preview
         if (videoPreviewRef.current) {
           videoPreviewRef.current.srcObject = null;
         }
       };
 
       recorder.start(1000);
+      elapsedRef.current = 0;
+      setElapsed(0);
       setIsRecording(true);
       setIsPaused(false);
-      setElapsed(0);
       setMediaUrl(null);
       startTimer();
     } catch {
@@ -130,27 +157,15 @@ export default function VoiceRecorder({
           : "Microphone access is required to record a voice message. Please allow microphone access and try again."
       );
     }
-  }, [onRecordingComplete, elapsed, startTimer, format]);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsRecording(false);
-    setIsPaused(false);
-  }, []);
+  }, [startTimer, format]);
 
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.pause();
-      if (timerRef.current) clearInterval(timerRef.current);
+      clearTimer();
       setIsPaused(true);
     }
-  }, []);
+  }, [clearTimer]);
 
   const resumeRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "paused") {
@@ -164,6 +179,7 @@ export default function VoiceRecorder({
     if (mediaUrl) URL.revokeObjectURL(mediaUrl);
     setMediaUrl(null);
     setElapsed(0);
+    elapsedRef.current = 0;
     chunksRef.current = [];
   }, [mediaUrl]);
 
@@ -176,7 +192,7 @@ export default function VoiceRecorder({
   return (
     <div className="rounded-2xl border border-cream-dark bg-white p-6">
       {/* Format toggle */}
-      {showFormatToggle && !isRecording && !disableAudio && !disableVideo && (
+      {showFormatToggle && !isRecording && !mediaUrl && !disableAudio && !disableVideo && (
         <div className="mb-5 flex items-center justify-center gap-1 rounded-lg bg-cream p-1">
           <button
             type="button"
