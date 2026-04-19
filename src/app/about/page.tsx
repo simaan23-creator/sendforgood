@@ -111,20 +111,35 @@ export default function AboutPage() {
               </p>
 
               <p>
-                I have more nieces and nephews than I can count, and I can never
-                keep their birthdays straight. It always goes the same way: my
-                sister calls me day-of and says,{" "}
+                I have more nieces and nephews than I can count (I can count
+                them all), but I can never keep their birthdays straight. It
+                always goes the same way: my sister calls me day-of and
+                says,{" "}
                 <em className="text-navy/80">
-                  &ldquo;Hey, you coming to Braden&rsquo;s birthday
+                  &ldquo;Hey, you coming to Leo&rsquo;s birthday
                   tonight?&rdquo;
                 </em>{" "}
-                And I say yes. Of course I say yes. But I feel like a schmuck
-                because I had no idea, and I am showing up empty-handed.
+                And I say yes. Of course I say yes. Next month it
+                is Brody&rsquo;s party&nbsp;&mdash; same thing. But every
+                time, I feel like a&nbsp;&mdash; well, you can fill in the
+                blank&nbsp;&mdash; because I had no idea, and I am showing up
+                without a real gift. I always end up bringing cash in an
+                envelope, but that does not exactly make it memorable for a kid.
               </p>
 
               <p>
-                All my close friends started having kids. Same problem. My
-                wife&rsquo;s anniversary? Same problem.
+                I do not want to be known as the cash-envelope
+                uncle&nbsp;&mdash; or worse, the &ldquo;cash cow
+                uncle.&rdquo; Although, honestly, that is not a bad name. But
+                you see where I am coming from. I needed this service for
+                myself. That was my entire motivation for creating SendForGood.
+                Now I get to offer it to everyone else.
+              </p>
+
+              <p>
+                And it turns out, I am not the only one with this problem. All
+                my close friends started having kids. Same story. My
+                wife&rsquo;s anniversary? Same story.
               </p>
 
               <p>
