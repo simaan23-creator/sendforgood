@@ -1406,9 +1406,9 @@ export default function DashboardPage() {
                             </p>
                             {latestRequest.content_url && (
                               latestRequest.format === "video" ? (
-                                <video controls className="w-full rounded-lg" src={latestRequest.content_url} />
+                                <video controls preload="metadata" playsInline className="w-full rounded-lg bg-black" src={latestRequest.content_url} />
                               ) : (
-                                <audio controls className="w-full" src={latestRequest.content_url} />
+                                <audio controls preload="metadata" className="w-full" src={latestRequest.content_url} />
                               )
                             )}
                             {latestRequest.content_text && !latestRequest.content_url && (
@@ -1431,7 +1431,7 @@ export default function DashboardPage() {
                             href={`/voice/edit/${vm.id}`}
                             className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                           >
-                            Record Message
+                            {vm.message_format === "video" ? "Record Video" : "Record Message"}
                           </Link>
                           <button
                             onClick={() =>

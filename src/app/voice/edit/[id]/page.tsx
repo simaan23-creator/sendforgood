@@ -198,7 +198,7 @@ export default function EditVoiceMessagePage() {
       <div className="min-h-screen bg-cream">
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
           <div className="text-center py-20 text-warm-gray">
-            Loading voice message...
+            Loading message...
           </div>
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function EditVoiceMessagePage() {
             &larr; Back to Dashboard
           </Link>
           <h1 className="mt-4 text-3xl font-bold text-navy">
-            Edit Voice Message
+            Edit {message.message_format === "video" ? "Video" : "Voice"} Message
           </h1>
           <div className="mt-3 flex items-center gap-2">
             <span
@@ -262,7 +262,7 @@ export default function EditVoiceMessagePage() {
           {!isLocked && (
             <div>
               <label className="mb-3 block text-sm font-semibold text-navy">
-                {audioUrl ? "Your Recording" : "Record Your Message"}
+                {audioUrl ? "Your Recording" : `Record Your ${message.message_format === "video" ? "Video" : "Message"}`}
               </label>
 
               {/* Existing recording playback */}
@@ -515,7 +515,7 @@ export default function EditVoiceMessagePage() {
           {saved && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
               <p className="text-sm text-green-800">
-                Your voice message has been saved.{" "}
+                Your {message.message_format === "video" ? "video" : "voice"} message has been saved.{" "}
                 <Link
                   href="/dashboard"
                   className="font-medium text-green-900 underline hover:text-green-700"
