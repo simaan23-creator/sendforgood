@@ -560,32 +560,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <p className="text-sm font-medium text-warm-gray">Active Plans</p>
-            <p className="mt-1 text-3xl font-bold text-navy">
-              {activeOrders.length}
-            </p>
-          </div>
-          <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <p className="text-sm font-medium text-warm-gray">
-              Total Recipients
-            </p>
-            <p className="mt-1 text-3xl font-bold text-navy">
-              {uniqueRecipients}
-            </p>
-          </div>
-          <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <p className="text-sm font-medium text-warm-gray">
-              Gifts Delivered
-            </p>
-            <p className="mt-1 text-3xl font-bold text-navy">
-              {deliveredCount}
-            </p>
-          </div>
-        </div>
-
         {/* Assignment success banner */}
         {assignSuccess && (
           <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
@@ -598,20 +572,12 @@ export default function DashboardPage() {
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Gifts</h2>
-            <div className="flex gap-2">
-              <Link
-                href="/gifts/give"
-                className="rounded-lg border-2 border-gold px-4 py-2 text-sm font-medium text-gold-dark transition-colors hover:bg-gold hover:text-white"
-              >
-                Give a Gift Credit
-              </Link>
-              <Link
-                href="/gifts/buy"
-                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-              >
-                Buy More Credits
-              </Link>
-            </div>
+            <Link
+              href="/gifts/buy"
+              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+            >
+              Send More Gifts
+            </Link>
           </div>
 
           {giftCredits.length === 0 ? (
