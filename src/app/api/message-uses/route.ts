@@ -38,9 +38,6 @@ export async function POST(request: Request) {
   } else if (use_type === "gift") {
     link = `${baseUrl}/claim/${claimCode}`;
   } else if (use_type === "request") {
-    if (!recipient_email) {
-      return NextResponse.json({ error: "recipient_email is required for request" }, { status: 400 });
-    }
     link = `${baseUrl}/contribute/${claimCode}`;
   }
 

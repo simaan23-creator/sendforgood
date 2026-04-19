@@ -18,10 +18,6 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
   const [copied, setCopied] = useState(false);
 
   async function handleSubmit() {
-    if (!recipientEmail.trim()) {
-      setError("Email is required.");
-      return;
-    }
     setSending(true);
     setError("");
     try {
@@ -32,7 +28,7 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
           use_type: "request",
           item_type: itemType,
           item_id: itemId,
-          recipient_email: recipientEmail.trim(),
+          recipient_email: recipientEmail.trim() || undefined,
           content_text: prompt.trim() || undefined,
         }),
       });
@@ -73,9 +69,15 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-forest/10">
                 <span className="text-3xl">📨</span>
               </div>
-              <h4 className="text-lg font-bold text-navy">Request sent!</h4>
+              <h4 className="text-lg font-bold text-navy">
+                {recipientEmail.trim() ? "Request sent!" : "Link generated!"}
+              </h4>
               <p className="mt-2 text-sm text-warm-gray">
-                We emailed <span className="font-medium text-navy">{recipientEmail}</span> with a link to record their message. You can also share the link directly.
+                {recipientEmail.trim() ? (
+                  <>We emailed <span className="font-medium text-navy">{recipientEmail}</span> with a link to record their message. You can also share the link directly.</>
+                ) : (
+                  <>Copy the link below and send it to whoever you want to record a message.</>
+                )}
               </p>
               <div className="mt-4 flex items-center gap-2 rounded-lg border border-cream-dark bg-cream/50 p-3">
                 <input type="text" readOnly value={link} className="min-w-0 flex-1 bg-transparent text-sm text-navy outline-none" />
@@ -94,7 +96,9 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-navy">Recipient Email</label>
+                  <label className="mb-1 block text-sm font-medium text-navy">
+                    Recipient Email <span className="text-warm-gray-light">(optional)</span>
+                  </label>
                   <input
                     type="email"
                     value={recipientEmail}
@@ -102,6 +106,9 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
                     placeholder="their@email.com"
                     className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
                   />
+                  <p className="mt-1 text-xs text-warm-gray-light">
+                    Leave blank to just generate a shareable link.
+                  </p>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-navy">
@@ -123,7 +130,7 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
                 disabled={sending}
                 className="mt-5 w-full rounded-lg bg-gold px-4 py-3 text-sm font-bold text-navy shadow-sm transition hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {sending ? "Sending..." : "Send Request"}
+                {sending ? "Generating..." : recipientEmail.trim() ? "Send Request" : "Generate Link"}
               </button>
             </>
           )}
