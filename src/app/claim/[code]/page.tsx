@@ -8,6 +8,7 @@ import { TIERS } from "@/lib/constants";
 
 interface GiftedItem {
   id: string;
+  source?: string;
   recipient_name: string | null;
   item_type: "letter" | "voice_message" | "gift_credit";
   tier: string | null;
@@ -16,6 +17,8 @@ interface GiftedItem {
   message: string | null;
   status: string;
   sender_first_name: string;
+  use_type?: string;
+  format?: string;
 }
 
 function getItemDescription(item: GiftedItem): {
@@ -23,6 +26,20 @@ function getItemDescription(item: GiftedItem): {
   icon: string;
   detail: string;
 } {
+  // Unified system items
+  if (item.format) {
+    const formatLabels: Record<string, { label: string; icon: string; detail: string }> = {
+      letter_digital: { label: "Digital Letter Credit", icon: "\u270F\uFE0F", detail: "A digital letter delivered by email" },
+      letter_physical: { label: "Physical Letter Credit", icon: "\u2709\uFE0F", detail: "A printed letter mailed to the recipient" },
+      letter_photo: { label: "Letter + Photo Credit", icon: "\uD83D\uDCF8", detail: "A printed letter with wallet photo, mailed together" },
+      audio: { label: "Audio Message Credit", icon: "\uD83C\uDFA4", detail: "An audio recording delivered by email" },
+      video: { label: "Video Message Credit", icon: "\uD83C\uDFAC", detail: "A video recording delivered by email" },
+    };
+    const info = formatLabels[item.format];
+    if (info) return info;
+  }
+
+  // Legacy items
   if (item.item_type === "letter") {
     const deliveryLabel =
       item.delivery_type === "digital"
@@ -32,7 +49,7 @@ function getItemDescription(item: GiftedItem): {
           : "Physical";
     return {
       label: "Letter Slot",
-      icon: "✉️",
+      icon: "\u2709\uFE0F",
       detail: `${deliveryLabel} delivery`,
     };
   }
@@ -42,7 +59,7 @@ function getItemDescription(item: GiftedItem): {
       item.message_format === "video" ? "Video" : "Audio";
     return {
       label: `${formatLabel} Message Slot`,
-      icon: item.message_format === "video" ? "🎬" : "🎙️",
+      icon: item.message_format === "video" ? "\uD83C\uDFAC" : "\uD83C\uDFA4",
       detail: `${formatLabel} recording slot`,
     };
   }
@@ -52,12 +69,12 @@ function getItemDescription(item: GiftedItem): {
     const tierName = tierInfo?.name || item.tier || "Gift";
     return {
       label: `${tierName} Gift Credit`,
-      icon: "🎁",
+      icon: "\uD83C\uDF81",
       detail: tierInfo?.description || "A curated gift credit",
     };
   }
 
-  return { label: "Gift", icon: "🎁", detail: "" };
+  return { label: "Gift", icon: "\uD83C\uDF81", detail: "" };
 }
 
 export default function ClaimPage() {
@@ -167,6 +184,7 @@ export default function ClaimPage() {
   if (!gift) return null;
 
   const itemInfo = getItemDescription(gift);
+  const isRequest = gift.use_type === "request";
 
   if (claimed) {
     return (
@@ -187,12 +205,18 @@ export default function ClaimPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">
-            Gift Claimed!
+            {isRequest ? "Request Accepted!" : "Gift Claimed!"}
           </h1>
           <p className="mt-3 text-warm-gray">
-            Your{" "}
-            <span className="font-semibold text-navy">{itemInfo.label}</span>{" "}
-            has been added to your account. Redirecting to your dashboard...
+            {isRequest ? (
+              <>You can now record your message. Redirecting to your dashboard...</>
+            ) : (
+              <>
+                Your{" "}
+                <span className="font-semibold text-navy">{itemInfo.label}</span>{" "}
+                has been added to your account. Redirecting to your dashboard...
+              </>
+            )}
           </p>
           <Link
             href="/dashboard"
@@ -215,19 +239,25 @@ export default function ClaimPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">
-            You&apos;ve received a gift!
+            {isRequest
+              ? "You\u2019ve been asked to record a message!"
+              : "You\u2019ve received a gift!"}
           </h1>
 
           <p className="mt-3 text-warm-gray">
             <span className="font-semibold text-navy">
               {gift.sender_first_name}
             </span>{" "}
-            sent you a gift on SendForGood.
+            {isRequest
+              ? "would love for you to record a message on SendForGood."
+              : "sent you a gift on SendForGood."}
           </p>
 
           {/* Item info */}
           <div className="mt-6 rounded-xl border border-cream-dark bg-cream/30 p-4">
-            <p className="text-sm font-medium text-warm-gray">What You Got</p>
+            <p className="text-sm font-medium text-warm-gray">
+              {isRequest ? "What They\u2019re Asking For" : "What You Got"}
+            </p>
             <p className="mt-1 text-xl font-bold text-navy">
               {itemInfo.label}
             </p>
@@ -256,17 +286,18 @@ export default function ClaimPage() {
             className="mt-8 w-full rounded-lg bg-forest px-8 py-3.5 text-sm font-bold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
           >
             {claiming
-              ? "Claiming..."
+              ? isRequest ? "Accepting..." : "Claiming..."
               : !userId
-                ? "Sign In to Claim Your Gift"
-                : "Claim Your Gift"}
+                ? isRequest ? "Sign In to Accept" : "Sign In to Claim Your Gift"
+                : isRequest ? "Accept & Record" : "Claim Your Gift"}
           </button>
 
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
           <p className="mt-4 text-xs text-warm-gray leading-relaxed">
-            After claiming, this item will be added to your dashboard and you
-            can use it right away.
+            {isRequest
+              ? "After accepting, you\u2019ll be able to record your message from your dashboard."
+              : "After claiming, this item will be added to your dashboard and you can use it right away."}
           </p>
         </div>
       </div>

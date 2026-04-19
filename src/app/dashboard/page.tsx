@@ -7,7 +7,6 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { TIERS } from "@/lib/constants";
 import ManagePlanModal from "@/components/manage-plan-modal";
-import GiftItemModal from "@/components/gift-item-modal";
 
 interface Shipment {
   id: string;
@@ -62,43 +61,28 @@ interface RefundRequest {
   status: string;
 }
 
-interface Letter {
+interface MessageUse {
   id: string;
-  letter_type: "annual" | "milestone";
-  title: string;
-  content: string;
-  scheduled_date: string | null;
+  credit_id: string;
+  user_id: string;
+  format: string;
+  use_type: string;
+  content_url: string | null;
+  content_text: string | null;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  delivery_date: string | null;
   milestone_label: string | null;
+  sealed_until: string | null;
   status: string;
-  amount_paid: number;
-  executor_email: string | null;
+  claim_code: string | null;
+  claimer_id: string | null;
+  claimed_at: string | null;
   created_at: string;
   updated_at: string;
-  recipients: {
-    name: string;
-    relationship: string;
-  };
 }
 
-interface VoiceMessage {
-  id: string;
-  title: string | null;
-  message_format: "audio" | "video";
-  status: string;
-  created_at: string;
-}
-
-interface MemoryRequest {
-  id: string;
-  title: string;
-  occasion: string;
-  delivery_date: string;
-  unique_code: string;
-  status: string;
-  recording_count?: number;
-  memory_recordings?: { id: string }[];
-  created_at: string;
-}
+type CreditBalances = Record<string, number>;
 
 function formatShipmentDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -165,6 +149,64 @@ function getTierName(tierId: string): string {
   return tier ? tier.name : tierId;
 }
 
+function getFormatLabel(format: string): string {
+  switch (format) {
+    case "letter_digital": return "Digital Letter";
+    case "letter_physical": return "Physical Letter";
+    case "letter_photo": return "Letter + Photo";
+    case "audio": return "Audio";
+    case "video": return "Video";
+    default: return format;
+  }
+}
+
+function getFormatBadge(format: string): { label: string; classes: string } {
+  switch (format) {
+    case "letter_digital":
+    case "letter_physical":
+    case "letter_photo":
+      return { label: "Letter", classes: "bg-navy/10 text-navy" };
+    case "audio":
+      return { label: "Audio", classes: "bg-blue-100 text-blue-800" };
+    case "video":
+      return { label: "Video", classes: "bg-purple-100 text-purple-800" };
+    default:
+      return { label: format, classes: "bg-gray-100 text-gray-700" };
+  }
+}
+
+function getUseTypeBadge(useType: string): { label: string; classes: string } {
+  switch (useType) {
+    case "self_record":
+      return { label: "Recording", classes: "bg-forest/10 text-forest" };
+    case "vault":
+      return { label: "Vault", classes: "bg-gold/20 text-gold-dark" };
+    case "gift":
+      return { label: "Gift", classes: "bg-pink-100 text-pink-800" };
+    case "request":
+      return { label: "Request", classes: "bg-orange-100 text-orange-800" };
+    default:
+      return { label: useType, classes: "bg-gray-100 text-gray-700" };
+  }
+}
+
+function getMessageStatusBadge(status: string): { label: string; classes: string } {
+  switch (status) {
+    case "draft":
+      return { label: "Draft", classes: "bg-yellow-100 text-yellow-800" };
+    case "recorded":
+      return { label: "Recorded", classes: "bg-green-100 text-green-800" };
+    case "delivered":
+      return { label: "Delivered", classes: "bg-forest/10 text-forest" };
+    case "gifted":
+      return { label: "Gifted", classes: "bg-pink-100 text-pink-800" };
+    case "pending_request":
+      return { label: "Awaiting", classes: "bg-orange-100 text-orange-800" };
+    default:
+      return { label: status, classes: "bg-gray-100 text-gray-700" };
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -172,26 +214,22 @@ export default function DashboardPage() {
   const [assignSuccess, setAssignSuccess] = useState(false);
 
   const [orders, setOrders] = useState<Order[]>([]);
-  const [letters, setLetters] = useState<Letter[]>([]);
   const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [managingOrder, setManagingOrder] = useState<Order | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
-  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
-  const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
-  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
-  const [giftingItem, setGiftingItem] = useState<{
-    itemType: "letter" | "voice_message" | "gift_credit";
-    itemId: string;
-    itemLabel: string;
-  } | null>(null);
+
+  // Unified message credit system
+  const [creditBalances, setCreditBalances] = useState<CreditBalances>({});
+  const [messageUses, setMessageUses] = useState<MessageUse[]>([]);
+  const [creatingUse, setCreatingUse] = useState(false);
 
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
@@ -220,7 +258,7 @@ export default function DashboardPage() {
       .single();
     if (profile?.phone) setPhone(profile.phone);
 
-    const [ordersResult, refundsResult, lettersResult, gcResult, givenResult] = await Promise.all([
+    const [ordersResult, refundsResult, gcResult, givenResult] = await Promise.all([
       supabase
         .from("orders")
         .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number, photo_url)")
@@ -231,12 +269,6 @@ export default function DashboardPage() {
         .select("id, order_id, status")
         .eq("user_id", user.id)
         .eq("status", "pending"),
-      supabase
-        .from("letters")
-        .select("*, recipients(name, relationship)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50),
       supabase
         .from('gift_credits')
         .select('id, tier, quantity, quantity_used, amount_paid, created_at')
@@ -255,10 +287,6 @@ export default function DashboardPage() {
 
     if (!refundsResult.error && refundsResult.data) {
       setRefundRequests(refundsResult.data as RefundRequest[]);
-    }
-
-    if (!lettersResult.error && lettersResult.data) {
-      setLetters(lettersResult.data as Letter[]);
     }
 
     // Process gift credits + fetch their assignments
@@ -289,46 +317,31 @@ export default function DashboardPage() {
       setGiftsGiven(givenResult.data);
     }
 
-    // Show dashboard, load remaining data in background
+    // Load unified message credits and uses
+    try {
+      const [creditsRes, usesRes] = await Promise.all([
+        fetch("/api/message-credits"),
+        fetch("/api/message-uses"),
+      ]);
+      if (creditsRes.ok) {
+        const creditsData = await creditsRes.json();
+        setCreditBalances(creditsData);
+      }
+      if (usesRes.ok) {
+        const usesData = await usesRes.json();
+        setMessageUses(usesData);
+      }
+    } catch {
+      // silently fail
+    }
+
     setLoading(false);
-
-    try {
-      const { data: memData } = await supabase
-        .from("memory_requests")
-        .select("*, memory_recordings(id)")
-        .eq("requester_id", user.id)
-        .order("created_at", { ascending: false });
-      if (memData) setMemoryRequests(memData);
-    } catch {
-      // silently fail
-    }
-
-    // Fetch voice messages
-    try {
-      const { data: vmData } = await supabase
-        .from("voice_messages")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (vmData) setVoiceMessages(vmData);
-    } catch {
-      // silently fail
-    }
-
-    // Fetch vault credits directly from Supabase
-    try {
-      const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits').eq('user_id', user.id);
-      const totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
-      const totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
-    } catch { /* silently fail */ }
   }, [supabase, router]);
 
   useEffect(() => {
     loadDashboard();
     if (searchParams.get("assigned") === "true") {
       setAssignSuccess(true);
-      // Clean up URL
       window.history.replaceState({}, "", "/dashboard");
     }
   }, []);
@@ -378,7 +391,6 @@ export default function DashboardPage() {
 
   function handleOrderUpdated() {
     loadDashboard();
-    // Also refresh the managing order if it's open
     if (managingOrder) {
       const refreshed = orders.find((o) => o.id === managingOrder.id);
       if (refreshed) setManagingOrder(refreshed);
@@ -389,6 +401,42 @@ export default function DashboardPage() {
     return refundRequests.some((r) => r.order_id === orderId);
   }
 
+  async function handleCreateUse(format: string, useType: string) {
+    setCreatingUse(true);
+    try {
+      const res = await fetch("/api/message-uses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ format, use_type: useType }),
+      });
+      if (res.ok) {
+        await loadDashboard();
+      }
+    } catch {
+      // silently fail
+    }
+    setCreatingUse(false);
+  }
+
+  async function handleDeleteUse(useId: string) {
+    if (!window.confirm("Cancel this message and return the credit?")) return;
+    try {
+      const res = await fetch(`/api/message-uses/${useId}`, { method: "DELETE" });
+      if (res.ok) {
+        await loadDashboard();
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  // Check if there are any credits
+  const totalCredits = Object.values(creditBalances).reduce((a, b) => a + b, 0);
+  const hasAnyData = orders.length > 0 || giftCredits.length > 0 || giftsGiven.length > 0 || totalCredits > 0 || messageUses.length > 0;
+
+  // Vault items: message_uses where use_type='vault'
+  const vaultItems = messageUses.filter((u) => u.use_type === "vault");
+
   // ---------------------------------------------------------------------------
   // Loading skeleton
   // ---------------------------------------------------------------------------
@@ -396,7 +444,6 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-cream">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-          {/* Header skeleton */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="h-8 w-48 animate-pulse rounded bg-cream-dark" />
@@ -407,27 +454,17 @@ export default function DashboardPage() {
               <div className="h-10 w-36 animate-pulse rounded-lg bg-cream-dark" />
             </div>
           </div>
-
-          {/* Stats skeleton */}
           <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-cream-dark bg-white p-6"
-              >
+              <div key={i} className="rounded-xl border border-cream-dark bg-white p-6">
                 <div className="h-4 w-24 animate-pulse rounded bg-cream-dark" />
                 <div className="mt-3 h-8 w-12 animate-pulse rounded bg-cream-dark" />
               </div>
             ))}
           </div>
-
-          {/* Order cards skeleton */}
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-cream-dark bg-white p-6"
-              >
+              <div key={i} className="rounded-xl border border-cream-dark bg-white p-6">
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
                     <div className="h-5 w-40 animate-pulse rounded bg-cream-dark" />
@@ -448,14 +485,13 @@ export default function DashboardPage() {
   // ---------------------------------------------------------------------------
   // Empty state
   // ---------------------------------------------------------------------------
-  if (orders.length === 0 && giftCredits.length === 0 && letters.length === 0 && giftsGiven.length === 0) {
+  if (!hasAnyData) {
     return (
       <div className="min-h-screen bg-cream">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
+              <h1 className="text-3xl font-bold text-navy">Your Dashboard</h1>
               {userEmail && (
                 <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
               )}
@@ -482,7 +518,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Empty state card */}
           <div className="flex flex-col items-center justify-center rounded-2xl border border-cream-dark bg-white py-20 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
               <svg
@@ -499,19 +534,24 @@ export default function DashboardPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-navy">
-              No gifts yet
-            </h2>
+            <h2 className="text-xl font-semibold text-navy">No gifts or messages yet</h2>
             <p className="mt-2 max-w-sm text-warm-gray">
-              Buy gifts and assign them to the people you love.
-
+              Buy gifts, letters, or voice/video message credits to get started.
             </p>
-            <Link
-              href="/gifts/buy"
-              className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-            >
-              Send Gifts
-            </Link>
+            <div className="mt-8 flex gap-3">
+              <Link
+                href="/gifts/buy"
+                className="inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+              >
+                Send Gifts
+              </Link>
+              <Link
+                href="/messages/buy"
+                className="inline-flex items-center rounded-lg border-2 border-navy px-6 py-3 text-sm font-medium text-navy transition-colors hover:bg-navy hover:text-cream"
+              >
+                Send Messages
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -527,7 +567,7 @@ export default function DashboardPage() {
         {/* Page header */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
+            <h1 className="text-3xl font-bold text-navy">Your Dashboard</h1>
             {userEmail && (
               <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
             )}
@@ -557,17 +597,13 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <p className="text-sm font-medium text-warm-gray">
-              Total Recipients
-            </p>
+            <p className="text-sm font-medium text-warm-gray">Total Recipients</p>
             <p className="mt-1 text-3xl font-bold text-navy">
               {uniqueRecipients}
             </p>
           </div>
           <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <p className="text-sm font-medium text-warm-gray">
-              Gifts Delivered
-            </p>
+            <p className="text-sm font-medium text-warm-gray">Gifts Delivered</p>
             <p className="mt-1 text-3xl font-bold text-navy">
               {deliveredCount}
             </p>
@@ -582,160 +618,497 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* My Gift Credits */}
+        {/* ═══════════════════════════════════════════════════════════════
+           UNIFIED: My Messages & Credits
+           ═══════════════════════════════════════════════════════════════ */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Gifts</h2>
-            <div className="flex gap-2">
-              <Link
-                href="/gifts/give"
-                className="rounded-lg border-2 border-gold px-4 py-2 text-sm font-medium text-gold-dark transition-colors hover:bg-gold hover:text-white"
-              >
-                Give a Gift Credit
-              </Link>
-              <Link
-                href="/gifts/buy"
-                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-              >
-                Buy More Credits
-              </Link>
-            </div>
+            <h2 className="text-xl font-bold text-navy">My Messages &amp; Credits</h2>
+            <Link
+              href="/messages/buy"
+              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+            >
+              Buy More
+            </Link>
           </div>
 
-          {giftCredits.length === 0 ? (
+          {/* Credit Balance Badges */}
+          {totalCredits > 0 && (
+            <div className="mb-6 flex flex-wrap gap-3">
+              {creditBalances.letter_digital > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/10 px-4 py-2 text-sm font-semibold text-navy">
+                  <span className="text-base">&#x1F4DD;</span> {creditBalances.letter_digital} Digital Letter{creditBalances.letter_digital !== 1 ? "s" : ""}
+                </span>
+              )}
+              {creditBalances.letter_physical > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/10 px-4 py-2 text-sm font-semibold text-navy">
+                  <span className="text-base">&#x2709;&#xFE0F;</span> {creditBalances.letter_physical} Physical Letter{creditBalances.letter_physical !== 1 ? "s" : ""}
+                </span>
+              )}
+              {creditBalances.letter_photo > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/10 px-4 py-2 text-sm font-semibold text-navy">
+                  <span className="text-base">&#x1F4F8;</span> {creditBalances.letter_photo} Letter + Photo{creditBalances.letter_photo !== 1 ? "s" : ""}
+                </span>
+              )}
+              {creditBalances.audio > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800">
+                  <span className="text-base">&#x1F399;&#xFE0F;</span> {creditBalances.audio} Audio{creditBalances.audio !== 1 ? " credits" : " credit"}
+                </span>
+              )}
+              {creditBalances.video > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-4 py-2 text-sm font-semibold text-purple-800">
+                  <span className="text-base">&#x1F3AC;</span> {creditBalances.video} Video{creditBalances.video !== 1 ? " credits" : " credit"}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Quick-use buttons for available credits */}
+          {totalCredits > 0 && (
+            <div className="mb-6 rounded-xl border border-cream-dark bg-white p-4">
+              <p className="text-sm font-medium text-warm-gray mb-3">Use a credit:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(creditBalances).map(([format, qty]) => {
+                  if (qty <= 0) return null;
+                  return (
+                    <button
+                      key={format}
+                      disabled={creatingUse}
+                      onClick={() => handleCreateUse(format, "self_record")}
+                      className="rounded-lg border-2 border-navy px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream disabled:opacity-50"
+                    >
+                      {getFormatLabel(format)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Message Uses List */}
+          {messageUses.length === 0 && totalCredits === 0 ? (
             <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
               <p className="text-warm-gray">
-                No gift credits yet. Buy some to get started.{" "}
-                <Link href="/gifts/buy" className="font-medium text-navy underline hover:text-gold">
-                  Buy Gift Credits
-                </Link>
+                No message credits yet.{" "}
+                <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
+                  Buy Message Credits
+                </Link>{" "}
+                to get started.
               </p>
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {giftCredits.map((gc) => {
-                const available = gc.quantity - gc.quantity_used;
-                const assigned = gc.assignments || [];
-                // Deduplicate by recipient — show unique recipients with their next delivery
-                const recipientMap = new Map<string, { name: string; occasion: string; nextDate: string; status: string }>();
-                for (const a of assigned) {
-                  if (!recipientMap.has(a.recipient_name) || a.occasion_date < recipientMap.get(a.recipient_name)!.nextDate) {
-                    recipientMap.set(a.recipient_name, {
-                      name: a.recipient_name,
-                      occasion: a.occasion_type,
-                      nextDate: a.occasion_date,
-                      status: a.status,
-                    });
-                  }
-                }
+          ) : messageUses.length > 0 ? (
+            <div className="space-y-3">
+              {messageUses.map((use) => {
+                const formatBadge = getFormatBadge(use.format);
+                const useTypeBadge = getUseTypeBadge(use.use_type);
+                const statusBadge = getMessageStatusBadge(use.status);
+                const isDraft = use.status === "draft" && !use.content_url && !use.content_text;
+                const isLetter = use.format.startsWith("letter_");
+
                 return (
                   <div
-                    key={gc.id}
+                    key={use.id}
                     className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
                   >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(gc.tier)}`}
-                      >
-                        {getTierName(gc.tier)}
-                      </span>
-                      <span className={`text-xs font-medium ${available > 0 ? "text-forest" : "text-warm-gray-light"}`}>
-                        {available} of {gc.quantity} available
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${formatBadge.classes}`}>
+                          {formatBadge.label}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${useTypeBadge.classes}`}>
+                          {useTypeBadge.label}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusBadge.classes}`}>
+                          {statusBadge.label}
+                        </span>
+                      </div>
+                      <span className="text-xs text-warm-gray-light">
+                        {new Date(use.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     </div>
+
                     <div className="mt-3">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-cream-dark">
-                        <div
-                          className="h-full rounded-full bg-forest transition-all duration-300"
-                          style={{ width: `${gc.quantity > 0 ? ((gc.quantity - available) / gc.quantity) * 100 : 0}%` }}
-                        />
-                      </div>
+                      <p className="text-sm font-semibold text-navy">
+                        {getFormatLabel(use.format)}
+                        {use.recipient_name && ` \u2014 ${use.recipient_name}`}
+                        {use.use_type === "vault" && " \u2014 My Vault"}
+                      </p>
+                      {use.delivery_date && (
+                        <p className="mt-1 text-xs text-warm-gray">
+                          Delivery: {new Date(use.delivery_date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                        </p>
+                      )}
+                      {use.milestone_label && (
+                        <p className="mt-1 text-xs text-warm-gray">
+                          Milestone: {use.milestone_label}
+                        </p>
+                      )}
                     </div>
-                    <p className="mt-2 text-xs text-warm-gray-light">
-                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned
-                    </p>
 
-                    {/* Assigned recipients */}
-                    {recipientMap.size > 0 && (
-                      <div className="mt-3 space-y-2 border-t border-cream-dark pt-3">
-                        {Array.from(recipientMap.values()).map((r) => (
-                          <div key={r.name} className="flex items-center justify-between text-xs">
-                            <span className="font-medium text-navy">{r.name}</span>
-                            <span className="text-warm-gray">
-                              {r.occasion.replace(/_/g, " ")} &middot;{" "}
-                              {new Date(r.nextDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-3 flex gap-2">
-                      {available > 0 && (
+                    {/* Actions */}
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      {isDraft && isLetter && (
                         <Link
-                          href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
-                          className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                          href={`/letters/edit/${use.id}`}
+                          className="rounded-lg border-2 border-navy px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                         >
-                          Assign Recipient
+                          Write Letter
                         </Link>
                       )}
-                      <button
-                        onClick={() =>
-                          setGiftingItem({
-                            itemType: "gift_credit",
-                            itemId: gc.id,
-                            itemLabel: `${getTierName(gc.tier)} Gift Credit`,
-                          })
-                        }
-                        className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
-                      >
-                        Gift
-                      </button>
+                      {isDraft && !isLetter && (
+                        <Link
+                          href={`/voice/record/${use.id}`}
+                          className="rounded-lg border-2 border-navy px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                        >
+                          Record
+                        </Link>
+                      )}
+                      {(use.status === "draft" || use.status === "pending_request" || use.status === "gifted") && (
+                        <button
+                          onClick={() => handleDeleteUse(use.id)}
+                          className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      {use.content_url && (
+                        <span className="text-xs text-forest font-medium">Content recorded</span>
+                      )}
+                      {use.content_text && (
+                        <span className="text-xs text-forest font-medium">Written</span>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
+          ) : null}
+
+          {/* Vault Links (message_uses where use_type='vault') */}
+          {vaultItems.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-navy/50 mb-3">Vault Items</h3>
+              <div className="space-y-3">
+                {vaultItems.map((v) => (
+                  <div key={v.id} className="rounded-xl border border-gold/30 bg-gold/5 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-navy">{getFormatLabel(v.format)} Vault</p>
+                        {v.sealed_until && (
+                          <p className="text-xs text-warm-gray">
+                            Sealed until {new Date(v.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href="/vault/my"
+                        className="text-xs font-medium text-navy underline hover:text-gold"
+                      >
+                        Manage
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Gifts You've Given */}
-        {giftsGiven.length > 0 && (
+        {/* ═══════════════════════════════════════════════════════════════
+           Gift Credits (existing system)
+           ═══════════════════════════════════════════════════════════════ */}
+        {(giftCredits.length > 0 || giftsGiven.length > 0) && (
           <div className="mb-10">
-            <h2 className="text-xl font-bold text-navy mb-4">Gifts You&apos;ve Given</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {giftsGiven.map((g) => {
-                const tierName = getTierName(g.tier);
-                const statusColors: Record<string, string> = {
-                  pending: "bg-yellow-100 text-yellow-800",
-                  claimed: "bg-forest/10 text-forest",
-                  expired: "bg-red-100 text-red-700",
-                };
-                const statusLabel: Record<string, string> = {
-                  pending: "Pending",
-                  claimed: "Claimed",
-                  expired: "Expired",
-                };
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-navy">My Gifts</h2>
+              <div className="flex gap-2">
+                <Link
+                  href="/gifts/give"
+                  className="rounded-lg border-2 border-gold px-4 py-2 text-sm font-medium text-gold-dark transition-colors hover:bg-gold hover:text-white"
+                >
+                  Give a Gift Credit
+                </Link>
+                <Link
+                  href="/gifts/buy"
+                  className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+                >
+                  Buy More Credits
+                </Link>
+              </div>
+            </div>
+
+            {giftCredits.length > 0 && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {giftCredits.map((gc) => {
+                  const available = gc.quantity - gc.quantity_used;
+                  const assigned = gc.assignments || [];
+                  const recipientMap = new Map<string, { name: string; occasion: string; nextDate: string; status: string }>();
+                  for (const a of assigned) {
+                    if (!recipientMap.has(a.recipient_name) || a.occasion_date < recipientMap.get(a.recipient_name)!.nextDate) {
+                      recipientMap.set(a.recipient_name, {
+                        name: a.recipient_name,
+                        occasion: a.occasion_type,
+                        nextDate: a.occasion_date,
+                        status: a.status,
+                      });
+                    }
+                  }
+                  return (
+                    <div
+                      key={gc.id}
+                      className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(gc.tier)}`}>
+                          {getTierName(gc.tier)}
+                        </span>
+                        <span className={`text-xs font-medium ${available > 0 ? "text-forest" : "text-warm-gray-light"}`}>
+                          {available} of {gc.quantity} available
+                        </span>
+                      </div>
+                      <div className="mt-3">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-cream-dark">
+                          <div
+                            className="h-full rounded-full bg-forest transition-all duration-300"
+                            style={{ width: `${gc.quantity > 0 ? ((gc.quantity - available) / gc.quantity) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-warm-gray-light">
+                        ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned
+                      </p>
+
+                      {recipientMap.size > 0 && (
+                        <div className="mt-3 space-y-2 border-t border-cream-dark pt-3">
+                          {Array.from(recipientMap.values()).map((r) => (
+                            <div key={r.name} className="flex items-center justify-between text-xs">
+                              <span className="font-medium text-navy">{r.name}</span>
+                              <span className="text-warm-gray">
+                                {r.occasion.replace(/_/g, " ")} &middot;{" "}
+                                {new Date(r.nextDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex gap-2">
+                        {available > 0 && (
+                          <Link
+                            href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
+                            className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                          >
+                            Assign Recipient
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Gifts You've Given */}
+            {giftsGiven.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-navy/50 mb-3">Gifts You&apos;ve Given</h3>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {giftsGiven.map((g) => {
+                    const tierName = getTierName(g.tier);
+                    const statusColors: Record<string, string> = {
+                      pending: "bg-yellow-100 text-yellow-800",
+                      claimed: "bg-forest/10 text-forest",
+                      expired: "bg-red-100 text-red-700",
+                    };
+                    const statusLabel: Record<string, string> = {
+                      pending: "Pending",
+                      claimed: "Claimed",
+                      expired: "Expired",
+                    };
+                    return (
+                      <div
+                        key={g.id}
+                        className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(g.tier)}`}>
+                            {tierName}
+                          </span>
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusColors[g.status] || "bg-warm-gray-light/20 text-warm-gray"}`}>
+                            {statusLabel[g.status] || g.status}
+                          </span>
+                        </div>
+                        <p className="mt-3 font-semibold text-navy">{g.recipient_name}</p>
+                        {g.recipient_email && (
+                          <p className="text-xs text-warm-gray">{g.recipient_email}</p>
+                        )}
+                        <p className="mt-2 text-xs text-warm-gray-light">
+                          Sent {new Date(g.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Orders list */}
+        {orders.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-navy mb-4">Gift Plans</h2>
+            <div className="space-y-4">
+              {orders.map((order) => {
+                const yearsUsed = order.years_purchased - order.years_remaining;
+                const progressPercent =
+                  order.years_purchased > 0
+                    ? (yearsUsed / order.years_purchased) * 100
+                    : 0;
+                const tierName = getTierName(order.tier);
+                const sortedShipments = [...(order.shipments ?? [])].sort((a, b) =>
+                  a.scheduled_date.localeCompare(b.scheduled_date)
+                );
+                const nextPending = getNextPendingShipment(order.shipments ?? []);
+                const nextPaused = getNextPausedShipment(order.shipments ?? []);
+                const orderHasRefund = hasRefundRequest(order.id);
+
                 return (
                   <div
-                    key={g.id}
-                    className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
+                    key={order.id}
+                    className="rounded-xl border border-cream-dark bg-white p-6 transition-shadow hover:shadow-md"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${getTierBadgeClasses(g.tier)}`}>
-                        {tierName}
-                      </span>
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusColors[g.status] || "bg-warm-gray-light/20 text-warm-gray"}`}>
-                        {statusLabel[g.status] || g.status}
-                      </span>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-navy">
+                          {order.recipients?.name ?? "Unknown Recipient"}
+                        </h3>
+                        <p className="mt-1 text-sm text-warm-gray">
+                          {order.occasions?.label ?? order.occasions?.type ?? "\u2014"}
+                          {order.recipients?.relationship && (
+                            <span className="ml-2 text-warm-gray-light">
+                              &middot; {order.recipients.relationship}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getTierBadgeClasses(order.tier)}`}>
+                          {tierName}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusBadgeClasses(order.status)}`}>
+                          {order.status}
+                        </span>
+                        {nextPaused && (
+                          <span className="inline-flex items-center rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-gold-dark">
+                            Next delivery paused
+                          </span>
+                        )}
+                        {orderHasRefund && (
+                          <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                            Refund pending
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <p className="mt-3 font-semibold text-navy">{g.recipient_name}</p>
-                    {g.recipient_email && (
-                      <p className="text-xs text-warm-gray">{g.recipient_email}</p>
+
+                    <div className="mt-5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-warm-gray">
+                          {order.years_remaining} of {order.years_purchased} year{order.years_purchased !== 1 ? "s" : ""} remaining
+                        </span>
+                        {nextPending && order.status === "active" && (
+                          <span className="text-warm-gray">
+                            Next delivery:{" "}
+                            <span className="font-medium text-navy">
+                              {formatShipmentDate(nextPending.scheduled_date)}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-cream-dark">
+                        <div
+                          className="h-full rounded-full bg-forest transition-all duration-300"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {sortedShipments.length > 0 && (
+                      <div className="mt-4 border-t border-cream-dark pt-4">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-warm-gray">Shipments</p>
+                        <ul className="space-y-2">
+                          {sortedShipments.map((shipment, idx) => (
+                            <li key={shipment.id}>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-warm-gray">
+                                  Year {idx + 1}: {formatShipmentDate(shipment.scheduled_date)}
+                                </span>
+                                <span
+                                  className={
+                                    shipment.status === "delivered"
+                                      ? "font-medium text-forest"
+                                      : shipment.status === "shipped"
+                                        ? "font-medium text-navy"
+                                        : shipment.status === "paused"
+                                          ? "font-medium text-gold-dark"
+                                          : "text-warm-gray"
+                                  }
+                                >
+                                  {shipment.status === "delivered"
+                                    ? "Delivered \u2713"
+                                    : shipment.status === "shipped"
+                                      ? "Shipped \u2713"
+                                      : shipment.status === "paused"
+                                        ? "Paused"
+                                        : "Pending"}
+                                </span>
+                              </div>
+                              {shipment.photo_url && (
+                                <button
+                                  onClick={() => setPreviewPhoto(shipment.photo_url!)}
+                                  className="mt-1.5 flex items-center gap-2 rounded-lg border border-cream-dark bg-cream/40 px-3 py-2 transition hover:border-gold/50 hover:bg-cream"
+                                >
+                                  <Image
+                                    src={shipment.photo_url}
+                                    alt="Gift preview"
+                                    width={40}
+                                    height={40}
+                                    className="h-10 w-10 rounded-md object-cover"
+                                    unoptimized
+                                  />
+                                  <span className="text-xs font-medium text-navy">Gift Preview</span>
+                                </button>
+                              )}
+                              {shipment.status === "pending" && (
+                                <p className="mt-1 text-xs text-warm-gray-light">
+                                  We will contact you 2 weeks before this ships to confirm delivery details.
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
-                    <p className="mt-2 text-xs text-warm-gray-light">
-                      Sent {new Date(g.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
+
+                    {order.status === "active" && (
+                      <div className="mt-5 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                        <button
+                          onClick={() => setManagingOrder(order)}
+                          className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                        >
+                          Manage Plan
+                        </button>
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          disabled={cancellingId === order.id}
+                          className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {cancellingId === order.id ? "Cancelling..." : "Cancel Plan"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -743,449 +1116,18 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Orders list */}
-        <div className="space-y-4">
-          {orders.map((order) => {
-            const yearsUsed = order.years_purchased - order.years_remaining;
-            const progressPercent =
-              order.years_purchased > 0
-                ? (yearsUsed / order.years_purchased) * 100
-                : 0;
-            const tierName = getTierName(order.tier);
-            const sortedShipments = [...(order.shipments ?? [])].sort((a, b) =>
-              a.scheduled_date.localeCompare(b.scheduled_date)
-            );
-            const nextPending = getNextPendingShipment(order.shipments ?? []);
-            const nextPaused = getNextPausedShipment(order.shipments ?? []);
-            const orderHasRefund = hasRefundRequest(order.id);
-
-            return (
-              <div
-                key={order.id}
-                className="rounded-xl border border-cream-dark bg-white p-6 transition-shadow hover:shadow-md"
-              >
-                {/* Top row: recipient + badges */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-semibold text-navy">
-                      {order.recipients?.name ?? "Unknown Recipient"}
-                    </h3>
-                    <p className="mt-1 text-sm text-warm-gray">
-                      {order.occasions?.label ?? order.occasions?.type ?? "\u2014"}
-                      {order.recipients?.relationship && (
-                        <span className="ml-2 text-warm-gray-light">
-                          &middot; {order.recipients.relationship}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    {/* Tier badge */}
-                    <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getTierBadgeClasses(order.tier)}`}
-                    >
-                      {tierName}
-                    </span>
-
-                    {/* Status badge */}
-                    <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusBadgeClasses(order.status)}`}
-                    >
-                      {order.status}
-                    </span>
-
-                    {/* Paused shipment badge */}
-                    {nextPaused && (
-                      <span className="inline-flex items-center rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-gold-dark">
-                        Next delivery paused
-                      </span>
-                    )}
-
-                    {/* Pending refund badge */}
-                    {orderHasRefund && (
-                      <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-                        Refund pending
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Progress section */}
-                <div className="mt-5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-warm-gray">
-                      {order.years_remaining} of {order.years_purchased} year
-                      {order.years_purchased !== 1 ? "s" : ""} remaining
-                    </span>
-                    {nextPending && order.status === "active" && (
-                      <span className="text-warm-gray">
-                        Next delivery:{" "}
-                        <span className="font-medium text-navy">
-                          {formatShipmentDate(nextPending.scheduled_date)}
-                        </span>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-cream-dark">
-                    <div
-                      className="h-full rounded-full bg-forest transition-all duration-300"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Shipment timeline */}
-                {sortedShipments.length > 0 && (
-                  <div className="mt-4 border-t border-cream-dark pt-4">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-warm-gray">
-                      Shipments
-                    </p>
-                    <ul className="space-y-2">
-                      {sortedShipments.map((shipment, idx) => (
-                        <li key={shipment.id}>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-warm-gray">
-                              Year {idx + 1}: {formatShipmentDate(shipment.scheduled_date)}
-                            </span>
-                            <span
-                              className={
-                                shipment.status === "delivered"
-                                  ? "font-medium text-forest"
-                                  : shipment.status === "shipped"
-                                    ? "font-medium text-navy"
-                                    : shipment.status === "paused"
-                                      ? "font-medium text-gold-dark"
-                                      : "text-warm-gray"
-                              }
-                            >
-                              {shipment.status === "delivered"
-                                ? "Delivered \u2713"
-                                : shipment.status === "shipped"
-                                  ? "Shipped \u2713"
-                                  : shipment.status === "paused"
-                                    ? "Paused"
-                                    : "Pending"}
-                            </span>
-                          </div>
-                          {shipment.photo_url && (
-                            <button
-                              onClick={() => setPreviewPhoto(shipment.photo_url!)}
-                              className="mt-1.5 flex items-center gap-2 rounded-lg border border-cream-dark bg-cream/40 px-3 py-2 transition hover:border-gold/50 hover:bg-cream"
-                            >
-                              <Image
-                                src={shipment.photo_url}
-                                alt="Gift preview"
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 rounded-md object-cover"
-                                unoptimized
-                              />
-                              <span className="text-xs font-medium text-navy">
-                                Gift Preview 📸
-                              </span>
-                            </button>
-                          )}
-                          {shipment.status === "pending" && (
-                            <p className="mt-1 text-xs text-warm-gray-light">
-                              📬 We will contact you 2 weeks before this ships to confirm delivery details.
-                            </p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {order.status === "active" && (
-                  <div className="mt-5 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
-                    <button
-                      onClick={() => setManagingOrder(order)}
-                      className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                    >
-                      Manage Plan
-                    </button>
-                    <button
-                      onClick={() => handleCancelOrder(order.id)}
-                      disabled={cancellingId === order.id}
-                      className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {cancellingId === order.id
-                        ? "Cancelling..."
-                        : "Cancel Plan"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* My Letters Section */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Letters</h2>
-            <Link
-              href="/letters"
-              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-            >
-              + Add Letter
-            </Link>
-          </div>
-
-          {letters.length === 0 ? (
-            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
-              <p className="text-warm-gray">
-                No messages yet.{" "}
-                <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
-                  Buy Message Credits
-                </Link>{" "}
-                to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {letters.map((letter) => {
-                const statusMap: Record<string, { label: string; classes: string }> = {
-                  draft: { label: "Not written yet", classes: "bg-yellow-100 text-yellow-800" },
-                  scheduled: { label: "Scheduled", classes: "bg-green-100 text-green-800" },
-                  pending_release: { label: "In Vault", classes: "bg-blue-100 text-blue-800" },
-                  released: { label: "Released", classes: "bg-purple-100 text-purple-800" },
-                  printed: { label: "Being prepared", classes: "bg-orange-100 text-orange-800" },
-                  delivered: { label: "Delivered", classes: "bg-green-100 text-green-800" },
-                };
-                const statusInfo = statusMap[letter.status] ?? { label: letter.status, classes: "bg-gray-100 text-gray-700" };
-                const hasContent = !!letter.content;
-
-                return (
-                  <div
-                    key={letter.id}
-                    className="rounded-xl border border-cream-dark bg-white p-6 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-navy">
-                          {letter.title || "Untitled Letter"}
-                        </h3>
-                        <p className="mt-1 text-sm text-warm-gray">
-                          To: {letter.recipients?.name || "Unknown"}{" "}
-                          {letter.recipients?.relationship && (
-                            <span className="text-warm-gray-light">
-                              &middot; {letter.recipients.relationship}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
-                      <button
-                        onClick={() =>
-                          setGiftingItem({
-                            itemType: "letter",
-                            itemId: letter.id,
-                            itemLabel: `Letter: ${letter.title || "Untitled"} (to ${letter.recipients?.name || "recipient"})`,
-                          })
-                        }
-                        className="rounded-lg border-2 border-gold px-3 py-2 text-sm font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
-                      >
-                        Gift
-                      </button>
-                      {/* Release button for milestone letters that are written */}
-                      {letter.letter_type === "milestone" && letter.status === "pending_release" && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!confirm("Are you sure you want to release this letter? It will be sent to the recipient.")) return;
-                            await fetch(`/api/letters/release`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ letterId: letter.id }),
-                            });
-                            window.location.reload();
-                          }}
-                          className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
-                        >
-                          Release Now
-                        </button>
-                      )}
-                      {hasContent ? (
-                        <Link
-                          href={`/letters/edit/${letter.id}`}
-                          className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/letters/edit/${letter.id}`}
-                          className="rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-light"
-                        >
-                          Write Letter
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* My Voice Messages */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Voice Messages</h2>
-            <Link
-              href="/messages/buy"
-              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-            >
-              Buy Message Credits
-            </Link>
-          </div>
-
-          {voiceMessages.length === 0 ? (
-            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
-              <p className="text-warm-gray">
-                No voice messages yet. Buy message credits to get started.{" "}
-                <Link href="/messages/buy" className="font-medium text-navy underline hover:text-gold">
-                  Buy Message Credits
-                </Link>
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {voiceMessages.map((vm) => {
-                const statusMap: Record<string, { label: string; classes: string }> = {
-                  draft: { label: "Not recorded", classes: "bg-yellow-100 text-yellow-800" },
-                  recorded: { label: "Recorded", classes: "bg-green-100 text-green-800" },
-                  delivered: { label: "Delivered", classes: "bg-forest/10 text-forest" },
-                };
-                const statusInfo = statusMap[vm.status] ?? { label: vm.status, classes: "bg-gray-100 text-gray-700" };
-
-                return (
-                  <div
-                    key={vm.id}
-                    className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                        vm.message_format === "video"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-navy/10 text-navy"
-                      }`}>
-                        {vm.message_format === "video" ? "Video" : "Audio"}
-                      </span>
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
-                        {statusInfo.label}
-                      </span>
-                    </div>
-                    <p className="mt-3 font-semibold text-navy">
-                      {vm.title || "Untitled Message"}
-                    </p>
-                    <p className="mt-1 text-xs text-warm-gray-light">
-                      {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
-                    <div className="mt-3 flex gap-2">
-                      <Link
-                        href={`/voice/record/${vm.id}`}
-                        className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                      >
-                        Record Message
-                      </Link>
-                      <button
-                        onClick={() =>
-                          setGiftingItem({
-                            itemType: "voice_message",
-                            itemId: vm.id,
-                            itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"} Message: ${vm.title || "Untitled"}`,
-                          })
-                        }
-                        className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
-                      >
-                        Gift
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* My Memory Vaults */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Memory Vaults</h2>
-            <div className="flex gap-2">
-              <Link
-                href="/vault/buy"
-                className="rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition-colors hover:bg-cream-dark"
-              >
-                Buy Credits
-              </Link>
-              <Link
-                href="/vault/my"
-                className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-              >
-                View All Vaults
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-cream-dark bg-white p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-warm-gray">
-                {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
-                {memoryRequests.reduce((sum, r) => sum + (Array.isArray(r.memory_recordings) ? r.memory_recordings.length : 0), 0)} total recordings
-                {vaultCredits && (vaultCredits.audioCredits > 0 || vaultCredits.videoCredits > 0) && (
-                  <span className="ml-2 text-forest">
-                    &middot; {vaultCredits.audioCredits - vaultCredits.audioUsed} audio + {vaultCredits.videoCredits - vaultCredits.videoUsed} video credits available
-                  </span>
-                )}
-              </p>
-              <Link
-                href="/vault/my"
-                className="text-sm font-medium text-navy underline hover:text-gold"
-              >
-                Manage vaults &rarr;
-              </Link>
-            </div>
-          </div>
-        </div>
-
         {/* Account Settings */}
         <div className="mt-12 rounded-xl border border-cream-dark bg-white p-6">
           <h2 className="text-xl font-bold text-navy">Account Settings</h2>
-
           <div className="mt-5 space-y-4">
-            {/* Email (read-only) */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-navy">
-                Email
-              </label>
+              <label className="mb-1.5 block text-sm font-medium text-navy">Email</label>
               <p className="rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-warm-gray">
                 {userEmail}
               </p>
             </div>
-
-            {/* Phone number */}
             <div>
-              <label
-                htmlFor="phone"
-                className="mb-1.5 block text-sm font-medium text-navy"
-              >
-                Phone Number
-              </label>
+              <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-navy">Phone Number</label>
               <input
                 id="phone"
                 type="tel"
@@ -1198,12 +1140,9 @@ export default function DashboardPage() {
                 className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
               <p className="mt-1.5 text-xs text-warm-gray-light">
-                We will send you a text 2 weeks before each gift ships to
-                confirm your delivery details.
+                We will send you a text 2 weeks before each gift ships to confirm your delivery details.
               </p>
             </div>
-
-            {/* Save button + success message */}
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSavePhone}
@@ -1229,19 +1168,6 @@ export default function DashboardPage() {
           onClose={() => setManagingOrder(null)}
           onOrderUpdated={handleOrderUpdated}
           hasRefundRequest={hasRefundRequest(managingOrder.id)}
-        />
-      )}
-
-      {/* Gift Item Modal */}
-      {giftingItem && (
-        <GiftItemModal
-          itemType={giftingItem.itemType}
-          itemId={giftingItem.itemId}
-          itemLabel={giftingItem.itemLabel}
-          onClose={() => {
-            setGiftingItem(null);
-            loadDashboard();
-          }}
         />
       )}
 
