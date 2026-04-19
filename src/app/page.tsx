@@ -141,6 +141,34 @@ const BUSINESS_CARDS = [
 
 /* ─────────────────────────────── Page ─────────────────────────────── */
 
+function GiftCounter() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchCount() {
+      try {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        if (active) setCount(data.total);
+      } catch {
+        // silently fail — keep hidden
+      }
+    }
+    fetchCount();
+    const interval = setInterval(fetchCount, 60_000);
+    return () => { active = false; clearInterval(interval); };
+  }, []);
+
+  if (count === null || count === 0) return null;
+
+  return (
+    <p className="mt-5 text-sm text-cream/60">
+      {count.toLocaleString()} gifts sent and counting
+    </p>
+  );
+}
+
 export default function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -776,9 +804,7 @@ export default function HomePage() {
               Get Started Today
             </Link>
           </div>
-          <p className="mt-5 text-sm text-cream/60">
-            47 gifts sent and counting
-          </p>
+          <GiftCounter />
         </div>
       </section>
     </main>
