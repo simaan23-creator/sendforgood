@@ -243,10 +243,6 @@ export default function HomePage() {
             Choose your gift tier. Write letters. Record your voice or video.
             Assign recipients from your dashboard whenever you are ready.
           </p>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-navy/60 sm:text-lg italic">
-            Now with Legacy Letters, Voice Messages, and Video Messages &mdash; your words, voice, and face, delivered forever.
-          </p>
-
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/gifts/buy"
