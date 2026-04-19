@@ -217,6 +217,17 @@ export async function POST(
     })
     .eq("id", item.id);
 
+  // Mark the original item as delivered/gifted so it's removed from sender's active items
+  if (item.item_id) {
+    if (item.item_type === "letter") {
+      await supabaseAdmin.from("letters").update({ status: "delivered" }).eq("id", item.item_id);
+    } else if (item.item_type === "voice_message") {
+      await supabaseAdmin.from("voice_messages").update({ status: "delivered" }).eq("id", item.item_id);
+    } else if (item.item_type === "gift_credit") {
+      await supabaseAdmin.from("gift_credits").update({ quantity_used: 1 }).eq("id", item.item_id);
+    }
+  }
+
   if (updateError) {
     console.error("Failed to update gifted item:", updateError);
     return NextResponse.json(
