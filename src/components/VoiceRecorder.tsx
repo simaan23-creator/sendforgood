@@ -52,6 +52,14 @@ export default function VoiceRecorder({
     };
   }, []);
 
+  // Attach camera stream to video preview after the element renders
+  useEffect(() => {
+    if (isRecording && format === "video" && videoPreviewRef.current && streamRef.current) {
+      videoPreviewRef.current.srcObject = streamRef.current;
+      videoPreviewRef.current.play().catch(() => {});
+    }
+  }, [isRecording, format]);
+
   function handleFormatChange(newFormat: MediaFormat) {
     if (isRecording) return;
     if (mediaUrl) {
@@ -108,12 +116,6 @@ export default function VoiceRecorder({
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-
-      // Show live preview for video
-      if (format === "video" && videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = stream;
-        videoPreviewRef.current.play().catch(() => {});
-      }
 
       const mimeType =
         format === "video"
