@@ -10,7 +10,7 @@ export async function GET(
 
   const { data: item, error } = await supabaseAdmin
     .from("message_uses")
-    .select("id, user_id, use_type, content_text, item_type, item_id, status")
+    .select("id, user_id, use_type, content_text, credit_id, format, status")
     .eq("claim_code", code)
     .eq("use_type", "request")
     .single();
@@ -43,7 +43,7 @@ export async function GET(
     request: {
       id: item.id,
       prompt: item.content_text,
-      item_type: item.item_type,
+      format: item.format,
       requester_name: firstName,
     },
   });
@@ -65,7 +65,7 @@ export async function POST(
   // Find the request
   const { data: item, error: findError } = await supabaseAdmin
     .from("message_uses")
-    .select("id, user_id, item_type, item_id, status")
+    .select("id, user_id, credit_id, status")
     .eq("claim_code", code)
     .eq("use_type", "request")
     .single();
@@ -84,30 +84,12 @@ export async function POST(
     );
   }
 
-  // Update the original item with the contributed message
-  if (item.item_type === "letter" && item.item_id) {
-    await supabaseAdmin
-      .from("letters")
-      .update({
-        content: message.trim(),
-        status: "scheduled",
-      })
-      .eq("id", item.item_id);
-  } else if (item.item_type === "voice_message" && item.item_id) {
-    // Store contributed text as the title/note for now
-    await supabaseAdmin
-      .from("voice_messages")
-      .update({
-        title: contributor_name ? `Message from ${contributor_name}` : "Contributed Message",
-      })
-      .eq("id", item.item_id);
-  }
-
-  // Mark the request as completed
+  // Store the contributed message in the message_uses record itself
   await supabaseAdmin
     .from("message_uses")
     .update({
       status: "completed",
+      content_text: message.trim(),
       recipient_name: contributor_name?.trim() || null,
     })
     .eq("id", item.id);
