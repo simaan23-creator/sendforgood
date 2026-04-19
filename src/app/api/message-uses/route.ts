@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     .from("message_uses")
     .insert({
       user_id: user.id,
-      format: format || null,
+      format: format || "link",
       use_type,
       recipient_name: recipient_name || null,
       recipient_email: recipient_email || null,
@@ -75,10 +75,11 @@ export async function POST(request: Request) {
           status: "pending",
         });
       if (fallbackError) {
-        return NextResponse.json({ error: "Failed to create record" }, { status: 500 });
+        console.error("Fallback gifted_items insert failed:", fallbackError);
+        return NextResponse.json({ error: fallbackError.message || "Failed to create record" }, { status: 500 });
       }
     } else {
-      return NextResponse.json({ error: "Failed to create record" }, { status: 500 });
+      return NextResponse.json({ error: insertError.message || "Failed to create record" }, { status: 500 });
     }
   }
 
