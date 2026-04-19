@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="mt-3 flex gap-2">
                       <Link
-                        href={`/voice/record/${vm.id}`}
+                        href={`/voice/record`}
                         className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                       >
                         Record Message
@@ -1205,7 +1205,7 @@ export default function DashboardPage() {
                     {/* Quick action buttons */}
                     <div className="mt-2 flex items-center gap-1.5">
                       <Link
-                        href={`/voice/record/${vm.id}`}
+                        href={`/voice/record`}
                         className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
                         title="Record"
                       >
