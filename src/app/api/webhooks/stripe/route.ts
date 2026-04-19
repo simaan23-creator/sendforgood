@@ -518,26 +518,84 @@ async function handleCartOrder(
     });
   }
 
-  // Process letter items → insert into message_credits
+  // Process letter items
   const processedLetters: Array<{ recipientName: string; letterType: string; deliveryType: string; quantity: number; totalPrice: number }> = [];
 
   for (const letter of letterItems) {
-    // Map delivery type to message_credits format
-    const formatMap: Record<string, string> = {
-      digital: "letter_digital",
-      physical: "letter_physical",
-      physical_photo: "letter_photo",
-    };
-    const creditFormat = formatMap[letter.deliveryType] || "letter_physical";
+    // Create recipient for letter
+    const { data: letterRecipient, error: lrError } = await supabaseAdmin
+      .from("recipients")
+      .insert({
+        user_id: userId,
+        name: letter.recipientName,
+        address_line1: letter.addressLine1 || null,
+        address_line2: letter.addressLine2 || null,
+        city: letter.city || null,
+        state: letter.state || null,
+        postal_code: letter.postalCode || null,
+        country: letter.country || "US",
+      })
+      .select()
+      .single();
 
-    await supabaseAdmin.from("message_credits").insert({
-      user_id: userId,
-      format: creditFormat,
-      quantity: letter.quantity,
-      quantity_used: 0,
-      stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: letter.totalPrice,
-    });
+    if (lrError) throw lrError;
+
+    const pricePerUnit = letter.unitPrice;
+
+    if (letter.letterType === "annual") {
+      for (let i = 0; i < letter.quantity; i++) {
+        const deliveryDate = new Date();
+        deliveryDate.setFullYear(currentYear + i);
+
+        await supabaseAdmin.from("letters").insert({
+          user_id: userId,
+          recipient_id: letterRecipient.id,
+          letter_type: "annual",
+          title: `Letter for ${letter.recipientName} — Year ${i + 1}`,
+          content: "",
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: pricePerUnit,
+          delivery_type: letter.deliveryType,
+          recipient_email: letter.recipientEmail || null,
+        });
+      }
+    } else {
+      // Milestone letters
+      await supabaseAdmin.from("letters").insert({
+        user_id: userId,
+        recipient_id: letterRecipient.id,
+        letter_type: "milestone",
+        title: `Milestone Letter for ${letter.recipientName}`,
+        content: "",
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: pricePerUnit,
+        delivery_type: letter.deliveryType,
+        recipient_email: letter.recipientEmail || null,
+      });
+
+      // If it's a bundle, create remaining draft letters
+      if (letter.quantity > 1) {
+        const draftLetters = [];
+        for (let i = 1; i < letter.quantity; i++) {
+          draftLetters.push({
+            user_id: userId,
+            recipient_id: letterRecipient.id,
+            letter_type: "milestone" as const,
+            title: `Milestone Letter ${i + 1} for ${letter.recipientName}`,
+            content: "",
+            status: "draft" as const,
+            stripe_payment_intent_id: session.payment_intent as string,
+            amount_paid: pricePerUnit,
+            delivery_type: letter.deliveryType,
+            recipient_email: letter.recipientEmail || null,
+          });
+        }
+        await supabaseAdmin.from("letters").insert(draftLetters);
+      }
+    }
 
     processedLetters.push({
       recipientName: letter.recipientName,
@@ -548,30 +606,46 @@ async function handleCartOrder(
     });
   }
 
-  // Process voice message items → insert into message_credits
+  // Process voice message items — create draft voice_message records
   const voiceAudioCount = parseInt(metadata.voiceAudio) || 0;
   const voiceVideoCount = parseInt(metadata.voiceVideo) || 0;
 
-  if (voiceAudioCount > 0) {
-    await supabaseAdmin.from("message_credits").insert({
+  const voiceDraftMessages: Array<{
+    user_id: string;
+    letter_type: string;
+    title: string;
+    status: string;
+    stripe_payment_intent_id: string;
+    amount_paid: number;
+    message_format: string;
+  }> = [];
+
+  for (let i = 0; i < voiceAudioCount; i++) {
+    voiceDraftMessages.push({
       user_id: userId,
-      format: "audio",
-      quantity: voiceAudioCount,
-      quantity_used: 0,
+      letter_type: "annual",
+      title: `Audio Message ${i + 1}`,
+      status: "draft",
       stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: voiceAudioCount * 500,
+      amount_paid: 500,
+      message_format: "audio",
     });
   }
 
-  if (voiceVideoCount > 0) {
-    await supabaseAdmin.from("message_credits").insert({
+  for (let i = 0; i < voiceVideoCount; i++) {
+    voiceDraftMessages.push({
       user_id: userId,
-      format: "video",
-      quantity: voiceVideoCount,
-      quantity_used: 0,
+      letter_type: "annual",
+      title: `Video Message ${i + 1}`,
+      status: "draft",
       stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: voiceVideoCount * 1000,
+      amount_paid: 1000,
+      message_format: "video",
     });
+  }
+
+  if (voiceDraftMessages.length > 0) {
+    await supabaseAdmin.from("voice_messages").insert(voiceDraftMessages);
   }
 
   // Process gift credit items
@@ -701,30 +775,21 @@ async function handleCartOrder(
     }
   }
 
-  // Process vault credit items → insert into message_credits
+  // Process vault credit items
   const vaultAudioCredits = parseInt(metadata.vaultAudioCredits) || 0;
   const vaultVideoCredits = parseInt(metadata.vaultVideoCredits) || 0;
 
-  if (vaultAudioCredits > 0) {
-    await supabaseAdmin.from("message_credits").insert({
-      user_id: userId,
-      format: "audio",
-      quantity: vaultAudioCredits,
-      quantity_used: 0,
-      stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: vaultAudioCredits * 500,
-    });
-  }
+  if (vaultAudioCredits > 0 || vaultVideoCredits > 0) {
+    const { error: creditError } = await supabaseAdmin
+      .from("memory_credits")
+      .insert({
+        user_id: userId,
+        audio_credits: vaultAudioCredits,
+        video_credits: vaultVideoCredits,
+        stripe_payment_intent_id: session.payment_intent as string,
+      });
 
-  if (vaultVideoCredits > 0) {
-    await supabaseAdmin.from("message_credits").insert({
-      user_id: userId,
-      format: "video",
-      quantity: vaultVideoCredits,
-      quantity_used: 0,
-      stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: vaultVideoCredits * 1000,
-    });
+    if (creditError) throw creditError;
   }
 
   const customerEmail = metadata.email || session.customer_email!;
@@ -1323,29 +1388,83 @@ async function handleLetterOrder(
   const years = parseInt(metadata.years) || 1;
   const milestoneQuantity = metadata.milestoneQuantity || "single";
   const deliveryType = metadata.deliveryType || "physical";
+  const letterRecipientEmail = metadata.recipientEmail || null;
 
-  // Map delivery type to message_credits format
-  const formatMap: Record<string, string> = {
-    digital: "letter_digital",
-    physical: "letter_physical",
-    physical_photo: "letter_photo",
-  };
-  const creditFormat = formatMap[deliveryType] || "letter_physical";
+  if (letterType === "annual") {
+    // Create one letter record per year
+    const scheduledDate = metadata.scheduledDate ? new Date(metadata.scheduledDate) : new Date();
+    const currentYear = new Date().getFullYear();
 
-  // Calculate quantity
-  const quantity = letterType === "annual"
-    ? years
-    : milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+    for (let i = 0; i < years; i++) {
+      const deliveryDate = new Date(scheduledDate);
+      deliveryDate.setFullYear(currentYear + i);
 
-  // Insert message_credits instead of letters
-  await supabaseAdmin.from("message_credits").insert({
-    user_id: userId,
-    format: creditFormat,
-    quantity,
-    quantity_used: 0,
-    stripe_payment_intent_id: session.payment_intent as string,
-    amount_paid: session.amount_total || 0,
-  });
+      if (deliveryDate < new Date()) {
+        deliveryDate.setFullYear(deliveryDate.getFullYear() + 1);
+      }
+
+      await supabaseAdmin
+        .from("letters")
+        .insert({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "annual",
+          title: metadata.title || "",
+          content: letterContent || "",
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: letterContent ? "scheduled" : "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: Math.round((session.amount_total || 0) / years),
+          executor_email: metadata.executorEmail || null,
+          delivery_type: deliveryType,
+          recipient_email: letterRecipientEmail,
+        });
+    }
+  } else {
+    // Milestone letters
+    const count = milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+    const priceEach = Math.round((session.amount_total || 0) / count);
+
+    // Create the first milestone letter with the provided details
+    await supabaseAdmin
+      .from("letters")
+      .insert({
+        user_id: userId,
+        recipient_id: recipient.id,
+        letter_type: "milestone",
+        title: metadata.title || "",
+        content: letterContent || "",
+        scheduled_date: metadata.scheduledDate || null,
+        milestone_label: metadata.milestoneLabel || null,
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: priceEach,
+        executor_email: metadata.executorEmail || null,
+        delivery_type: deliveryType,
+        recipient_email: letterRecipientEmail,
+      });
+
+    // If it's a bundle, create remaining draft letters
+    if (count > 1) {
+      const draftLetters = [];
+      for (let i = 1; i < count; i++) {
+        draftLetters.push({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "milestone" as const,
+          title: `Milestone Letter ${i + 1}`,
+          content: "",
+          status: "draft" as const,
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: priceEach,
+          executor_email: metadata.executorEmail || null,
+          delivery_type: deliveryType,
+          recipient_email: letterRecipientEmail,
+        });
+      }
+      await supabaseAdmin.from("letters").insert(draftLetters);
+    }
+  }
 
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
@@ -1450,25 +1569,90 @@ async function handleVoiceMessageOrder(
       full_name: metadata.fullName || "",
     }, { onConflict: "id" });
 
-  const messageFormat = metadata.messageFormat || "audio";
+  // Create recipient
+  const { data: recipient, error: recipientError } = await supabaseAdmin
+    .from("recipients")
+    .insert({
+      user_id: userId,
+      name: metadata.recipientName,
+      relationship: metadata.relationship || null,
+      country: "US",
+    })
+    .select()
+    .single();
+
+  if (recipientError) throw recipientError;
+
   const messageType = metadata.messageType as "annual" | "milestone";
+  const messageFormat = metadata.messageFormat || "audio";
   const years = parseInt(metadata.years) || 1;
   const milestoneQuantity = metadata.milestoneQuantity || "single";
 
-  // Calculate quantity
-  const quantity = messageType === "annual"
-    ? years
-    : milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+  if (messageType === "annual") {
+    const scheduledDate = metadata.scheduledDate ? new Date(metadata.scheduledDate) : new Date();
+    const currentYear = new Date().getFullYear();
 
-  // Insert message_credits instead of voice_messages
-  await supabaseAdmin.from("message_credits").insert({
-    user_id: userId,
-    format: messageFormat === "video" ? "video" : "audio",
-    quantity,
-    quantity_used: 0,
-    stripe_payment_intent_id: session.payment_intent as string,
-    amount_paid: session.amount_total || 0,
-  });
+    for (let i = 0; i < years; i++) {
+      const deliveryDate = new Date(scheduledDate);
+      deliveryDate.setFullYear(currentYear + i);
+
+      if (deliveryDate < new Date()) {
+        deliveryDate.setFullYear(deliveryDate.getFullYear() + 1);
+      }
+
+      await supabaseAdmin
+        .from("voice_messages")
+        .insert({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "annual",
+          title: metadata.title || "",
+          scheduled_date: deliveryDate.toISOString().split("T")[0],
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: Math.round((session.amount_total || 0) / years),
+          recipient_email: metadata.recipientEmail || null,
+          message_format: messageFormat,
+        });
+    }
+  } else {
+    const count = milestoneQuantity === "bundle10" ? 10 : milestoneQuantity === "bundle5" ? 5 : 1;
+    const priceEach = Math.round((session.amount_total || 0) / count);
+
+    await supabaseAdmin
+      .from("voice_messages")
+      .insert({
+        user_id: userId,
+        recipient_id: recipient.id,
+        letter_type: "milestone",
+        title: metadata.title || "",
+        scheduled_date: metadata.scheduledDate || null,
+        milestone_label: metadata.milestoneLabel || null,
+        status: "draft",
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_paid: priceEach,
+        recipient_email: metadata.recipientEmail || null,
+        message_format: messageFormat,
+      });
+
+    if (count > 1) {
+      const draftMessages = [];
+      for (let i = 1; i < count; i++) {
+        draftMessages.push({
+          user_id: userId,
+          recipient_id: recipient.id,
+          letter_type: "milestone" as const,
+          title: `Milestone Voice Message ${i + 1}`,
+          status: "draft" as const,
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_paid: priceEach,
+          recipient_email: metadata.recipientEmail || null,
+          message_format: messageFormat,
+        });
+      }
+      await supabaseAdmin.from("voice_messages").insert(draftMessages);
+    }
+  }
 
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
@@ -1539,34 +1723,17 @@ async function handleVaultCreditOrder(
   const audioCredits = parseInt(metadata.audioCredits) || 0;
   const videoCredits = parseInt(metadata.videoCredits) || 0;
 
-  // Insert into message_credits (unified system)
-  if (audioCredits > 0) {
-    const { error: audioError } = await supabaseAdmin
-      .from("message_credits")
-      .insert({
-        user_id: userId,
-        format: "audio",
-        quantity: audioCredits,
-        quantity_used: 0,
-        stripe_payment_intent_id: session.payment_intent as string,
-        amount_paid: audioCredits * 500,
-      });
-    if (audioError) throw audioError;
-  }
+  // Insert credit record
+  const { error: creditError } = await supabaseAdmin
+    .from("memory_credits")
+    .insert({
+      user_id: userId,
+      audio_credits: audioCredits,
+      video_credits: videoCredits,
+      stripe_payment_intent_id: session.payment_intent as string,
+    });
 
-  if (videoCredits > 0) {
-    const { error: videoError } = await supabaseAdmin
-      .from("message_credits")
-      .insert({
-        user_id: userId,
-        format: "video",
-        quantity: videoCredits,
-        quantity_used: 0,
-        stripe_payment_intent_id: session.payment_intent as string,
-        amount_paid: videoCredits * 1000,
-      });
-    if (videoError) throw videoError;
-  }
+  if (creditError) throw creditError;
 
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;

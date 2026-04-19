@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { addLetterToCart, addVoiceToCart } from "@/lib/cart";
 import { DELIVERY_TYPE_PRICES } from "@/lib/prices";
@@ -55,16 +55,6 @@ const CREDIT_TYPES = [
 
 type CreditId = DeliveryType | "audio" | "video";
 
-type CreditBalances = Record<string, number>;
-
-const FORMAT_MAP: Record<CreditId, string> = {
-  digital: "letter_digital",
-  physical: "letter_physical",
-  physical_photo: "letter_photo",
-  audio: "audio",
-  video: "video",
-};
-
 export default function BuyCreditsPage() {
   const [quantities, setQuantities] = useState<Record<CreditId, number>>({
     digital: 0,
@@ -74,22 +64,6 @@ export default function BuyCreditsPage() {
     video: 0,
   });
   const [added, setAdded] = useState(false);
-  const [creditBalances, setCreditBalances] = useState<CreditBalances>({});
-
-  useEffect(() => {
-    async function loadBalances() {
-      try {
-        const res = await fetch("/api/message-credits");
-        if (res.ok) {
-          const data = await res.json();
-          setCreditBalances(data);
-        }
-      } catch {
-        // silently fail
-      }
-    }
-    loadBalances();
-  }, []);
 
   function setQty(id: CreditId, value: number) {
     setQuantities((prev) => ({ ...prev, [id]: Math.max(0, value) }));
@@ -154,8 +128,6 @@ export default function BuyCreditsPage() {
     setAdded(false);
   }
 
-  const totalCredits = Object.values(creditBalances).reduce((a, b) => a + b, 0);
-
   return (
     <div className="min-h-screen bg-cream">
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
@@ -169,30 +141,6 @@ export default function BuyCreditsPage() {
             video messages. All delivered automatically on your schedule.
           </p>
         </div>
-
-        {/* Current Credit Balance */}
-        {totalCredits > 0 && (
-          <div className="mb-8 rounded-xl border border-forest/20 bg-forest/5 p-4">
-            <p className="text-sm font-medium text-forest mb-2">Your current credits:</p>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(creditBalances).map(([format, qty]) => {
-                if (qty <= 0) return null;
-                const labels: Record<string, string> = {
-                  letter_digital: "Digital Letter",
-                  letter_physical: "Physical Letter",
-                  letter_photo: "Letter + Photo",
-                  audio: "Audio",
-                  video: "Video",
-                };
-                return (
-                  <span key={format} className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-navy shadow-sm">
-                    {qty} {labels[format] || format}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {added ? (
           /* Success State */
@@ -232,7 +180,6 @@ export default function BuyCreditsPage() {
                       const id = item.id as CreditId;
                       const qty = quantities[id];
                       const priceDollars = item.price / 100;
-                      const existingBalance = creditBalances[FORMAT_MAP[id]] || 0;
                       return (
                         <div
                           key={id}
@@ -258,11 +205,6 @@ export default function BuyCreditsPage() {
                                   {" "}
                                   each
                                 </span>
-                                {existingBalance > 0 && (
-                                  <span className="ml-2 text-xs font-medium text-forest">
-                                    ({existingBalance} owned)
-                                  </span>
-                                )}
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
