@@ -1269,11 +1269,22 @@ export default function DashboardPage() {
               <p className="text-sm text-warm-gray">
                 {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
                 {memoryRequests.reduce((sum, r) => sum + (Array.isArray(r.memory_recordings) ? r.memory_recordings.length : 0), 0)} total recordings
-                {vaultCredits && (vaultCredits.audioCredits > 0 || vaultCredits.videoCredits > 0) && (
-                  <span className="ml-2 text-forest">
-                    &middot; {vaultCredits.audioCredits - vaultCredits.audioUsed} audio + {vaultCredits.videoCredits - vaultCredits.videoUsed} video credits available
-                  </span>
-                )}
+                {(() => {
+                  const audioVoice = voiceMessages.filter(vm => vm.message_format === 'audio' && vm.status === 'draft').length;
+                  const videoVoice = voiceMessages.filter(vm => vm.message_format === 'video' && vm.status === 'draft').length;
+                  const audioVault = vaultCredits ? (vaultCredits.audioCredits - vaultCredits.audioUsed) : 0;
+                  const videoVault = vaultCredits ? (vaultCredits.videoCredits - vaultCredits.videoUsed) : 0;
+                  const totalAudio = audioVoice + audioVault;
+                  const totalVideo = videoVoice + videoVault;
+                  if (totalAudio > 0 || totalVideo > 0) {
+                    return (
+                      <span className="ml-2 text-forest">
+                        &middot; {totalAudio} audio + {totalVideo} video credits available
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
               </p>
               <Link
                 href="/vault/my"
