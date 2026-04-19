@@ -26,7 +26,9 @@ export async function POST(request: Request) {
   }
 
   // Build the record
-  const claimCode = generateCode();
+  // For requests, encode the source item_id into the claim code so we can link back
+  const randomPart = generateCode();
+  const claimCode = (use_type === "request" && item_id) ? `${randomPart}_${item_id}` : randomPart;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
   let link = "";
 
@@ -46,7 +48,6 @@ export async function POST(request: Request) {
     .from("message_uses")
     .insert({
       user_id: user.id,
-      credit_id: item_id || null,
       format: format || "link",
       use_type,
       recipient_name: recipient_name || null,

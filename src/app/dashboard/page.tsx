@@ -360,7 +360,7 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch request statuses (linked to voice messages/letters via credit_id)
+    // Fetch request statuses (linked to voice messages/letters via claim_code format: {random}_{item_id})
     try {
       const { data: reqData } = await supabase
         .from("message_uses")
@@ -370,9 +370,12 @@ export default function DashboardPage() {
       if (reqData) {
         const map: Record<string, ReceivedMessage[]> = {};
         for (const r of reqData) {
-          if (r.credit_id) {
-            if (!map[r.credit_id]) map[r.credit_id] = [];
-            map[r.credit_id].push(r as ReceivedMessage);
+          // Extract item_id from claim_code format: {random}_{item_id}
+          const parts = (r.claim_code || "").split("_");
+          const sourceItemId = parts.length >= 2 ? parts.slice(1).join("_") : null;
+          if (sourceItemId) {
+            if (!map[sourceItemId]) map[sourceItemId] = [];
+            map[sourceItemId].push(r as ReceivedMessage);
           }
         }
         setRequestsByItemId(map);
