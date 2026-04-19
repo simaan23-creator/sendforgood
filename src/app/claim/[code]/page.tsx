@@ -31,7 +31,7 @@ function getItemDescription(item: GiftedItem): {
           ? "Physical + Photo"
           : "Physical";
     return {
-      label: "Letter Slot",
+      label: "Legacy Letter",
       icon: "✉️",
       detail: `${deliveryLabel} delivery`,
     };
@@ -58,6 +58,206 @@ function getItemDescription(item: GiftedItem): {
   }
 
   return { label: "Gift", icon: "🎁", detail: "" };
+}
+
+function NumberedStep({
+  number,
+  children,
+}: {
+  number: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-4 items-start">
+      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-gold/20 text-gold font-bold text-sm border border-gold/30">
+        {number}
+      </span>
+      <p className="text-navy/80 text-sm leading-relaxed pt-1">{children}</p>
+    </div>
+  );
+}
+
+function GiftInstructions({ gift }: { gift: GiftedItem }) {
+  const senderName = gift.sender_first_name;
+
+  if (gift.item_type === "letter") {
+    const isDigital = gift.delivery_type === "digital";
+    const deliveryLabel = isDigital
+      ? "Digital (delivered by email)"
+      : "Physical (delivered by mail)";
+
+    return (
+      <div className="mt-6 rounded-xl border border-cream-dark bg-cream/40 p-6 text-left">
+        <h2 className="text-lg font-bold text-navy">
+          You received a Legacy Letter
+        </h2>
+        <p className="mt-3 text-sm text-navy/70 leading-relaxed">
+          A Legacy Letter is a personal written message that will be delivered to
+          you on a date you set — a birthday, a milestone, or any day that
+          matters. {senderName} has already written it and paid for delivery. It
+          is now yours.
+        </p>
+
+        <h3 className="mt-5 text-sm font-semibold text-navy/90">
+          Here is what happens next
+        </h3>
+        <div className="mt-3 flex flex-col gap-3">
+          <NumberedStep number={1}>
+            After claiming, your letter will appear in your SendForGood
+            dashboard under <span className="font-semibold">My Messages</span>.
+          </NumberedStep>
+          <NumberedStep number={2}>
+            Open the letter to see the delivery format and delivery date.
+          </NumberedStep>
+          <NumberedStep number={3}>
+            You can update the delivery address or date from your dashboard at
+            any time.
+          </NumberedStep>
+        </div>
+
+        <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-navy/5 px-3 py-1.5 text-xs font-medium text-navy/70 border border-navy/10">
+          {isDigital ? (
+            <>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                />
+              </svg>
+              {deliveryLabel}
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162"
+                />
+              </svg>
+              {deliveryLabel}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (gift.item_type === "voice_message") {
+    const isVideo = gift.message_format === "video";
+    const formatLabel = isVideo ? "video" : "audio";
+    const heading = isVideo
+      ? "You received a Video Message slot"
+      : "You received a Voice Message slot";
+
+    return (
+      <div className="mt-6 rounded-xl border border-cream-dark bg-cream/40 p-6 text-left">
+        <h2 className="text-lg font-bold text-navy">{heading}</h2>
+        <p className="mt-3 text-sm text-navy/70 leading-relaxed">
+          {senderName} has given you a slot to record a personal {formatLabel}{" "}
+          message that will be delivered to someone on a date you choose.
+        </p>
+
+        <h3 className="mt-5 text-sm font-semibold text-navy/90">
+          Here is what happens next
+        </h3>
+        <div className="mt-3 flex flex-col gap-3">
+          <NumberedStep number={1}>
+            After claiming, go to your dashboard and find the message under{" "}
+            <span className="font-semibold">My Messages</span>.
+          </NumberedStep>
+          <NumberedStep number={2}>
+            Click <span className="font-semibold">Record Message</span> to
+            record your {formatLabel} (up to 5 minutes).
+          </NumberedStep>
+          <NumberedStep number={3}>
+            Set who it is for and when it should be delivered — a birthday,
+            anniversary, or any date.
+          </NumberedStep>
+          <NumberedStep number={4}>
+            We deliver it automatically on the scheduled date.
+          </NumberedStep>
+        </div>
+      </div>
+    );
+  }
+
+  if (gift.item_type === "gift_credit") {
+    const tierInfo = TIERS.find((t) => t.id === gift.tier);
+    const tierName = tierInfo?.name || gift.tier || "Gift";
+
+    return (
+      <div className="mt-6 rounded-xl border border-cream-dark bg-cream/40 p-6 text-left">
+        <h2 className="text-lg font-bold text-navy">
+          You received a {tierName} Gift Credit
+        </h2>
+        <p className="mt-3 text-sm text-navy/70 leading-relaxed">
+          {senderName} has given you a gift credit. This means we will select and
+          ship a real physical gift to someone you choose — every year,
+          automatically.
+        </p>
+
+        {tierInfo && (
+          <div className="mt-4 rounded-lg bg-gold/5 border border-gold/15 px-4 py-3">
+            <p className="text-xs font-semibold text-gold uppercase tracking-wide">
+              What is the {tierName} tier?
+            </p>
+            <p className="mt-1 text-sm text-navy/70">{tierInfo.description}</p>
+            {tierInfo.features && (
+              <ul className="mt-2 flex flex-col gap-1">
+                {tierInfo.features.map((f) => (
+                  <li
+                    key={f}
+                    className="text-xs text-navy/60 flex items-start gap-2"
+                  >
+                    <span className="text-gold mt-0.5">&#10003;</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <h3 className="mt-5 text-sm font-semibold text-navy/90">
+          Here is what happens next
+        </h3>
+        <div className="mt-3 flex flex-col gap-3">
+          <NumberedStep number={1}>
+            After claiming, go to your dashboard and find the gift under{" "}
+            <span className="font-semibold">My Gifts</span>.
+          </NumberedStep>
+          <NumberedStep number={2}>
+            Click <span className="font-semibold">Assign</span> to choose who
+            receives the gift, their address, and the occasion (birthday,
+            holiday, etc.).
+          </NumberedStep>
+          <NumberedStep number={3}>
+            We source, purchase, and ship a gift every year on that date —
+            automatically.
+          </NumberedStep>
+          <NumberedStep number={4}>
+            You never have to think about it again.
+          </NumberedStep>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function ClaimPage() {
@@ -247,13 +447,18 @@ export default function ClaimPage() {
               </p>
             </div>
           )}
+        </div>
 
-          {/* Claim button */}
+        {/* Instructions section — below the gift card, above the claim button */}
+        <GiftInstructions gift={gift} />
+
+        {/* Claim action */}
+        <div className="mt-6 text-center">
           <button
             type="button"
             onClick={handleClaim}
             disabled={claiming}
-            className="mt-8 w-full rounded-lg bg-forest px-8 py-3.5 text-sm font-bold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-forest px-8 py-3.5 text-sm font-bold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
           >
             {claiming
               ? "Claiming..."
@@ -265,8 +470,8 @@ export default function ClaimPage() {
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
           <p className="mt-4 text-xs text-warm-gray leading-relaxed">
-            After claiming, this item will be added to your dashboard and you
-            can use it right away.
+            After claiming, this will be added to your dashboard and you can
+            get started right away.
           </p>
         </div>
       </div>
