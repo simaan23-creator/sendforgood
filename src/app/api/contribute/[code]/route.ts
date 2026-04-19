@@ -50,22 +50,37 @@ export async function GET(
 }
 
 // POST: Submit a contribution (no auth required)
+// Accepts either JSON (text message) or FormData (recording upload)
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
-  const body = await request.json();
-  const { contributor_name, message, recording_url } = body;
 
-  if (!message?.trim() && !recording_url) {
+  let contributorName = "";
+  let message = "";
+  let recordingFile: File | null = null;
+
+  const contentType = request.headers.get("content-type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    contributorName = (formData.get("contributor_name") as string) || "";
+    message = (formData.get("message") as string) || "";
+    recordingFile = formData.get("recording") as File | null;
+  } else {
+    const body = await request.json();
+    contributorName = body.contributor_name || "";
+    message = body.message || "";
+  }
+
+  if (!message.trim() && !recordingFile) {
     return NextResponse.json({ error: "A message or recording is required" }, { status: 400 });
   }
 
   // Find the request
   const { data: item, error: findError } = await supabaseAdmin
     .from("message_uses")
-    .select("id, user_id, credit_id, status")
+    .select("id, user_id, credit_id, format, status")
     .eq("claim_code", code)
     .eq("use_type", "request")
     .single();
@@ -84,14 +99,38 @@ export async function POST(
     );
   }
 
+  // Upload recording to Supabase storage if present
+  let recordingUrl: string | null = null;
+  if (recordingFile) {
+    const ext = "webm";
+    const path = `contributions/${code}/${Date.now()}.${ext}`;
+    const fileContentType = item.format === "video" ? "video/webm" : "audio/webm";
+    const buffer = Buffer.from(await recordingFile.arrayBuffer());
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("voice-messages")
+      .upload(path, buffer, { upsert: true, contentType: fileContentType });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      return NextResponse.json({ error: "Failed to upload recording" }, { status: 500 });
+    }
+
+    const { data: urlData } = supabaseAdmin.storage
+      .from("voice-messages")
+      .getPublicUrl(path);
+
+    recordingUrl = urlData.publicUrl;
+  }
+
   // Store the contributed content in the message_uses record
   await supabaseAdmin
     .from("message_uses")
     .update({
       status: "completed",
-      content_text: message?.trim() || null,
-      content_url: recording_url || null,
-      recipient_name: contributor_name?.trim() || null,
+      content_text: message.trim() || null,
+      content_url: recordingUrl,
+      recipient_name: contributorName.trim() || null,
     })
     .eq("id", item.id);
 

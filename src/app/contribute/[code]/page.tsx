@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import VoiceRecorder from "@/components/VoiceRecorder";
 
 interface RequestInfo {
@@ -23,7 +22,6 @@ export default function ContributePage() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -47,35 +45,6 @@ export default function ContributePage() {
     load();
   }, [code]);
 
-  async function uploadRecording(): Promise<string | null> {
-    if (!recordingBlob) return null;
-    setUploading(true);
-    try {
-      const supabase = createClient();
-      const ext = "webm";
-      const path = `contributions/${code}/${Date.now()}.${ext}`;
-      const contentType = request?.format === "video" ? "video/webm" : "audio/webm";
-
-      const { error: uploadError } = await supabase.storage
-        .from("voice-messages")
-        .upload(path, recordingBlob, { upsert: true, contentType });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("voice-messages")
-        .getPublicUrl(path);
-
-      setUploading(false);
-      return urlData.publicUrl;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      setError(`Failed to upload recording: ${msg}`);
-      setUploading(false);
-      return null;
-    }
-  }
-
   async function handleSubmit() {
     if (isRecordingFormat && !recordingBlob) return;
     if (!isRecordingFormat && !message.trim()) return;
@@ -84,25 +53,30 @@ export default function ContributePage() {
     setError("");
 
     try {
-      let recordingUrl: string | undefined;
+      let res: Response;
+
       if (isRecordingFormat && recordingBlob) {
-        const url = await uploadRecording();
-        if (!url) {
-          setSubmitting(false);
-          return;
-        }
-        recordingUrl = url;
+        // Send recording as FormData so the server uploads with admin privileges
+        const formData = new FormData();
+        formData.append("contributor_name", name.trim());
+        formData.append("message", `Recording from ${name.trim() || "Anonymous"}`);
+        formData.append("recording", recordingBlob, `recording.webm`);
+
+        res = await fetch(`/api/contribute/${code}`, {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        res = await fetch(`/api/contribute/${code}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contributor_name: name.trim(),
+            message: message.trim(),
+          }),
+        });
       }
 
-      const res = await fetch(`/api/contribute/${code}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contributor_name: name.trim(),
-          message: isRecordingFormat ? `Recording from ${name.trim() || "Anonymous"}` : message.trim(),
-          recording_url: recordingUrl,
-        }),
-      });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to submit");
@@ -243,10 +217,10 @@ export default function ContributePage() {
 
           <button
             onClick={handleSubmit}
-            disabled={submitting || uploading || (isRecordingFormat ? !recordingBlob : !message.trim())}
+            disabled={submitting || (isRecordingFormat ? !recordingBlob : !message.trim())}
             className="mt-6 w-full rounded-lg bg-forest px-4 py-3.5 text-sm font-bold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {uploading ? "Uploading..." : submitting ? "Sending..." : isRecordingFormat ? "Send Recording" : "Send Message"}
+            {submitting ? "Uploading & Sending..." : isRecordingFormat ? "Send Recording" : "Send Message"}
           </button>
 
           <p className="mt-4 text-center text-xs text-warm-gray">
