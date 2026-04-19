@@ -207,6 +207,7 @@ export default function DashboardPage() {
     itemType: string;
     itemId: string;
     itemLabel: string;
+    itemFormat?: string;
   } | null>(null);
 
   const activeOrders = orders.filter((o) => o.status === "active");
@@ -1098,7 +1099,7 @@ export default function DashboardPage() {
                         <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
                       </button>
                       <button
-                        onClick={() => setRequestItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter" })}
+                        onClick={() => setRequestItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter", itemFormat: "letter" })}
                         className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
                         title="Request"
                       >
@@ -1236,7 +1237,7 @@ export default function DashboardPage() {
                         <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
                       </button>
                       <button
-                        onClick={() => setRequestItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message" })}
+                        onClick={() => setRequestItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message", itemFormat: vm.message_format })}
                         className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
                         title="Request"
                       >
@@ -1397,6 +1398,7 @@ export default function DashboardPage() {
           itemType={requestItem.itemType}
           itemId={requestItem.itemId}
           itemLabel={requestItem.itemLabel}
+          itemFormat={requestItem.itemFormat}
           onClose={() => setRequestItem(null)}
         />
       )}

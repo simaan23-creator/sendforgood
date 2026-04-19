@@ -56,10 +56,10 @@ export async function POST(
 ) {
   const { code } = await params;
   const body = await request.json();
-  const { contributor_name, message } = body;
+  const { contributor_name, message, recording_url } = body;
 
-  if (!message?.trim()) {
-    return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  if (!message?.trim() && !recording_url) {
+    return NextResponse.json({ error: "A message or recording is required" }, { status: 400 });
   }
 
   // Find the request
@@ -84,12 +84,13 @@ export async function POST(
     );
   }
 
-  // Store the contributed message in the message_uses record itself
+  // Store the contributed content in the message_uses record
   await supabaseAdmin
     .from("message_uses")
     .update({
       status: "completed",
-      content_text: message.trim(),
+      content_text: message?.trim() || null,
+      content_url: recording_url || null,
       recipient_name: contributor_name?.trim() || null,
     })
     .eq("id", item.id);

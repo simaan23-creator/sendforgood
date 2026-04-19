@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import VoiceRecorder from "@/components/VoiceRecorder";
 
 interface RequestInfo {
   id: string;
   prompt: string | null;
-  item_type: string | null;
+  format: string | null;
   requester_name: string;
 }
 
@@ -20,8 +22,12 @@ export default function ContributePage() {
   const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const isRecordingFormat = request?.format === "audio" || request?.format === "video";
 
   useEffect(() => {
     async function load() {
@@ -41,18 +47,60 @@ export default function ContributePage() {
     load();
   }, [code]);
 
+  async function uploadRecording(): Promise<string | null> {
+    if (!recordingBlob) return null;
+    setUploading(true);
+    try {
+      const supabase = createClient();
+      const ext = "webm";
+      const path = `contributions/${code}/${Date.now()}.${ext}`;
+      const contentType = request?.format === "video" ? "video/webm" : "audio/webm";
+
+      const { error: uploadError } = await supabase.storage
+        .from("voice-messages")
+        .upload(path, recordingBlob, { upsert: true, contentType });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("voice-messages")
+        .getPublicUrl(path);
+
+      setUploading(false);
+      return urlData.publicUrl;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setError(`Failed to upload recording: ${msg}`);
+      setUploading(false);
+      return null;
+    }
+  }
+
   async function handleSubmit() {
-    if (!message.trim()) return;
+    if (isRecordingFormat && !recordingBlob) return;
+    if (!isRecordingFormat && !message.trim()) return;
+
     setSubmitting(true);
     setError("");
 
     try {
+      let recordingUrl: string | undefined;
+      if (isRecordingFormat && recordingBlob) {
+        const url = await uploadRecording();
+        if (!url) {
+          setSubmitting(false);
+          return;
+        }
+        recordingUrl = url;
+      }
+
       const res = await fetch(`/api/contribute/${code}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contributor_name: name.trim(),
-          message: message.trim(),
+          message: isRecordingFormat ? `Recording from ${name.trim() || "Anonymous"}` : message.trim(),
+          recording_url: recordingUrl,
         }),
       });
       const data = await res.json();
@@ -105,9 +153,11 @@ export default function ContributePage() {
               <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-navy sm:text-3xl">Message Sent!</h1>
+          <h1 className="text-2xl font-bold text-navy sm:text-3xl">
+            {isRecordingFormat ? "Recording Sent!" : "Message Sent!"}
+          </h1>
           <p className="mt-3 text-warm-gray">
-            Your message has been delivered to <span className="font-semibold text-navy">{request.requester_name}</span>. Thank you for contributing!
+            Your {isRecordingFormat ? "recording" : "message"} has been delivered to <span className="font-semibold text-navy">{request.requester_name}</span>. Thank you for contributing!
           </p>
           <Link href="/" className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-semibold text-cream transition hover:bg-forest-light">
             Visit SendForGood
@@ -117,26 +167,30 @@ export default function ContributePage() {
     );
   }
 
+  const formatLabel = request.format === "video" ? "video message" : request.format === "audio" ? "voice message" : "message";
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-cream to-cream-dark px-4 py-16 sm:py-24">
       <div className="mx-auto max-w-lg">
         <div className="rounded-2xl border border-cream-dark bg-white p-8 shadow-lg">
           <div className="text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
-              <span className="text-4xl">📨</span>
+              <span className="text-4xl">{request.format === "video" ? "🎬" : request.format === "audio" ? "🎙️" : "📨"}</span>
             </div>
             <h1 className="text-2xl font-bold text-navy sm:text-3xl">
-              {request.requester_name} is asking for a message
+              {request.requester_name} is asking for a {formatLabel}
             </h1>
             <p className="mt-3 text-warm-gray">
-              Write your message below and we&apos;ll deliver it for you.
+              {isRecordingFormat
+                ? `Record your ${formatLabel} below and we'll deliver it for you.`
+                : "Write your message below and we'll deliver it for you."}
             </p>
           </div>
 
           {request.prompt && (
             <div className="mt-6 rounded-xl border-l-4 border-gold bg-cream/30 p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-warm-gray mb-1">
-                What they&apos;d like you to write about
+                What they&apos;d like you to {isRecordingFormat ? "record" : "write"} about
               </p>
               <p className="text-sm italic text-navy">
                 &ldquo;{request.prompt}&rdquo;
@@ -157,28 +211,42 @@ export default function ContributePage() {
                 className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-navy">
-                Your Message
-              </label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Write your message here..."
-                rows={6}
-                className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none"
-              />
-            </div>
+
+            {isRecordingFormat ? (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-navy">
+                  Your {request.format === "video" ? "Video" : "Voice"} Recording
+                </label>
+                <VoiceRecorder
+                  defaultFormat={request.format as "audio" | "video"}
+                  showFormatToggle={false}
+                  onRecordingComplete={(blob) => setRecordingBlob(blob)}
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-navy">
+                  Your Message
+                </label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write your message here..."
+                  rows={6}
+                  className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none"
+                />
+              </div>
+            )}
           </div>
 
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
           <button
             onClick={handleSubmit}
-            disabled={submitting || !message.trim()}
+            disabled={submitting || uploading || (isRecordingFormat ? !recordingBlob : !message.trim())}
             className="mt-6 w-full rounded-lg bg-forest px-4 py-3.5 text-sm font-bold text-cream shadow-lg transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? "Sending..." : "Send Message"}
+            {uploading ? "Uploading..." : submitting ? "Sending..." : isRecordingFormat ? "Send Recording" : "Send Message"}
           </button>
 
           <p className="mt-4 text-center text-xs text-warm-gray">

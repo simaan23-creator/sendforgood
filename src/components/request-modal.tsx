@@ -6,10 +6,11 @@ interface RequestModalProps {
   itemLabel: string;
   itemType: string;
   itemId: string;
+  itemFormat?: string;
   onClose: () => void;
 }
 
-export default function RequestModal({ itemLabel, itemType, itemId, onClose }: RequestModalProps) {
+export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, onClose }: RequestModalProps) {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [prompt, setPrompt] = useState("");
   const [sending, setSending] = useState(false);
@@ -26,6 +27,7 @@ export default function RequestModal({ itemLabel, itemType, itemId, onClose }: R
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           use_type: "request",
+          format: itemFormat || "letter",
           item_type: itemType,
           item_id: itemId,
           recipient_email: recipientEmail.trim() || undefined,
