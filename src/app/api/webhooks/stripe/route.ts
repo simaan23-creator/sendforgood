@@ -522,7 +522,32 @@ async function handleCartOrder(
   const processedLetters: Array<{ recipientName: string; letterType: string; deliveryType: string; quantity: number; totalPrice: number }> = [];
 
   for (const letter of letterItems) {
-    // Create recipient for letter
+    const pricePerUnit = letter.unitPrice;
+    
+    // Simple letter purchase (new flow) - no recipient at checkout
+    if (!letter.recipientName) {
+      // Create N blank letter slots for the user to configure later
+      for (let i = 0; i < (letter.quantity || 1); i++) {
+        await supabaseAdmin.from("letters").insert({
+          user_id: userId,
+          content: "",
+          status: "draft",
+          stripe_payment_intent_id: session.payment_intent as string || session.id,
+          amount_paid: pricePerUnit,
+          delivery_type: letter.deliveryType || "digital",
+        });
+      }
+      processedLetters.push({
+        recipientName: "Unassigned",
+        letterType: "draft",
+        deliveryType: letter.deliveryType || "digital",
+        quantity: letter.quantity || 1,
+        totalPrice: letter.totalPrice || pricePerUnit,
+      });
+      continue;
+    }
+
+    // Legacy flow with recipient info
     const { data: letterRecipient, error: lrError } = await supabaseAdmin
       .from("recipients")
       .insert({
@@ -539,8 +564,6 @@ async function handleCartOrder(
       .single();
 
     if (lrError) throw lrError;
-
-    const pricePerUnit = letter.unitPrice;
 
     if (letter.letterType === "annual") {
       for (let i = 0; i < letter.quantity; i++) {
