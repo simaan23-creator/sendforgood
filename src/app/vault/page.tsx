@@ -1,11 +1,18 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Memory Vault — SendForGood",
+  description:
+    "Create a Memory Vault. Share a link, collect voice and video messages from the people you love, and seal them until the perfect moment.",
+};
 
 const USE_CASES = [
   {
     emoji: "\uD83D\uDC8D",
     title: "Wedding Vault",
     description:
-      "Send links to every guest at your wedding. Seal all their messages for your 10th anniversary. Watch them together on the night you have been waiting for.",
+      "Share a link with every guest at your wedding. Seal all their messages for your 10th anniversary. Watch them together on the night you have been waiting for.",
   },
   {
     emoji: "\uD83C\uDF82",
@@ -32,33 +39,38 @@ export default function VaultPage() {
     <main className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-cream via-cream to-cream-dark px-6 py-24 sm:py-32">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <svg
-            className="absolute -top-10 right-0 h-72 w-72 text-gold/10 sm:h-96 sm:w-96"
-            viewBox="0 0 200 200"
-            fill="none"
-          >
-            <path
-              d="M120 20c30 15 60 50 60 90s-20 60-50 70-70-10-80-50 10-80 40-100 30-10 30-10z"
-              fill="currentColor"
-            />
-          </svg>
-        </div>
-
         <div className="relative mx-auto max-w-4xl text-center">
-          <span className="text-6xl sm:text-7xl">&#x1F512;</span>
+          <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+            Memory Vault
+          </p>
           <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl md:text-6xl">
-            Your Memory Vault
+            Collect memories. Seal them.{" "}
+            <span className="text-gold">Open them together.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
-            Collect messages from the people you love. Seal them. Open them on
-            the day that matters most.
+            Share a link with the people you love. They record a message from
+            their phone &mdash; no app, no account needed. Seal your vault
+            until the date that matters. Watch them all together.
           </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/messages/buy"
+              className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            >
+              Create Your Vault
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream"
+            >
+              How It Works
+            </a>
+          </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="bg-white px-6 py-20 sm:py-28">
+      <section id="how-it-works" className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
             How it works
@@ -69,9 +81,9 @@ export default function VaultPage() {
               {
                 step: "1",
                 emoji: "\uD83D\uDD17",
-                title: "Send a link",
+                title: "Share a link",
                 description:
-                  "Send a request link to anyone \u2014 family, friends, wedding guests.",
+                  "Send a recording link to anyone \u2014 family, friends, wedding guests.",
               },
               {
                 step: "2",
@@ -144,30 +156,30 @@ export default function VaultPage() {
         </div>
       </section>
 
-      {/* How credits work */}
+      {/* Pricing */}
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            How recording slots work
+            Simple pricing
           </h2>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-2">
             <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
-              <span className="text-5xl">\uD83C\uDFA4</span>
+              <span className="text-5xl" role="img" aria-label="Audio">🎤</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Audio Recording &mdash; $5 each
+                Audio Recording Slot &mdash; $5
               </h3>
               <p className="mt-3 text-warm-gray">
-                Each credit allows one person to record a voice message for you.
+                Each slot allows one person to record a voice message for your vault.
               </p>
             </div>
             <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
-              <span className="text-5xl">\uD83C\uDFA5</span>
+              <span className="text-5xl" role="img" aria-label="Video">🎬</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Video Credits &mdash; $10 each
+                Video Recording Slot &mdash; $10
               </h3>
               <p className="mt-3 text-warm-gray">
-                Each credit allows one person to record a video message for you.
+                Each slot allows one person to record a video message for your vault.
               </p>
             </div>
           </div>
@@ -176,21 +188,21 @@ export default function VaultPage() {
             <ul className="space-y-3 text-warm-gray">
               <li className="flex items-start gap-3">
                 <span className="mt-0.5 text-forest font-bold">&#10003;</span>
-                Buy as many as you want &mdash; no minimum, no maximum
+                Buy as many as you need &mdash; no minimum, no maximum
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-0.5 text-forest font-bold">&#10003;</span>
-                A credit is only used when someone records a message
+                A slot is only used when someone records a message
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-0.5 text-forest font-bold">&#10003;</span>
-                Unused credits never expire
+                Unused slots never expire
               </li>
             </ul>
             <div className="mt-6 rounded-lg bg-white/80 p-4">
               <p className="text-sm text-navy/80 italic">
-                Example: Buy 20 video credits ($200) for your wedding. If only
-                15 guests record, you keep 5 credits for next time.
+                Example: Buy 20 video recording slots ($200) for your wedding.
+                If only 15 guests record, you keep 5 slots for next time.
               </p>
             </div>
           </div>
@@ -204,15 +216,15 @@ export default function VaultPage() {
             Ready to start collecting memories?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-cream/70">
-            Buy credits, create a vault, and share the link with everyone you
-            love.
+            Buy recording slots, create a vault, and share the link with
+            everyone you love.
           </p>
           <div className="mt-10">
             <Link
               href="/messages/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
-              Buy Credits &amp; Create Your Vault
+              Create Your Vault
             </Link>
           </div>
         </div>

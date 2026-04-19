@@ -17,7 +17,7 @@ const FAQ = [
   {
     question: "How do messages work?",
     answer:
-      "Buy digital digital letters ($1), physical letters ($10), letter + photo ($15), audio messages ($5), or video messages ($10). Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule. Your gifts never expire.",
+      "Buy digital letters ($1), physical letters ($10), letter + photo ($15), audio messages ($5), or video messages ($10). Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule, forever.",
   },
   {
     question: "Can I assign the same gift to multiple years?",
@@ -27,7 +27,7 @@ const FAQ = [
   {
     question: "What is the Memory Vault?",
     answer:
-      "The Memory Vault lets you collect audio and video messages from others. Share a link, share a link, and people record for you. You can seal the vault until a future date \u2014 like a 10th anniversary or a birthday milestone. Perfect for group gifts and time capsules.",
+      "The Memory Vault lets you collect audio and video messages from others. Share a link and people record for you. You can seal the vault until a future date \u2014 like a 10th anniversary or a birthday milestone. Perfect for group gifts and time capsules.",
   },
   {
     question: "Do you ship internationally?",
@@ -75,7 +75,7 @@ export default function PricingPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-warm-gray leading-relaxed">
             Choose a gift tier. Assign recipients from your dashboard
-            whenever you are ready. Every gift includes gift selection, a
+            whenever you are ready. Every gift includes selection, a
             personal message card, and delivery.
           </p>
         </div>
@@ -105,10 +105,7 @@ export default function PricingPage() {
                   <span className="text-4xl font-extrabold tracking-tight">
                     ${tier.price}
                   </span>
-                  <span className="text-sm text-warm-gray">/yr</span>
-                </p>
-                <p className="mt-1 text-center text-xs text-warm-gray-light">
-                  Just {(tier.price / 12).toFixed(2)} per month
+                  <span className="text-sm text-warm-gray"> per gift</span>
                 </p>
 
                 <p className="mt-3 text-center text-sm leading-relaxed text-warm-gray">
@@ -147,7 +144,7 @@ export default function PricingPage() {
                       : "bg-navy text-cream hover:bg-navy-light focus-visible:outline-navy shadow-sm"
                   }`}
                 >
-                  Buy Gift Credits
+                  Send a Gift &mdash; ${tier.price}
                 </Link>
               </article>
             );
@@ -166,13 +163,13 @@ export default function PricingPage() {
           {/* Letters */}
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
-              { label: "Digital Letter", price: "$1", desc: "Delivered by email. Fully automated." },
-              { label: "Physical Letter", price: "$10", desc: "Printed and mailed to the recipient." },
-              { label: "Letter + Photo", price: "$15", desc: "Printed letter + wallet-sized photo mailed together." },
+              { label: "Digital Letter", price: "$1", unit: "per letter", desc: "Delivered by email. Fully automated." },
+              { label: "Physical Letter", price: "$10", unit: "per letter", desc: "Printed and mailed to the recipient." },
+              { label: "Letter + Photo", price: "$15", unit: "per letter", desc: "Printed letter + wallet-sized photo mailed together." },
             ].map((item) => (
               <div key={item.label} className="rounded-xl border border-cream-dark bg-white p-5 text-center shadow-sm">
                 <p className="text-sm font-semibold uppercase tracking-wide text-warm-gray">{item.label}</p>
-                <p className="mt-2 text-3xl font-extrabold text-navy">{item.price}<span className="text-base font-normal text-warm-gray">/letter</span></p>
+                <p className="mt-2 text-3xl font-extrabold text-navy">{item.price}<span className="text-base font-normal text-warm-gray"> {item.unit}</span></p>
                 <p className="mt-2 text-sm leading-relaxed text-warm-gray">{item.desc}</p>
               </div>
             ))}
@@ -193,13 +190,13 @@ export default function PricingPage() {
               </h3>
               <p className="mt-2">
                 <span className="text-4xl font-extrabold tracking-tight text-navy">$5</span>
-                <span className="text-sm text-warm-gray">/yr</span>
+                <span className="text-sm text-warm-gray"> per message</span>
               </p>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">
                 Your voice, delivered by email. Up to 5 minutes per message.
               </p>
               <Link
-                href="/voice/record"
+                href="/messages/buy"
                 className="mt-6 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light"
               >
                 Record Audio
@@ -208,7 +205,7 @@ export default function PricingPage() {
 
             <div className="relative rounded-2xl border-gold bg-cream p-8 text-center shadow-lg ring-2 ring-gold/30 transition hover:-translate-y-1 hover:shadow-xl">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
-                NEW
+                Most Personal
               </span>
               <span className="text-5xl" role="img" aria-label="Video Message">
                 🎬
@@ -218,13 +215,13 @@ export default function PricingPage() {
               </h3>
               <p className="mt-2">
                 <span className="text-4xl font-extrabold tracking-tight text-navy">$10</span>
-                <span className="text-sm text-warm-gray">/yr</span>
+                <span className="text-sm text-warm-gray"> per message</span>
               </p>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">
                 Your face and voice together. The most powerful legacy you can leave.
               </p>
               <Link
-                href="/voice/record"
+                href="/messages/buy"
                 className="mt-6 inline-flex items-center justify-center rounded-lg bg-gold px-8 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light"
               >
                 Record Video

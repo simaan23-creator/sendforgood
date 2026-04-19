@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     emoji: "\u{1F6D2}",
-    title: "Buy video recordings",
+    title: "Buy recording slots",
     description:
-      "$10 per recording. Buy as many as you have guests. Unused recordings never expire.",
+      "$10 per video slot. Buy as many as you have guests. Unused slots never expire.",
   },
   {
     emoji: "\u{1F517}",
@@ -74,7 +74,7 @@ const FAQS = [
   },
   {
     q: "What if not all guests record?",
-    a: "Unused recordings stay in your account forever. Use them for your next milestone.",
+    a: "Unused slots stay in your account forever. Use them for your next milestone.",
   },
   {
     q: "Can we unseal the vault early?",
@@ -208,13 +208,13 @@ export default function WeddingPage() {
           <div className="mx-auto mt-10 max-w-md rounded-2xl bg-white p-8 shadow-lg">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
-                <span className="font-semibold text-navy">Video messages</span>
+                <span className="font-semibold text-navy">Video recording slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
                   $10<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
-                <span className="font-semibold text-navy">Audio messages</span>
+                <span className="font-semibold text-navy">Audio recording slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
                   $5<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
@@ -230,7 +230,7 @@ export default function WeddingPage() {
                   <svg className="h-4 w-4 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
                   </svg>
-                  Unused recordings never expire
+                  Unused slots never expire
                 </li>
               </ul>
             </div>

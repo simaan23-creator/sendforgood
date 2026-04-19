@@ -4,18 +4,18 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Start Sending - SendForGood",
   description:
-    "Choose how you want to show love - buy gifts, write heartfelt letters, or both. Assign recipients from your dashboard whenever you are ready.",
+    "Choose how you want to show love — send gifts, write heartfelt letters, record voice or video messages. Assign recipients from your dashboard whenever you are ready.",
 };
 
 const CARDS = [
   {
     emoji: "🎁",
     title: "Send Gifts",
-    subtitle: "From $20/gift",
+    subtitle: "From $20 per gift",
     description:
       "Buy gifts by tier. Assign recipients, dates, and preferences from your dashboard whenever you are ready. Never expire.",
-    features: ["5 tiers from $20-$200", "Assign recipients later", "Never expire"],
-    cta: "Buy Gift Credits",
+    features: ["5 tiers from $20\u2013$200", "Assign recipients anytime", "Never expire"],
+    cta: "Send a Gift",
     href: "/gifts/buy",
     borderColor: "border-navy",
     ctaBg: "bg-navy hover:bg-navy-light",
@@ -24,15 +24,15 @@ const CARDS = [
   {
     emoji: "\u2709\uFE0F",
     title: "Messages",
-    subtitle: "From $1/year",
+    subtitle: "From $1 per letter",
     description:
       "Send written letters, voice messages, or video messages. Digital or physical. Your words, delivered forever.",
     features: [
-      "Letters from $1/yr",
-      "Audio $5/yr, Video $10/yr",
-      "Credits never expire",
+      "Letters from $1",
+      "Audio $5, Video $10",
+      "Never expire",
     ],
-    cta: "Buy Message Credits",
+    cta: "Send a Message",
     href: "/messages/buy",
     borderColor: "border-gold",
     ctaBg: "bg-gold hover:bg-gold-dark",
@@ -50,7 +50,7 @@ export default function StartPage() {
             What would you like to send?
           </h1>
           <p className="mt-3 text-lg text-navy/60">
-            Choose one or mix and match - you can always add more later.
+            Choose one or mix and match &mdash; you can always add more later.
           </p>
         </div>
 

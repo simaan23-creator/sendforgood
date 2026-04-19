@@ -68,15 +68,15 @@ const products = [
   {
     emoji: "\u{1F381}",
     name: "Gifts",
-    description: "Send gifts. Assign recipients. We deliver.",
-    price: "From $20/gift",
+    description: "Send gifts. Assign recipients. We deliver every year.",
+    price: "From $20 per gift",
     href: "/gifts/buy",
   },
   {
     emoji: "\u2709\uFE0F",
     name: "Messages",
     description: "Written letters, voice, or video \u2014 delivered by email or mail.",
-    price: "From $1/year",
+    price: "From $1 per letter",
     href: "/messages/buy",
   },
   {
@@ -84,7 +84,7 @@ const products = [
     name: "Memory Vault",
     description:
       "Collect messages from others. Sealed until the right moment.",
-    price: "From $5/recording",
+    price: "From $5 per recording",
     href: "/vault",
   },
 ];
@@ -274,7 +274,7 @@ export default function AboutPage() {
       <section className="bg-cream px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            One platform. Five ways to show love.
+            One platform. Three ways to show love.
           </h2>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
