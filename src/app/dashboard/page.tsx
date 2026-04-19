@@ -190,6 +190,8 @@ export default function DashboardPage() {
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<{ type: "letter" | "voice"; id: string; value: string } | null>(null);
+  const [savingTitle, setSavingTitle] = useState(false);
   const [giftingItem, setGiftingItem] = useState<{
     itemType: "letter" | "voice_message" | "gift_credit";
     itemId: string;
@@ -365,6 +367,23 @@ export default function DashboardPage() {
       // silently fail
     }
     setPhoneSaving(false);
+  }
+
+  async function handleSaveTitle() {
+    if (!editingTitle || savingTitle) return;
+    const { type, id, value } = editingTitle;
+    const trimmed = value.trim();
+    if (!trimmed) { setEditingTitle(null); return; }
+    setSavingTitle(true);
+    const table = type === "letter" ? "letters" : "voice_messages";
+    await supabase.from(table).update({ title: trimmed }).eq("id", id);
+    if (type === "letter") {
+      setLetters((prev) => prev.map((l) => l.id === id ? { ...l, title: trimmed } : l));
+    } else {
+      setVoiceMessages((prev) => prev.map((vm) => vm.id === id ? { ...vm, title: trimmed } : vm));
+    }
+    setEditingTitle(null);
+    setSavingTitle(false);
   }
 
   async function handleCancelOrder(orderId: string) {
@@ -619,7 +638,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-warm-gray-light">
-                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned
+                      ${(gc.amount_paid / 100).toFixed(0)} paid &middot; {gc.quantity_used} assigned &middot;{" "}
+                      {new Date(gc.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
 
                     {/* Assigned recipients */}
@@ -956,9 +976,25 @@ export default function DashboardPage() {
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-navy">
-                          {letter.title || "Untitled Letter"}
-                        </h3>
+                        {editingTitle?.type === "letter" && editingTitle.id === letter.id ? (
+                          <input
+                            autoFocus
+                            value={editingTitle.value}
+                            onChange={(e) => setEditingTitle({ ...editingTitle, value: e.target.value })}
+                            onBlur={handleSaveTitle}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleSaveTitle(); if (e.key === "Escape") setEditingTitle(null); }}
+                            disabled={savingTitle}
+                            className="w-full rounded-lg border border-gold bg-cream/50 px-3 py-1.5 text-lg font-semibold text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                          />
+                        ) : (
+                          <h3
+                            className="text-lg font-semibold text-navy cursor-pointer rounded px-1 -mx-1 transition-colors hover:bg-cream-dark"
+                            onClick={() => setEditingTitle({ type: "letter", id: letter.id, value: letter.title || "" })}
+                            title="Click to rename"
+                          >
+                            {letter.title || "Untitled Letter"}
+                          </h3>
+                        )}
                         <p className="mt-1 text-sm text-warm-gray">
                           To: {letter.recipient_name || letter.recipients?.name || "Not set"}{" "}
                           {letter.recipients?.relationship && (
@@ -966,6 +1002,9 @@ export default function DashboardPage() {
                               &middot; {letter.recipients.relationship}
                             </span>
                           )}
+                          <span className="text-warm-gray-light">
+                            {" "}&middot; {new Date(letter.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -1114,11 +1153,27 @@ export default function DashboardPage() {
                         {statusInfo.label}
                       </span>
                     </div>
-                    <p className="mt-3 font-semibold text-navy">
-                      {vm.title || "Untitled Message"}
-                    </p>
+                    {editingTitle?.type === "voice" && editingTitle.id === vm.id ? (
+                      <input
+                        autoFocus
+                        value={editingTitle.value}
+                        onChange={(e) => setEditingTitle({ ...editingTitle, value: e.target.value })}
+                        onBlur={handleSaveTitle}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleSaveTitle(); if (e.key === "Escape") setEditingTitle(null); }}
+                        disabled={savingTitle}
+                        className="mt-3 w-full rounded-lg border border-gold bg-cream/50 px-3 py-1.5 font-semibold text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                      />
+                    ) : (
+                      <p
+                        className="mt-3 font-semibold text-navy cursor-pointer rounded px-1 -mx-1 transition-colors hover:bg-cream-dark"
+                        onClick={() => setEditingTitle({ type: "voice", id: vm.id, value: vm.title || "" })}
+                        title="Click to rename"
+                      >
+                        {vm.title || "Untitled Message"}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-warm-gray-light">
-                      {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      Purchased {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
                     <div className="mt-3 flex gap-2">
                       <Link
