@@ -94,6 +94,7 @@ interface VoiceMessage {
 
 interface ReceivedMessage {
   id: string;
+  credit_id: string | null;
   format: string;
   content_url: string | null;
   content_text: string | null;
@@ -104,6 +105,17 @@ interface ReceivedMessage {
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+interface GiftedItem {
+  id: string;
+  item_type: string;
+  item_id: string;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  status: string;
+  claimed_by: string | null;
+  claimed_at: string | null;
 }
 
 interface MemoryRequest {
@@ -199,7 +211,8 @@ export default function DashboardPage() {
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
-  const [receivedMessages, setReceivedMessages] = useState<ReceivedMessage[]>([]);
+  const [requestsByItemId, setRequestsByItemId] = useState<Record<string, ReceivedMessage[]>>({});
+  const [giftedItemsMap, setGiftedItemsMap] = useState<Record<string, GiftedItem>>({});
   const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
@@ -347,16 +360,40 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch received messages (contributed requests)
+    // Fetch request statuses (linked to voice messages/letters via credit_id)
     try {
-      const { data: rmData } = await supabase
+      const { data: reqData } = await supabase
         .from("message_uses")
-        .select("id, format, content_url, content_text, recipient_name, sealed_until, milestone_label, claim_code, status, created_at, updated_at")
+        .select("id, credit_id, format, content_url, content_text, recipient_name, sealed_until, milestone_label, claim_code, status, created_at, updated_at")
         .eq("user_id", user.id)
-        .eq("use_type", "request")
-        .in("status", ["completed", "pending_request"])
-        .order("created_at", { ascending: false });
-      if (rmData) setReceivedMessages(rmData);
+        .eq("use_type", "request");
+      if (reqData) {
+        const map: Record<string, ReceivedMessage[]> = {};
+        for (const r of reqData) {
+          if (r.credit_id) {
+            if (!map[r.credit_id]) map[r.credit_id] = [];
+            map[r.credit_id].push(r as ReceivedMessage);
+          }
+        }
+        setRequestsByItemId(map);
+      }
+    } catch {
+      // silently fail
+    }
+
+    // Fetch gifted items to show gifted state on cards
+    try {
+      const { data: giftedData } = await supabase
+        .from("gifted_items")
+        .select("id, item_type, item_id, recipient_name, recipient_email, status, claimed_by, claimed_at")
+        .eq("sender_id", user.id);
+      if (giftedData) {
+        const map: Record<string, GiftedItem> = {};
+        for (const g of giftedData) {
+          map[g.item_id] = g as GiftedItem;
+        }
+        setGiftedItemsMap(map);
+      }
     } catch {
       // silently fail
     }
@@ -991,6 +1028,12 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {letters.map((letter) => {
+                const giftInfo = giftedItemsMap[letter.id];
+                const isGifted = !!giftInfo;
+                const requests = requestsByItemId[letter.id] || [];
+                const latestRequest = requests[0];
+                const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
                 const statusMap: Record<string, { label: string; classes: string }> = {
                   draft: { label: "Not written yet", classes: "bg-yellow-100 text-yellow-800" },
                   scheduled: { label: "Scheduled", classes: "bg-green-100 text-green-800" },
@@ -999,7 +1042,18 @@ export default function DashboardPage() {
                   printed: { label: "Being prepared", classes: "bg-orange-100 text-orange-800" },
                   delivered: { label: "Delivered", classes: "bg-green-100 text-green-800" },
                 };
-                const statusInfo = statusMap[letter.status] ?? { label: letter.status, classes: "bg-gray-100 text-gray-700" };
+
+                let statusInfo: { label: string; classes: string };
+                if (isGifted) {
+                  if (giftInfo.status === "claimed") {
+                    statusInfo = { label: `Gifted to ${giftInfo.recipient_name || giftInfo.recipient_email || "someone"}`, classes: "bg-forest/10 text-forest" };
+                  } else {
+                    statusInfo = { label: "Gifted (pending claim)", classes: "bg-gold/20 text-gold-dark" };
+                  }
+                } else {
+                  statusInfo = statusMap[letter.status] ?? { label: letter.status, classes: "bg-gray-100 text-gray-700" };
+                }
+
                 const hasContent = !!letter.content;
 
                 return (
@@ -1052,90 +1106,157 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
-                      <button
-                        onClick={() =>
-                          setGiftingItem({
-                            itemType: "letter",
-                            itemId: letter.id,
-                            itemLabel: `Letter: ${letter.title || "Untitled"} (to ${letter.recipients?.name || "recipient"})`,
-                          })
-                        }
-                        className="rounded-lg border-2 border-gold px-3 py-2 text-sm font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
-                      >
-                        Gift
-                      </button>
-                      {/* Release button for milestone letters that are written */}
-                      {letter.letter_type === "milestone" && letter.status === "pending_release" && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!confirm("Are you sure you want to release this letter? It will be sent to the recipient.")) return;
-                            await fetch(`/api/letters/release`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ letterId: letter.id }),
-                            });
-                            window.location.reload();
-                          }}
-                          className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
-                        >
-                          Release Now
-                        </button>
-                      )}
-                      {hasContent ? (
-                        <Link
-                          href={`/letters/edit/${letter.id}`}
-                          className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/letters/edit/${letter.id}`}
-                          className="rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-light"
-                        >
-                          Write Letter
-                        </Link>
-                      )}
-                    </div>
+                    {/* Inline request status */}
+                    {latestRequest && (() => {
+                      const isPending = latestRequest.status === "pending_request";
+                      const isSealed = latestRequest.sealed_until && new Date(latestRequest.sealed_until + "T00:00:00") > new Date();
+                      const isCompleted = latestRequest.status === "completed";
 
-                    {/* Quick action buttons */}
-                    <div className="mt-2 flex items-center gap-1.5 justify-end">
-                      <Link
-                        href={`/letters/edit/${letter.id}`}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Write"
-                      >
-                        <span>✏️</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Write</span>
-                      </Link>
-                      <button
-                        onClick={() => setVaultItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter" })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Vault"
-                      >
-                        <span>🔐</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Vault</span>
-                      </button>
-                      <button
-                        onClick={() => setGiftingItem({ itemType: "letter", itemId: letter.id, itemLabel: `Letter: ${letter.title || "Untitled"}` })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Gift"
-                      >
-                        <span>🎁</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
-                      </button>
-                      <button
-                        onClick={() => setRequestItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter", itemFormat: "letter" })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Request"
-                      >
-                        <span>📨</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Request</span>
-                      </button>
-                    </div>
+                      if (isPending) {
+                        return (
+                          <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                            <p className="text-xs font-medium text-yellow-800">Request sent — waiting for response</p>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(`${baseUrl}/contribute/${latestRequest.claim_code}`)}
+                              className="mt-2 w-full rounded-lg border border-yellow-300 px-3 py-1.5 text-xs font-semibold text-yellow-800 transition-colors hover:bg-yellow-100"
+                            >
+                              Copy Request Link
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      if (isCompleted && isSealed && latestRequest.sealed_until) {
+                        return (
+                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                            <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <div>
+                              <p className="text-xs font-medium text-navy">
+                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"} — {latestRequest.milestone_label ? `Sealed until ${latestRequest.milestone_label}` : "Sealed until"}
+                              </p>
+                              <p className="text-xs text-warm-gray">
+                                {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (isCompleted && !isSealed) {
+                        return (
+                          <div className="mt-3">
+                            <p className="text-xs font-medium text-forest mb-2">
+                              {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                            </p>
+                            {latestRequest.content_url && (
+                              latestRequest.format === "video" ? (
+                                <video controls className="w-full rounded-lg" src={latestRequest.content_url} />
+                              ) : latestRequest.format === "audio" ? (
+                                <audio controls className="w-full" src={latestRequest.content_url} />
+                              ) : null
+                            )}
+                            {latestRequest.content_text && !latestRequest.content_url && (
+                              <div className="rounded-lg bg-cream/50 border border-cream-dark p-3">
+                                <p className="text-sm text-navy italic">&ldquo;{latestRequest.content_text}&rdquo;</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
+                    {/* Actions — only show if not gifted */}
+                    {!isGifted && (
+                      <>
+                        <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
+                          <button
+                            onClick={() =>
+                              setGiftingItem({
+                                itemType: "letter",
+                                itemId: letter.id,
+                                itemLabel: `Letter: ${letter.title || "Untitled"} (to ${letter.recipients?.name || "recipient"})`,
+                              })
+                            }
+                            className="rounded-lg border-2 border-gold px-3 py-2 text-sm font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
+                          >
+                            Gift
+                          </button>
+                          {/* Release button for milestone letters that are written */}
+                          {letter.letter_type === "milestone" && letter.status === "pending_release" && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm("Are you sure you want to release this letter? It will be sent to the recipient.")) return;
+                                await fetch(`/api/letters/release`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ letterId: letter.id }),
+                                });
+                                window.location.reload();
+                              }}
+                              className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
+                            >
+                              Release Now
+                            </button>
+                          )}
+                          {hasContent ? (
+                            <Link
+                              href={`/letters/edit/${letter.id}`}
+                              className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                            >
+                              Edit
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/letters/edit/${letter.id}`}
+                              className="rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-light"
+                            >
+                              Write Letter
+                            </Link>
+                          )}
+                        </div>
+
+                        {/* Quick action buttons */}
+                        <div className="mt-2 flex items-center gap-1.5 justify-end">
+                          <Link
+                            href={`/letters/edit/${letter.id}`}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Write"
+                          >
+                            <span>✏️</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Write</span>
+                          </Link>
+                          <button
+                            onClick={() => setVaultItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter" })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Vault"
+                          >
+                            <span>🔐</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Vault</span>
+                          </button>
+                          <button
+                            onClick={() => setGiftingItem({ itemType: "letter", itemId: letter.id, itemLabel: `Letter: ${letter.title || "Untitled"}` })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Gift"
+                          >
+                            <span>🎁</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
+                          </button>
+                          <button
+                            onClick={() => setRequestItem({ itemType: "letter", itemId: letter.id, itemLabel: letter.title || "Untitled Letter", itemFormat: "letter" })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Request"
+                          >
+                            <span>📨</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Request</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -1167,12 +1288,29 @@ export default function DashboardPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {voiceMessages.map((vm) => {
+                const giftInfo = giftedItemsMap[vm.id];
+                const isGifted = !!giftInfo;
+                const requests = requestsByItemId[vm.id] || [];
+                const latestRequest = requests[0];
+                const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
                 const statusMap: Record<string, { label: string; classes: string }> = {
                   draft: { label: "Not recorded", classes: "bg-yellow-100 text-yellow-800" },
                   recorded: { label: "Recorded", classes: "bg-green-100 text-green-800" },
                   delivered: { label: "Delivered", classes: "bg-forest/10 text-forest" },
                 };
-                const statusInfo = statusMap[vm.status] ?? { label: vm.status, classes: "bg-gray-100 text-gray-700" };
+
+                // Override status for gifted items
+                let statusInfo: { label: string; classes: string };
+                if (isGifted) {
+                  if (giftInfo.status === "claimed") {
+                    statusInfo = { label: `Gifted to ${giftInfo.recipient_name || giftInfo.recipient_email || "someone"}`, classes: "bg-forest/10 text-forest" };
+                  } else {
+                    statusInfo = { label: "Gifted (pending claim)", classes: "bg-gold/20 text-gold-dark" };
+                  }
+                } else {
+                  statusInfo = statusMap[vm.status] ?? { label: vm.status, classes: "bg-gray-100 text-gray-700" };
+                }
 
                 return (
                   <div
@@ -1218,175 +1356,137 @@ export default function DashboardPage() {
                         </span>
                       )}
                     </p>
-                    <div className="mt-3 flex gap-2">
-                      <Link
-                        href={`/voice/edit/${vm.id}`}
-                        className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                      >
-                        Record Message
-                      </Link>
-                      <button
-                        onClick={() =>
-                          setGiftingItem({
-                            itemType: "voice_message",
-                            itemId: vm.id,
-                            itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"} Message: ${vm.title || "Untitled"}`,
-                          })
-                        }
-                        className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
-                      >
-                        Gift
-                      </button>
-                    </div>
 
-                    {/* Quick action buttons */}
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <Link
-                        href={`/voice/edit/${vm.id}`}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Record"
-                      >
-                        <span>✏️</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Record</span>
-                      </Link>
-                      <button
-                        onClick={() => setVaultItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message" })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Vault"
-                      >
-                        <span>🔐</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Vault</span>
-                      </button>
-                      <button
-                        onClick={() => setGiftingItem({ itemType: "voice_message", itemId: vm.id, itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"}: ${vm.title || "Untitled"}` })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Gift"
-                      >
-                        <span>🎁</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
-                      </button>
-                      <button
-                        onClick={() => setRequestItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message", itemFormat: vm.message_format })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Request"
-                      >
-                        <span>📨</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Request</span>
-                      </button>
-                    </div>
+                    {/* Inline request status */}
+                    {latestRequest && (() => {
+                      const isPending = latestRequest.status === "pending_request";
+                      const isSealed = latestRequest.sealed_until && new Date(latestRequest.sealed_until + "T00:00:00") > new Date();
+                      const isCompleted = latestRequest.status === "completed";
+
+                      if (isPending) {
+                        return (
+                          <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                            <p className="text-xs font-medium text-yellow-800">Request sent — waiting for response</p>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(`${baseUrl}/contribute/${latestRequest.claim_code}`)}
+                              className="mt-2 w-full rounded-lg border border-yellow-300 px-3 py-1.5 text-xs font-semibold text-yellow-800 transition-colors hover:bg-yellow-100"
+                            >
+                              Copy Request Link
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      if (isCompleted && isSealed && latestRequest.sealed_until) {
+                        return (
+                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                            <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <div>
+                              <p className="text-xs font-medium text-navy">
+                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"} — {latestRequest.milestone_label ? `Sealed until ${latestRequest.milestone_label}` : "Sealed until"}
+                              </p>
+                              <p className="text-xs text-warm-gray">
+                                {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (isCompleted && !isSealed) {
+                        return (
+                          <div className="mt-3">
+                            <p className="text-xs font-medium text-forest mb-2">
+                              {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                            </p>
+                            {latestRequest.content_url && (
+                              latestRequest.format === "video" ? (
+                                <video controls className="w-full rounded-lg" src={latestRequest.content_url} />
+                              ) : (
+                                <audio controls className="w-full" src={latestRequest.content_url} />
+                              )
+                            )}
+                            {latestRequest.content_text && !latestRequest.content_url && (
+                              <div className="rounded-lg bg-cream/50 border border-cream-dark p-3">
+                                <p className="text-sm text-navy italic">&ldquo;{latestRequest.content_text}&rdquo;</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
+                    {/* Action buttons — only show if not gifted */}
+                    {!isGifted && (
+                      <>
+                        <div className="mt-3 flex gap-2">
+                          <Link
+                            href={`/voice/edit/${vm.id}`}
+                            className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                          >
+                            Record Message
+                          </Link>
+                          <button
+                            onClick={() =>
+                              setGiftingItem({
+                                itemType: "voice_message",
+                                itemId: vm.id,
+                                itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"} Message: ${vm.title || "Untitled"}`,
+                              })
+                            }
+                            className="rounded-lg border-2 border-gold px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold hover:text-white"
+                          >
+                            Gift
+                          </button>
+                        </div>
+
+                        {/* Quick action buttons */}
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <Link
+                            href={`/voice/edit/${vm.id}`}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Record"
+                          >
+                            <span>✏️</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Record</span>
+                          </Link>
+                          <button
+                            onClick={() => setVaultItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message" })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Vault"
+                          >
+                            <span>🔐</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Vault</span>
+                          </button>
+                          <button
+                            onClick={() => setGiftingItem({ itemType: "voice_message", itemId: vm.id, itemLabel: `${vm.message_format === "video" ? "Video" : "Audio"}: ${vm.title || "Untitled"}` })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Gift"
+                          >
+                            <span>🎁</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
+                          </button>
+                          <button
+                            onClick={() => setRequestItem({ itemType: "voice_message", itemId: vm.id, itemLabel: vm.title || "Voice Message", itemFormat: vm.message_format })}
+                            className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
+                            title="Request"
+                          >
+                            <span>📨</span>
+                            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Request</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}
             </div>
           )}
         </div>
-
-        {/* Received Messages */}
-        {receivedMessages.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-navy mb-4">Received Messages</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {receivedMessages.map((rm) => {
-                const isSealed = rm.sealed_until && new Date(rm.sealed_until + "T00:00:00") > new Date();
-                const isPending = rm.status === "pending_request";
-                const isAudioOrVideo = rm.format === "audio" || rm.format === "video";
-                const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-
-                return (
-                  <div key={rm.id} className="rounded-xl border border-cream-dark bg-white p-5 transition-shadow hover:shadow-md">
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                        rm.format === "video" ? "bg-purple-100 text-purple-800"
-                        : rm.format === "audio" ? "bg-navy/10 text-navy"
-                        : "bg-forest/10 text-forest"
-                      }`}>
-                        {rm.format === "video" ? "Video" : rm.format === "audio" ? "Audio" : "Text"}
-                      </span>
-                      {isPending ? (
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                          Waiting for response
-                        </span>
-                      ) : isSealed ? (
-                        <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy">
-                          Sealed
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                          Ready to view
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="mt-3 font-semibold text-navy">
-                      {isPending ? "Awaiting contribution" : `From ${rm.recipient_name || "Anonymous"}`}
-                    </p>
-
-                    <p className="mt-1 text-xs text-warm-gray-light">
-                      {isPending ? "Sent" : "Received"} {new Date(rm.updated_at || rm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
-
-                    {/* Sealed info */}
-                    {isSealed && rm.sealed_until && (
-                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
-                        <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                        </svg>
-                        <div>
-                          <p className="text-xs font-medium text-navy">
-                            {rm.milestone_label
-                              ? `Sealed until ${rm.milestone_label}`
-                              : "Sealed until"}
-                          </p>
-                          <p className="text-xs text-warm-gray">
-                            {new Date(rm.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Playback for unlocked completed messages */}
-                    {!isPending && !isSealed && rm.content_url && isAudioOrVideo && (
-                      <div className="mt-3">
-                        {rm.format === "video" ? (
-                          <video
-                            controls
-                            className="w-full rounded-lg"
-                            src={rm.content_url}
-                          />
-                        ) : (
-                          <audio
-                            controls
-                            className="w-full"
-                            src={rm.content_url}
-                          />
-                        )}
-                      </div>
-                    )}
-
-                    {/* Text content for unlocked text messages */}
-                    {!isPending && !isSealed && rm.content_text && !isAudioOrVideo && (
-                      <div className="mt-3 rounded-lg bg-cream/50 border border-cream-dark p-3">
-                        <p className="text-sm text-navy italic">&ldquo;{rm.content_text}&rdquo;</p>
-                      </div>
-                    )}
-
-                    {/* Share link for pending requests */}
-                    {isPending && rm.claim_code && (
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${baseUrl}/contribute/${rm.claim_code}`);
-                        }}
-                        className="mt-3 w-full rounded-lg border-2 border-navy px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
-                      >
-                        Copy Request Link
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* My Memory Vaults */}
         <div className="mt-12">

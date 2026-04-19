@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     .from("message_uses")
     .insert({
       user_id: user.id,
+      credit_id: item_id || null,
       format: format || "link",
       use_type,
       recipient_name: recipient_name || null,
