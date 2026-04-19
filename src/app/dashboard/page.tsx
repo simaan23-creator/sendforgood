@@ -66,6 +66,7 @@ interface RefundRequest {
 
 interface Letter {
   id: string;
+  recipient_name?: string | null;
   letter_type: "annual" | "milestone";
   title: string;
   content: string;

@@ -532,7 +532,7 @@ async function handleCartOrder(
           user_id: userId,
           content: "",
           status: "draft",
-          stripe_payment_intent_id: session.payment_intent as string || session.id,
+          stripe_payment_intent_id: (session.payment_intent as string) || session.customer_email || "",
           amount_paid: pricePerUnit,
           delivery_type: letter.deliveryType || "digital",
         });
