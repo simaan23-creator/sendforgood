@@ -234,7 +234,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl md:text-6xl lg:text-7xl">
-            Gifts. Letters. Voices.
+            Gifts. Letters. Voice Messages. Video Messages.
             <br />
             <span className="text-gold">Delivered forever.</span>
           </h1>
