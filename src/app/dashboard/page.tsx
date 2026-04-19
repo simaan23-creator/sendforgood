@@ -480,12 +480,6 @@ export default function DashboardPage() {
                 Sign Out
               </button>
               <Link
-                href="/gifts/buy"
-                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-              >
-                Send Gifts
-              </Link>
-              <Link
                 href="/messages/buy"
                 className="rounded-lg border border-forest px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
               >
@@ -551,12 +545,6 @@ export default function DashboardPage() {
             >
               Sign Out
             </button>
-            <Link
-              href="/gifts/buy"
-              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-            >
-              Send Gifts
-            </Link>
           </div>
         </div>
 
@@ -576,7 +564,7 @@ export default function DashboardPage() {
               href="/gifts/buy"
               className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Send More Gifts
+              Buy More
             </Link>
           </div>
 
@@ -1236,12 +1224,8 @@ export default function DashboardPage() {
                 {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
                 {memoryRequests.reduce((sum, r) => sum + (Array.isArray(r.memory_recordings) ? r.memory_recordings.length : 0), 0)} total recordings
                 {(() => {
-                  const audioVoice = voiceMessages.filter(vm => vm.message_format === 'audio' && vm.status === 'draft').length;
-                  const videoVoice = voiceMessages.filter(vm => vm.message_format === 'video' && vm.status === 'draft').length;
-                  const audioVault = vaultCredits ? (vaultCredits.audioCredits - vaultCredits.audioUsed) : 0;
-                  const videoVault = vaultCredits ? (vaultCredits.videoCredits - vaultCredits.videoUsed) : 0;
-                  const totalAudio = audioVoice + audioVault;
-                  const totalVideo = videoVoice + videoVault;
+                  const totalAudio = vaultCredits ? (vaultCredits.audioCredits - vaultCredits.audioUsed) : 0;
+                  const totalVideo = vaultCredits ? (vaultCredits.videoCredits - vaultCredits.videoUsed) : 0;
                   if (totalAudio > 0 || totalVideo > 0) {
                     return (
                       <span className="ml-2 text-forest">

@@ -201,7 +201,7 @@ export default function MyVaultsPage() {
               href="/vault/buy"
               className="rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition hover:bg-cream-dark"
             >
-              Buy More Credits
+              Buy More
             </Link>
             <Link
               href="/request/create"
