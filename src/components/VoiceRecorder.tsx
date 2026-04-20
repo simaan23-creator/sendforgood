@@ -127,7 +127,11 @@ export default function VoiceRecorder({
             ? "audio/webm;codecs=opus"
             : "audio/webm";
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorderOptions: MediaRecorderOptions = { mimeType };
+      if (format === "video") {
+        recorderOptions.videoBitsPerSecond = 1_000_000; // 1 Mbps — keeps 5-min video ~37 MB
+      }
+      const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
 
