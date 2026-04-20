@@ -10,7 +10,7 @@ export async function GET(
 
   const { data: item, error } = await supabaseAdmin
     .from("message_uses")
-    .select("id, user_id, use_type, content_text, credit_id, format, status")
+    .select("id, user_id, use_type, content_text, credit_id, format, status, milestone_label")
     .eq("claim_code", code)
     .eq("use_type", "request")
     .single();
@@ -45,6 +45,7 @@ export async function GET(
       prompt: item.content_text,
       format: item.format,
       requester_name: firstName,
+      milestone_label: item.milestone_label || null,
     },
   });
 }

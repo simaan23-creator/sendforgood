@@ -39,12 +39,12 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
       setError("Please choose a date.");
       return;
     }
-    if (deliveryMode === "milestone" && !sealedUntil) {
-      setError("Please choose a date for the milestone.");
-      return;
-    }
     if (deliveryMode === "milestone" && !milestoneLabel) {
       setError("Please choose a milestone.");
+      return;
+    }
+    if (deliveryMode === "milestone" && milestoneLabel === "Other" && !customMilestone.trim()) {
+      setError("Please enter a custom milestone name.");
       return;
     }
 
@@ -52,6 +52,13 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
     setError("");
 
     const finalMilestone = milestoneLabel === "Other" ? customMilestone.trim() : milestoneLabel;
+
+    // For milestones without a specific date, use a far-future sentinel
+    // so the sealed logic works — user unlocks manually when the milestone arrives
+    const effectiveSealedUntil =
+      deliveryMode === "date" ? sealedUntil :
+      deliveryMode === "milestone" ? "9999-12-31" :
+      undefined;
 
     try {
       const res = await fetch("/api/message-uses", {
@@ -64,7 +71,7 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
           item_id: itemId,
           recipient_email: recipientEmail.trim() || undefined,
           content_text: prompt.trim() || undefined,
-          sealed_until: deliveryMode !== "open" ? sealedUntil : undefined,
+          sealed_until: effectiveSealedUntil,
           milestone_label: deliveryMode === "milestone" ? finalMilestone : undefined,
         }),
       });
@@ -186,36 +193,10 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
                     ))}
                   </div>
 
-                  {deliveryMode !== "open" && (
+                  {deliveryMode === "date" && (
                     <div className="mt-3 space-y-3">
-                      {deliveryMode === "milestone" && (
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-navy">Milestone</label>
-                          <select
-                            value={milestoneLabel}
-                            onChange={(e) => setMilestoneLabel(e.target.value)}
-                            className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                          >
-                            <option value="">Select a milestone...</option>
-                            {MILESTONE_OPTIONS.map((m) => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                          </select>
-                          {milestoneLabel === "Other" && (
-                            <input
-                              type="text"
-                              value={customMilestone}
-                              onChange={(e) => setCustomMilestone(e.target.value)}
-                              placeholder="e.g. Moving Abroad"
-                              className="mt-2 w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                            />
-                          )}
-                        </div>
-                      )}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-navy">
-                          {deliveryMode === "milestone" ? "Sealed until this date" : "Locked until"}
-                        </label>
+                        <label className="mb-1 block text-xs font-medium text-navy">Locked until</label>
                         <input
                           type="date"
                           value={sealedUntil}
@@ -226,6 +207,36 @@ export default function RequestModal({ itemLabel, itemType, itemId, itemFormat, 
                       </div>
                       <p className="text-xs text-warm-gray-light">
                         The recording will be sealed and cannot be viewed until this date.
+                      </p>
+                    </div>
+                  )}
+
+                  {deliveryMode === "milestone" && (
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-navy">Milestone</label>
+                        <select
+                          value={milestoneLabel}
+                          onChange={(e) => setMilestoneLabel(e.target.value)}
+                          className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                        >
+                          <option value="">Select a milestone...</option>
+                          {MILESTONE_OPTIONS.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        {milestoneLabel === "Other" && (
+                          <input
+                            type="text"
+                            value={customMilestone}
+                            onChange={(e) => setCustomMilestone(e.target.value)}
+                            placeholder="e.g. Moving Abroad"
+                            className="mt-2 w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-sm text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                          />
+                        )}
+                      </div>
+                      <p className="text-xs text-warm-gray-light">
+                        The recording will stay sealed until you manually unlock it when the milestone arrives.
                       </p>
                     </div>
                   )}

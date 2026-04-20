@@ -1108,24 +1108,43 @@ export default function DashboardPage() {
                       }
 
                       if (isCompleted && isSealed && latestRequest.sealed_until) {
+                        const isMilestoneLock = latestRequest.milestone_label && latestRequest.sealed_until === "9999-12-31";
                         return (
-                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
-                            <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                            </svg>
-                            <div>
-                              <p className="text-xs font-medium text-navy">
-                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
-                                {latestRequest.milestone_label
-                                  ? ` — Sealed until ${latestRequest.milestone_label}`
-                                  : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
-                              </p>
-                              {latestRequest.milestone_label && (
-                                <p className="text-xs text-warm-gray">
-                                  {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          <div className="mt-3 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                            <div className="flex items-center gap-2">
+                              <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                              </svg>
+                              <div>
+                                <p className="text-xs font-medium text-navy">
+                                  {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                                  {latestRequest.milestone_label
+                                    ? ` — Sealed until ${latestRequest.milestone_label}`
+                                    : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
                                 </p>
-                              )}
+                                {latestRequest.milestone_label && !isMilestoneLock && (
+                                  <p className="text-xs text-warm-gray">
+                                    {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                  </p>
+                                )}
+                              </div>
                             </div>
+                            {isMilestoneLock && (
+                              <button
+                                onClick={async () => {
+                                  if (!confirm(`Unlock this message? This means the ${latestRequest.milestone_label} has arrived!`)) return;
+                                  await fetch("/api/message-uses", {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ id: latestRequest.id }),
+                                  });
+                                  window.location.reload();
+                                }}
+                                className="mt-2 w-full rounded-lg border border-gold bg-gold/10 px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-gold/20"
+                              >
+                                Unlock — {latestRequest.milestone_label} has arrived!
+                              </button>
+                            )}
                           </div>
                         );
                       }
@@ -1364,24 +1383,43 @@ export default function DashboardPage() {
                       }
 
                       if (isCompleted && isSealed && latestRequest.sealed_until) {
+                        const isMilestoneLock = latestRequest.milestone_label && latestRequest.sealed_until === "9999-12-31";
                         return (
-                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-cream/50 border border-cream-dark p-3">
-                            <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                            </svg>
-                            <div>
-                              <p className="text-xs font-medium text-navy">
-                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
-                                {latestRequest.milestone_label
-                                  ? ` — Sealed until ${latestRequest.milestone_label}`
-                                  : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
-                              </p>
-                              {latestRequest.milestone_label && (
-                                <p className="text-xs text-warm-gray">
-                                  {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          <div className="mt-3 rounded-lg bg-cream/50 border border-cream-dark p-3">
+                            <div className="flex items-center gap-2">
+                              <svg className="h-5 w-5 text-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                              </svg>
+                              <div>
+                                <p className="text-xs font-medium text-navy">
+                                  {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                                  {latestRequest.milestone_label
+                                    ? ` — Sealed until ${latestRequest.milestone_label}`
+                                    : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
                                 </p>
-                              )}
+                                {latestRequest.milestone_label && !isMilestoneLock && (
+                                  <p className="text-xs text-warm-gray">
+                                    {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                  </p>
+                                )}
+                              </div>
                             </div>
+                            {isMilestoneLock && (
+                              <button
+                                onClick={async () => {
+                                  if (!confirm(`Unlock this message? This means the ${latestRequest.milestone_label} has arrived!`)) return;
+                                  await fetch("/api/message-uses", {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ id: latestRequest.id }),
+                                  });
+                                  window.location.reload();
+                                }}
+                                className="mt-2 w-full rounded-lg border border-gold bg-gold/10 px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-gold/20"
+                              >
+                                Unlock — {latestRequest.milestone_label} has arrived!
+                              </button>
+                            )}
                           </div>
                         );
                       }

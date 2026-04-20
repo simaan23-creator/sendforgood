@@ -10,6 +10,7 @@ interface RequestInfo {
   prompt: string | null;
   format: string | null;
   requester_name: string;
+  milestone_label: string | null;
 }
 
 export default function ContributePage() {
@@ -181,6 +182,15 @@ export default function ContributePage() {
                 : "Write your message below and we'll deliver it for you."}
             </p>
           </div>
+
+          {request.milestone_label && (
+            <div className="mt-6 flex items-center justify-center gap-2 rounded-full bg-navy/5 px-4 py-2">
+              <span className="text-sm">🎯</span>
+              <p className="text-sm font-medium text-navy">
+                This is for their <span className="font-bold">{request.milestone_label}</span>
+              </p>
+            </div>
+          )}
 
           {request.prompt && (
             <div className="mt-6 rounded-xl border-l-4 border-gold bg-cream/30 p-4">

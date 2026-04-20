@@ -174,3 +174,36 @@ export async function POST(request: Request) {
     link,
   });
 }
+
+// PATCH: Unlock a milestone-sealed message
+export async function PATCH(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { id } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  // Verify ownership and unlock by setting sealed_until to today
+  const today = new Date().toISOString().split("T")[0];
+  const { error: updateError } = await supabaseAdmin
+    .from("message_uses")
+    .update({ sealed_until: today })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    return NextResponse.json({ error: "Failed to unlock" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
