@@ -60,6 +60,7 @@ export async function POST(
   let contributorName = "";
   let message = "";
   let recordingFile: File | null = null;
+  let recordingUrl: string | null = null;
 
   const contentType = request.headers.get("content-type") || "";
   if (contentType.includes("multipart/form-data")) {
@@ -71,9 +72,11 @@ export async function POST(
     const body = await request.json();
     contributorName = body.contributor_name || "";
     message = body.message || "";
+    // Accept a pre-uploaded recording URL (from signed upload flow)
+    recordingUrl = body.recording_url || null;
   }
 
-  if (!message.trim() && !recordingFile) {
+  if (!message.trim() && !recordingFile && !recordingUrl) {
     return NextResponse.json({ error: "A message or recording is required" }, { status: 400 });
   }
 
@@ -99,9 +102,8 @@ export async function POST(
     );
   }
 
-  // Upload recording to Supabase storage if present
-  let recordingUrl: string | null = null;
-  if (recordingFile) {
+  // Upload recording to Supabase storage if sent via FormData (legacy path)
+  if (recordingFile && !recordingUrl) {
     const ext = "webm";
     const path = `contributions/${code}/${Date.now()}.${ext}`;
     const fileContentType = item.format === "video" ? "video/webm" : "audio/webm";

@@ -53,29 +53,50 @@ export default function ContributePage() {
     setError("");
 
     try {
-      let res: Response;
+      let recordingUrl: string | undefined;
 
+      // For recordings, upload directly to Supabase storage via signed URL
+      // to bypass Vercel's 4.5 MB body size limit
       if (isRecordingFormat && recordingBlob) {
-        // Send recording as FormData so the server uploads with admin privileges
-        const formData = new FormData();
-        formData.append("contributor_name", name.trim());
-        formData.append("message", `Recording from ${name.trim() || "Anonymous"}`);
-        formData.append("recording", recordingBlob, `recording.webm`);
+        // Step 1: Get a signed upload URL from the server
+        const urlRes = await fetch(`/api/contribute/${code}/upload-url`, {
+          method: "POST",
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) {
+          setError(urlData.error || "Failed to prepare upload");
+          setSubmitting(false);
+          return;
+        }
 
-        res = await fetch(`/api/contribute/${code}`, {
-          method: "POST",
-          body: formData,
+        // Step 2: Upload the recording directly to Supabase storage
+        const uploadRes = await fetch(urlData.signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": urlData.contentType },
+          body: recordingBlob,
         });
-      } else {
-        res = await fetch(`/api/contribute/${code}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contributor_name: name.trim(),
-            message: message.trim(),
-          }),
-        });
+
+        if (!uploadRes.ok) {
+          setError("Failed to upload recording. Please try again.");
+          setSubmitting(false);
+          return;
+        }
+
+        recordingUrl = urlData.publicUrl;
       }
+
+      // Step 3: Send metadata to the contribute API
+      const res = await fetch(`/api/contribute/${code}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contributor_name: name.trim(),
+          message: isRecordingFormat
+            ? `Recording from ${name.trim() || "Anonymous"}`
+            : message.trim(),
+          recording_url: recordingUrl,
+        }),
+      });
 
       const data = await res.json();
       if (!res.ok) {
@@ -84,7 +105,7 @@ export default function ContributePage() {
         setSubmitted(true);
       }
     } catch {
-      setError("Something went wrong");
+      setError("Something went wrong. Please try again.");
     }
     setSubmitting(false);
   }
