@@ -378,6 +378,14 @@ export default function DashboardPage() {
             map[sourceItemId].push(r as ReceivedMessage);
           }
         }
+        // Sort each item's requests: completed first, then by most recent
+        for (const key of Object.keys(map)) {
+          map[key].sort((a, b) => {
+            if (a.status === "completed" && b.status !== "completed") return -1;
+            if (b.status === "completed" && a.status !== "completed") return 1;
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          });
+        }
         setRequestsByItemId(map);
       }
     } catch {
