@@ -1174,8 +1174,8 @@ export default function DashboardPage() {
                       return null;
                     })()}
 
-                    {/* Actions — only show if not gifted */}
-                    {!isGifted && (
+                    {/* Actions — only show if not gifted and not delivered */}
+                    {!isGifted && letter.status !== "delivered" && (
                       <>
                         <div className="mt-4 flex items-center justify-end gap-3 border-t border-cream-dark pt-4">
                           <button
