@@ -752,28 +752,6 @@ export default function DashboardPage() {
                         Gift
                       </button>
                     </div>
-
-                    {/* Quick action buttons */}
-                    <div className="mt-2 flex items-center gap-1.5">
-                      {available > 0 && (
-                        <Link
-                          href={`/gifts/assign?creditId=${gc.id}&tier=${gc.tier}`}
-                          className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                          title="Assign"
-                        >
-                          <span>✏️</span>
-                          <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Assign</span>
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => setGiftingItem({ itemType: "gift_credit", itemId: gc.id, itemLabel: `${getTierName(gc.tier)} Gift Credit` })}
-                        className="group relative rounded-md border border-cream-dark px-2 py-1 text-xs transition-colors hover:bg-cream-dark"
-                        title="Gift"
-                      >
-                        <span>🎁</span>
-                        <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-[10px] text-cream opacity-0 transition-opacity group-hover:opacity-100">Gift</span>
-                      </button>
-                    </div>
                   </div>
                 );
               })}
@@ -1137,11 +1115,16 @@ export default function DashboardPage() {
                             </svg>
                             <div>
                               <p className="text-xs font-medium text-navy">
-                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"} — {latestRequest.milestone_label ? `Sealed until ${latestRequest.milestone_label}` : "Sealed until"}
+                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                                {latestRequest.milestone_label
+                                  ? ` — Sealed until ${latestRequest.milestone_label}`
+                                  : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
                               </p>
-                              <p className="text-xs text-warm-gray">
-                                {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                              </p>
+                              {latestRequest.milestone_label && (
+                                <p className="text-xs text-warm-gray">
+                                  {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                </p>
+                              )}
                             </div>
                           </div>
                         );
@@ -1388,11 +1371,16 @@ export default function DashboardPage() {
                             </svg>
                             <div>
                               <p className="text-xs font-medium text-navy">
-                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"} — {latestRequest.milestone_label ? `Sealed until ${latestRequest.milestone_label}` : "Sealed until"}
+                                {latestRequest.recipient_name ? `From ${latestRequest.recipient_name}` : "Response received"}
+                                {latestRequest.milestone_label
+                                  ? ` — Sealed until ${latestRequest.milestone_label}`
+                                  : ` — Sealed until ${new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
                               </p>
-                              <p className="text-xs text-warm-gray">
-                                {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                              </p>
+                              {latestRequest.milestone_label && (
+                                <p className="text-xs text-warm-gray">
+                                  {new Date(latestRequest.sealed_until + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                </p>
+                              )}
                             </div>
                           </div>
                         );
