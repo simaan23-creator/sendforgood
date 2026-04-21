@@ -31,6 +31,7 @@ export default function CreateMemoryRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [occasion, setOccasion] = useState("My Birthday");
+  const [customOccasion, setCustomOccasion] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [noteToRecorder, setNoteToRecorder] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -141,7 +142,7 @@ export default function CreateMemoryRequestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          occasion,
+          occasion: occasion === "Other" ? (customOccasion.trim() || "Other") : occasion,
           delivery_date: sealedUntil ? sealedUntil : deliveryDate,
           note_to_recorder: noteToRecorder || null,
           sealed_until: sealedUntil || null,
@@ -277,6 +278,7 @@ export default function CreateMemoryRequestPage() {
                   setCreatedRequest(null);
                   setTitle("");
                   setOccasion("My Birthday");
+                  setCustomOccasion("");
                   setDeliveryDate("");
                   setNoteToRecorder("");
                   setSealedUntil("");
@@ -398,6 +400,15 @@ export default function CreateMemoryRequestPage() {
                 </option>
               ))}
             </select>
+            {occasion === "Other" && (
+              <input
+                type="text"
+                placeholder="e.g. Housewarming, Baby Shower, Promotion"
+                value={customOccasion}
+                onChange={(e) => setCustomOccasion(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+            )}
           </div>
 
           {/* Sealed until date */}
