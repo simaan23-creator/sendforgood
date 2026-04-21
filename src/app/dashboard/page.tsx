@@ -213,7 +213,7 @@ export default function DashboardPage() {
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [requestsByItemId, setRequestsByItemId] = useState<Record<string, ReceivedMessage[]>>({});
   const [giftedItemsMap, setGiftedItemsMap] = useState<Record<string, GiftedItem>>({});
-  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number} | null>(null);
+  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number; audioFromVMs: number; videoFromVMs: number; audioFromPurchased: number; videoFromPurchased: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
@@ -413,11 +413,15 @@ export default function DashboardPage() {
     // Fetch vault credits and usage from Supabase
     try {
       const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits').eq('user_id', user.id);
-      let totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
-      let totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
+      const purchasedAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
+      const purchasedVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
+      let totalAudio = purchasedAudio;
+      let totalVideo = purchasedVideo;
 
       // Also count unused voice messages as available credits
       // Exclude VMs with completed requests or gifted away
+      let audioFromVMs = 0;
+      let videoFromVMs = 0;
       const { data: draftVMs } = await supabase.from('voice_messages').select('id, message_format').eq('user_id', user.id).eq('status', 'draft');
       if (draftVMs && draftVMs.length > 0) {
         const vmIds = draftVMs.map((vm: { id: string }) => vm.id);
@@ -436,14 +440,14 @@ export default function DashboardPage() {
         }
         for (const vm of draftVMs) {
           if (!usedVmIds.has((vm as { id: string }).id)) {
-            if ((vm as { message_format: string }).message_format === 'video') totalVideo++;
-            else totalAudio++;
+            if ((vm as { message_format: string }).message_format === 'video') { totalVideo++; videoFromVMs++; }
+            else { totalAudio++; audioFromVMs++; }
           }
         }
       }
 
       // Credits are deducted at vault creation time, so no separate "used" calculation needed
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -1583,8 +1587,8 @@ export default function DashboardPage() {
                 {memoryRequests.length} vault{memoryRequests.length !== 1 ? "s" : ""} &middot;{" "}
                 {memoryRequests.reduce((sum, r) => sum + (Array.isArray(r.memory_recordings) ? r.memory_recordings.length : 0), 0)} total recordings
                 {(() => {
-                  const totalAudio = vaultCredits ? (vaultCredits.audioCredits - vaultCredits.audioUsed) : 0;
-                  const totalVideo = vaultCredits ? (vaultCredits.videoCredits - vaultCredits.videoUsed) : 0;
+                  const totalAudio = vaultCredits ? vaultCredits.audioCredits : 0;
+                  const totalVideo = vaultCredits ? vaultCredits.videoCredits : 0;
                   if (totalAudio > 0 || totalVideo > 0) {
                     return (
                       <span className="ml-2 text-forest">
@@ -1602,6 +1606,16 @@ export default function DashboardPage() {
                 Manage vaults &rarr;
               </Link>
             </div>
+            {/* Credit breakdown */}
+            {vaultCredits && (vaultCredits.audioFromPurchased > 0 || vaultCredits.videoFromPurchased > 0) && (vaultCredits.audioFromVMs > 0 || vaultCredits.videoFromVMs > 0) && (
+              <div className="mt-3 border-t border-cream-dark pt-3">
+                <p className="text-xs text-warm-gray-light">
+                  Breakdown: {vaultCredits.audioFromVMs > 0 || vaultCredits.videoFromVMs > 0 ? `${vaultCredits.audioFromVMs + vaultCredits.videoFromVMs} from unused messages` : ""}
+                  {(vaultCredits.audioFromVMs > 0 || vaultCredits.videoFromVMs > 0) && (vaultCredits.audioFromPurchased > 0 || vaultCredits.videoFromPurchased > 0) ? " + " : ""}
+                  {vaultCredits.audioFromPurchased > 0 || vaultCredits.videoFromPurchased > 0 ? `${vaultCredits.audioFromPurchased + vaultCredits.videoFromPurchased} purchased vault credits` : ""}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
