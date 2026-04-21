@@ -70,6 +70,95 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Allocate voice messages and memory_credits to this vault
+  const audioToAllocate = max_audio_recordings || 0;
+  const videoToAllocate = max_video_recordings || 0;
+
+  if (audioToAllocate > 0 || videoToAllocate > 0) {
+    // Find VMs already used (completed requests or gifted)
+    const [{ data: completedReqs }, { data: giftedItems }] = await Promise.all([
+      supabaseAdmin
+        .from("message_uses")
+        .select("claim_code")
+        .eq("user_id", user.id)
+        .eq("use_type", "request")
+        .eq("status", "completed"),
+      supabaseAdmin
+        .from("gifted_items")
+        .select("item_id")
+        .eq("sender_id", user.id)
+        .eq("item_type", "voice_message"),
+    ]);
+
+    const excludeIds = new Set<string>();
+    if (completedReqs) {
+      for (const req of completedReqs) {
+        const parts = (req.claim_code || "").split("_");
+        const sourceId = parts.length >= 2 ? parts.slice(1).join("_") : null;
+        if (sourceId) excludeIds.add(sourceId);
+      }
+    }
+    if (giftedItems) {
+      for (const gi of giftedItems) excludeIds.add(gi.item_id);
+    }
+
+    // Get available draft VMs (oldest first)
+    const { data: draftVMs } = await supabaseAdmin
+      .from("voice_messages")
+      .select("id, message_format")
+      .eq("user_id", user.id)
+      .eq("status", "draft")
+      .order("created_at", { ascending: true });
+
+    const availableVMs = (draftVMs || []).filter((vm) => !excludeIds.has(vm.id));
+    const audioVMs = availableVMs.filter((vm) => vm.message_format !== "video");
+    const videoVMs = availableVMs.filter((vm) => vm.message_format === "video");
+
+    // Mark VMs as vault_allocated
+    const audioToMark = audioVMs.slice(0, audioToAllocate).map((vm) => vm.id);
+    const videoToMark = videoVMs.slice(0, videoToAllocate).map((vm) => vm.id);
+    const allToMark = [...audioToMark, ...videoToMark];
+
+    if (allToMark.length > 0) {
+      await supabaseAdmin
+        .from("voice_messages")
+        .update({ status: "vault_allocated" })
+        .in("id", allToMark);
+    }
+
+    // Deduct any remaining allocation from memory_credits
+    const audioFromCredits = audioToAllocate - audioToMark.length;
+    const videoFromCredits = videoToAllocate - videoToMark.length;
+
+    if (audioFromCredits > 0 || videoFromCredits > 0) {
+      const { data: creditRows } = await supabaseAdmin
+        .from("memory_credits")
+        .select("id, audio_credits, video_credits")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      let audioRemaining = audioFromCredits;
+      let videoRemaining = videoFromCredits;
+
+      for (const row of creditRows || []) {
+        if (audioRemaining <= 0 && videoRemaining <= 0) break;
+        const audioDeduct = Math.min(audioRemaining, row.audio_credits || 0);
+        const videoDeduct = Math.min(videoRemaining, row.video_credits || 0);
+        if (audioDeduct > 0 || videoDeduct > 0) {
+          await supabaseAdmin
+            .from("memory_credits")
+            .update({
+              audio_credits: (row.audio_credits || 0) - audioDeduct,
+              video_credits: (row.video_credits || 0) - videoDeduct,
+            })
+            .eq("id", row.id);
+          audioRemaining -= audioDeduct;
+          videoRemaining -= videoDeduct;
+        }
+      }
+    }
+  }
+
   return NextResponse.json(data);
 }
 

@@ -89,28 +89,13 @@ export async function GET() {
         }
       }
 
-      // Count slots already allocated to vaults as "used"
-      const { data: requests } = await supabaseAdmin
-        .from("memory_requests")
-        .select("max_audio_recordings, max_video_recordings")
-        .eq("requester_id", user.id)
-        .in("status", ["active", "pending"]);
-
-      let audioUsed = 0;
-      let videoUsed = 0;
-
-      if (requests) {
-        for (const req of requests) {
-          audioUsed += req.max_audio_recordings || 0;
-          videoUsed += req.max_video_recordings || 0;
-        }
-      }
-
+      // Credits are deducted at vault creation time (VMs marked vault_allocated,
+      // memory_credits decremented), so no separate "used" calculation needed.
       return NextResponse.json({
         audioCredits: totalAudio,
         videoCredits: totalVideo,
-        audioUsed,
-        videoUsed,
+        audioUsed: 0,
+        videoUsed: 0,
       });
     })(),
     new Promise<NextResponse>((resolve) =>

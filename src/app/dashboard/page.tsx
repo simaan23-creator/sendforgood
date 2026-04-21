@@ -348,12 +348,13 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch voice messages
+    // Fetch voice messages (exclude vault_allocated ones)
     try {
       const { data: vmData } = await supabase
         .from("voice_messages")
         .select("*")
         .eq("user_id", user.id)
+        .neq("status", "vault_allocated")
         .order("created_at", { ascending: false });
       if (vmData) setVoiceMessages(vmData);
     } catch {
@@ -441,17 +442,8 @@ export default function DashboardPage() {
         }
       }
 
-      // Count slots allocated to active vaults as "used"
-      let audioUsed = 0;
-      let videoUsed = 0;
-      const { data: userRequests } = await supabase.from('memory_requests').select('max_audio_recordings, max_video_recordings').eq('requester_id', user.id).in('status', ['active', 'pending']);
-      if (userRequests) {
-        for (const req of userRequests) {
-          audioUsed += (req as { max_audio_recordings: number | null }).max_audio_recordings || 0;
-          videoUsed += (req as { max_video_recordings: number | null }).max_video_recordings || 0;
-        }
-      }
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed, videoUsed });
+      // Credits are deducted at vault creation time, so no separate "used" calculation needed
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
