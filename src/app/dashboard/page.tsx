@@ -409,12 +409,27 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch vault credits directly from Supabase
+    // Fetch vault credits and usage from Supabase
     try {
       const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits').eq('user_id', user.id);
       const totalAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
       const totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0 });
+
+      // Count used recordings across all user's vaults
+      let audioUsed = 0;
+      let videoUsed = 0;
+      const { data: userRequests } = await supabase.from('memory_requests').select('id').eq('requester_id', user.id);
+      if (userRequests && userRequests.length > 0) {
+        const requestIds = userRequests.map((r: { id: string }) => r.id);
+        const { data: recordings } = await supabase.from('memory_recordings').select('message_format').in('request_id', requestIds);
+        if (recordings) {
+          for (const rec of recordings) {
+            if (rec.message_format === 'video') videoUsed++;
+            else audioUsed++;
+          }
+        }
+      }
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed, videoUsed });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 

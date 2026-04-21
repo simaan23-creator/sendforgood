@@ -8,6 +8,7 @@ interface MemoryRecording {
   id: string;
   recorder_name: string | null;
   audio_url: string;
+  message_format: string | null;
   created_at: string;
   memory_requests: {
     title: string;
@@ -31,7 +32,7 @@ export default function ListenMemoryPage() {
         // The audio_url is already a public URL stored during upload
         const { data, error: fetchError } = await supabase
           .from("memory_recordings")
-          .select("id, recorder_name, audio_url, created_at, memory_requests(title, occasion)")
+          .select("id, recorder_name, audio_url, message_format, created_at, memory_requests(title, occasion)")
           .eq("id", id)
           .single();
 
@@ -83,11 +84,13 @@ export default function ListenMemoryPage() {
     { month: "long", day: "numeric", year: "numeric" }
   );
 
+  const isVideo = recording.message_format === "video";
+
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="rounded-2xl border border-cream-dark bg-white p-8 text-center shadow-md">
-          <span className="text-5xl">🎙️</span>
+          <span className="text-5xl">{isVideo ? "🎬" : "🎙️"}</span>
 
           <h1 className="mt-5 text-2xl font-bold text-navy">{requestTitle}</h1>
 
@@ -98,13 +101,23 @@ export default function ListenMemoryPage() {
             {recordedDate}
           </p>
 
-          {/* Audio player */}
+          {/* Media player */}
           <div className="mt-8 rounded-xl bg-cream p-6">
-            <audio
-              controls
-              src={recording.audio_url}
-              className="w-full"
-            />
+            {isVideo ? (
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                src={recording.audio_url}
+                className="w-full rounded-lg bg-black"
+              />
+            ) : (
+              <audio
+                controls
+                src={recording.audio_url}
+                className="w-full"
+              />
+            )}
           </div>
 
           <p className="mt-6 text-sm text-warm-gray">
