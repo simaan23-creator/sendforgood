@@ -416,11 +416,28 @@ export default function DashboardPage() {
       let totalVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
 
       // Also count unused voice messages as available credits
-      const { data: draftVMs } = await supabase.from('voice_messages').select('message_format').eq('user_id', user.id).eq('status', 'draft');
-      if (draftVMs) {
+      // Exclude VMs with completed requests or gifted away
+      const { data: draftVMs } = await supabase.from('voice_messages').select('id, message_format').eq('user_id', user.id).eq('status', 'draft');
+      if (draftVMs && draftVMs.length > 0) {
+        const vmIds = draftVMs.map((vm: { id: string }) => vm.id);
+        const { data: completedReqs } = await supabase.from('message_uses').select('claim_code').eq('user_id', user.id).eq('use_type', 'request').eq('status', 'completed');
+        const usedVmIds = new Set<string>();
+        if (completedReqs) {
+          for (const req of completedReqs) {
+            const parts = ((req as { claim_code: string }).claim_code || '').split('_');
+            const sourceId = parts.length >= 2 ? parts.slice(1).join('_') : null;
+            if (sourceId && vmIds.includes(sourceId)) usedVmIds.add(sourceId);
+          }
+        }
+        const { data: giftedVMs } = await supabase.from('gifted_items').select('item_id').eq('sender_id', user.id).eq('item_type', 'voice_message');
+        if (giftedVMs) {
+          for (const gi of giftedVMs) usedVmIds.add((gi as { item_id: string }).item_id);
+        }
         for (const vm of draftVMs) {
-          if (vm.message_format === 'video') totalVideo++;
-          else totalAudio++;
+          if (!usedVmIds.has((vm as { id: string }).id)) {
+            if ((vm as { message_format: string }).message_format === 'video') totalVideo++;
+            else totalAudio++;
+          }
         }
       }
 

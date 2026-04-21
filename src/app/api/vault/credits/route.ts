@@ -41,17 +41,51 @@ export async function GET() {
       );
 
       // Also count unused voice messages as available credits
-      // (draft = not yet recorded personally, not gifted)
+      // Exclude VMs that have completed requests or have been gifted
       const { data: voiceMessages } = await supabaseAdmin
         .from("voice_messages")
-        .select("message_format")
+        .select("id, message_format")
         .eq("user_id", user.id)
         .eq("status", "draft");
 
-      if (voiceMessages) {
+      if (voiceMessages && voiceMessages.length > 0) {
+        const vmIds = voiceMessages.map((vm) => vm.id);
+
+        // Find VMs with completed requests (claim_code format: {random}_{item_id})
+        const { data: completedReqs } = await supabaseAdmin
+          .from("message_uses")
+          .select("claim_code")
+          .eq("user_id", user.id)
+          .eq("use_type", "request")
+          .eq("status", "completed");
+
+        const usedVmIds = new Set<string>();
+        if (completedReqs) {
+          for (const req of completedReqs) {
+            const parts = (req.claim_code || "").split("_");
+            const sourceId = parts.length >= 2 ? parts.slice(1).join("_") : null;
+            if (sourceId && vmIds.includes(sourceId)) usedVmIds.add(sourceId);
+          }
+        }
+
+        // Find VMs that have been gifted
+        const { data: giftedVMs } = await supabaseAdmin
+          .from("gifted_items")
+          .select("item_id")
+          .eq("sender_id", user.id)
+          .eq("item_type", "voice_message")
+          .in("item_id", vmIds);
+
+        if (giftedVMs) {
+          for (const gi of giftedVMs) usedVmIds.add(gi.item_id);
+        }
+
+        // Only count truly unused VMs
         for (const vm of voiceMessages) {
-          if (vm.message_format === "video") totalVideo++;
-          else totalAudio++;
+          if (!usedVmIds.has(vm.id)) {
+            if (vm.message_format === "video") totalVideo++;
+            else totalAudio++;
+          }
         }
       }
 
