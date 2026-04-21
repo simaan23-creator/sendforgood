@@ -1313,14 +1313,17 @@ export default function DashboardPage() {
                   delivered: { label: "Delivered", classes: "bg-forest/10 text-forest" },
                 };
 
-                // Override status for gifted items
+                // Override status for gifted items or completed requests
                 let statusInfo: { label: string; classes: string };
+                const hasCompletedRequest = latestRequest && latestRequest.status === "completed";
                 if (isGifted) {
                   if (giftInfo.status === "claimed") {
                     statusInfo = { label: `Gifted to ${giftInfo.recipient_name || giftInfo.recipient_email || "someone"}`, classes: "bg-forest/10 text-forest" };
                   } else {
                     statusInfo = { label: "Gifted (pending claim)", classes: "bg-gold/20 text-gold-dark" };
                   }
+                } else if (hasCompletedRequest) {
+                  statusInfo = { label: "Response received", classes: "bg-green-100 text-green-800" };
                 } else {
                   statusInfo = statusMap[vm.status] ?? { label: vm.status, classes: "bg-gray-100 text-gray-700" };
                 }
