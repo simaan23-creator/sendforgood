@@ -17,7 +17,7 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      // Sum all purchased credits for this user
+      // Sum credits from memory_credits table (vault-specific purchases)
       const { data: credits, error: creditsError } = await supabaseAdmin
         .from("memory_credits")
         .select("audio_credits, video_credits")
@@ -31,40 +31,44 @@ export async function GET() {
         );
       }
 
-      const totalAudio = (credits || []).reduce(
+      let totalAudio = (credits || []).reduce(
         (sum, c) => sum + (c.audio_credits || 0),
         0
       );
-      const totalVideo = (credits || []).reduce(
+      let totalVideo = (credits || []).reduce(
         (sum, c) => sum + (c.video_credits || 0),
         0
       );
 
-      // Count recordings used (grouped by format) through memory_requests owned by this user
+      // Also count unused voice messages as available credits
+      // (draft = not yet recorded personally, not gifted)
+      const { data: voiceMessages } = await supabaseAdmin
+        .from("voice_messages")
+        .select("message_format")
+        .eq("user_id", user.id)
+        .eq("status", "draft");
+
+      if (voiceMessages) {
+        for (const vm of voiceMessages) {
+          if (vm.message_format === "video") totalVideo++;
+          else totalAudio++;
+        }
+      }
+
+      // Count slots already allocated to vaults as "used"
       const { data: requests } = await supabaseAdmin
         .from("memory_requests")
-        .select("id")
-        .eq("requester_id", user.id);
+        .select("max_audio_recordings, max_video_recordings")
+        .eq("requester_id", user.id)
+        .in("status", ["active", "pending"]);
 
       let audioUsed = 0;
       let videoUsed = 0;
 
-      if (requests && requests.length > 0) {
-        const requestIds = requests.map((r) => r.id);
-
-        const { data: recordings } = await supabaseAdmin
-          .from("memory_recordings")
-          .select("message_format")
-          .in("request_id", requestIds);
-
-        if (recordings) {
-          for (const rec of recordings) {
-            if (rec.message_format === "video") {
-              videoUsed++;
-            } else {
-              audioUsed++;
-            }
-          }
+      if (requests) {
+        for (const req of requests) {
+          audioUsed += req.max_audio_recordings || 0;
+          videoUsed += req.max_video_recordings || 0;
         }
       }
 
