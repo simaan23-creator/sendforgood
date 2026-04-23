@@ -12,7 +12,7 @@ const STEPS = [
     emoji: "\u{1F6D2}",
     title: "Buy recording slots",
     description:
-      "$10 per video slot. Buy as many as you have guests. Unused slots never expire.",
+      "$10 per video, $5 per audio, $2 per photo. Buy as many as you have guests. Unused slots never expire.",
   },
   {
     emoji: "\u{1F517}",
@@ -39,7 +39,7 @@ const USE_CASES = [
     emoji: "\u{1F48D}",
     title: "Weddings",
     description:
-      "The obvious one. 80 guests, 80 memories, sealed for a decade.",
+      "80 guests, 80 memories — video, audio, or photos — sealed for a decade.",
   },
   {
     emoji: "\u{1F382}",
@@ -85,6 +85,10 @@ const FAQS = [
     a: "Up to 5 minutes per recording.",
   },
   {
+    q: "Can guests upload photos too?",
+    a: "Yes! If you buy photo slots, guests can upload photos from their phone alongside voice and video messages.",
+  },
+  {
     q: "What if a guest does not have the link?",
     a: "You can share the link anytime before the vault seals \u2014 before, during, or after the event.",
   },
@@ -104,13 +108,13 @@ export default function WeddingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
             Create a Memory Vault for your wedding. Share a link with every
-            guest. They record a video message from their phone &mdash; no app,
-            no account needed. Seal it for your 10th anniversary. Watch it
-            together on the night that matters.
+            guest. They record a video message, voice note, or upload a photo
+            from their phone &mdash; no app, no account needed. Seal it for
+            your 10th anniversary. Relive it together on the night that matters.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/messages/buy"
+              href="/vault/buy"
               className="inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:w-auto"
             >
               Create Your Wedding Vault
@@ -219,6 +223,12 @@ export default function WeddingPage() {
                   $5<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
+              <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
+                <span className="font-semibold text-navy">Photo upload slot</span>
+                <span className="text-2xl font-extrabold tracking-tight text-navy">
+                  $2<span className="text-sm font-normal text-warm-gray"> each</span>
+                </span>
+              </div>
               <ul className="mt-4 space-y-2 text-sm text-warm-gray">
                 <li className="flex items-center gap-2">
                   <svg className="h-4 w-4 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor">
@@ -235,7 +245,7 @@ export default function WeddingPage() {
               </ul>
             </div>
             <Link
-              href="/messages/buy"
+              href="/vault/buy"
               className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Create Your Wedding Vault
@@ -274,7 +284,7 @@ export default function WeddingPage() {
           </p>
           <div className="mt-10">
             <Link
-              href="/messages/buy"
+              href="/vault/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Create Your Wedding Vault

@@ -801,14 +801,16 @@ async function handleCartOrder(
   // Process vault credit items
   const vaultAudioCredits = parseInt(metadata.vaultAudioCredits) || 0;
   const vaultVideoCredits = parseInt(metadata.vaultVideoCredits) || 0;
+  const vaultPhotoCredits = parseInt(metadata.vaultPhotoCredits) || 0;
 
-  if (vaultAudioCredits > 0 || vaultVideoCredits > 0) {
+  if (vaultAudioCredits > 0 || vaultVideoCredits > 0 || vaultPhotoCredits > 0) {
     const { error: creditError } = await supabaseAdmin
       .from("memory_credits")
       .insert({
         user_id: userId,
         audio_credits: vaultAudioCredits,
         video_credits: vaultVideoCredits,
+        photo_credits: vaultPhotoCredits,
         stripe_payment_intent_id: session.payment_intent as string,
       });
 
@@ -1745,6 +1747,7 @@ async function handleVaultCreditOrder(
   const userId = metadata.userId;
   const audioCredits = parseInt(metadata.audioCredits) || 0;
   const videoCredits = parseInt(metadata.videoCredits) || 0;
+  const photoCredits = parseInt(metadata.photoCredits) || 0;
 
   // Insert credit record
   const { error: creditError } = await supabaseAdmin
@@ -1753,6 +1756,7 @@ async function handleVaultCreditOrder(
       user_id: userId,
       audio_credits: audioCredits,
       video_credits: videoCredits,
+      photo_credits: photoCredits,
       stripe_payment_intent_id: session.payment_intent as string,
     });
 
@@ -1766,6 +1770,7 @@ async function handleVaultCreditOrder(
     const creditParts = [];
     if (audioCredits > 0) creditParts.push(`${audioCredits} audio credit${audioCredits > 1 ? "s" : ""}`);
     if (videoCredits > 0) creditParts.push(`${videoCredits} video credit${videoCredits > 1 ? "s" : ""}`);
+    if (photoCredits > 0) creditParts.push(`${photoCredits} photo credit${photoCredits > 1 ? "s" : ""}`);
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -1779,6 +1784,7 @@ async function handleVaultCreditOrder(
             <h2 style="margin-top: 0; font-size: 18px;">Credit Summary</h2>
             ${audioCredits > 0 ? `<p><strong>Audio Credits:</strong> ${audioCredits} ($5 each)</p>` : ""}
             ${videoCredits > 0 ? `<p><strong>Video Credits:</strong> ${videoCredits} ($10 each)</p>` : ""}
+            ${photoCredits > 0 ? `<p><strong>Photo Credits:</strong> ${photoCredits} ($2 each)</p>` : ""}
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
           <p>Credits are consumed only when someone records a message. Unused credits never expire.</p>
@@ -1798,7 +1804,7 @@ async function handleVaultCreditOrder(
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
-      subject: `\uD83D\uDD12 New Vault Credits! ${audioCredits} audio + ${videoCredits} video \u2014 ${amountFormatted}`,
+      subject: `\uD83D\uDD12 New Vault Credits! ${audioCredits} audio + ${videoCredits} video + ${photoCredits} photo \u2014 ${amountFormatted}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <h1 style="color: #1a2744;">New Vault Credit Purchase!</h1>
@@ -1806,6 +1812,7 @@ async function handleVaultCreditOrder(
             <p><strong>Customer:</strong> ${customerEmail}</p>
             <p><strong>Audio Credits:</strong> ${audioCredits}</p>
             <p><strong>Video Credits:</strong> ${videoCredits}</p>
+            <p><strong>Photo Credits:</strong> ${photoCredits}</p>
             <p><strong>Amount:</strong> ${amountFormatted}</p>
           </div>
           <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>

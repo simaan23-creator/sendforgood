@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET() {
   const TIMEOUT_MS = 5000;
-  const fallback = { audioCredits: 0, videoCredits: 0, audioUsed: 0, videoUsed: 0 };
+  const fallback = { audioCredits: 0, videoCredits: 0, photoCredits: 0, audioUsed: 0, videoUsed: 0 };
 
   const result = await Promise.race([
     (async () => {
@@ -20,7 +20,7 @@ export async function GET() {
       // Sum credits from memory_credits table (vault-specific purchases)
       const { data: credits, error: creditsError } = await supabaseAdmin
         .from("memory_credits")
-        .select("audio_credits, video_credits")
+        .select("audio_credits, video_credits, photo_credits")
         .eq("user_id", user.id);
 
       if (creditsError) {
@@ -37,6 +37,10 @@ export async function GET() {
       );
       let totalVideo = (credits || []).reduce(
         (sum, c) => sum + (c.video_credits || 0),
+        0
+      );
+      const totalPhoto = (credits || []).reduce(
+        (sum, c) => sum + (c.photo_credits || 0),
         0
       );
 
@@ -94,6 +98,7 @@ export async function GET() {
       return NextResponse.json({
         audioCredits: totalAudio,
         videoCredits: totalVideo,
+        photoCredits: totalPhoto,
         audioUsed: 0,
         videoUsed: 0,
       });

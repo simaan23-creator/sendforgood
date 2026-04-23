@@ -8,6 +8,7 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const audio = searchParams.get("audio") || "0";
   const video = searchParams.get("video") || "0";
+  const photo = searchParams.get("photo") || "0";
 
   return (
     <main className="min-h-screen bg-cream">
@@ -48,6 +49,12 @@ function SuccessContent() {
                 <div className="text-center">
                   <p className="text-3xl font-bold text-navy">{video}</p>
                   <p className="text-sm text-warm-gray">Video credits</p>
+                </div>
+              )}
+              {parseInt(photo) > 0 && (
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-navy">{photo}</p>
+                  <p className="text-sm text-warm-gray">Photo credits</p>
                 </div>
               )}
             </div>

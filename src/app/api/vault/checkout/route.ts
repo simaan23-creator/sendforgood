@@ -13,12 +13,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits } = body;
+  const { audioCredits, videoCredits, photoCredits } = body;
 
   const audio = Math.max(0, Math.floor(audioCredits || 0));
   const video = Math.max(0, Math.floor(videoCredits || 0));
+  const photo = Math.max(0, Math.floor(photoCredits || 0));
 
-  if (audio <= 0 && video <= 0) {
+  if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
       { error: "At least one credit type must be greater than 0" },
       { status: 400 }
@@ -62,6 +63,20 @@ export async function POST(request: Request) {
     });
   }
 
+  if (photo > 0) {
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: "Photo Memory Credit",
+          description: "One person can upload a photo to your vault",
+        },
+        unit_amount: 200, // $2
+      },
+      quantity: photo,
+    });
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
 
   const session = await stripe.checkout.sessions.create({
@@ -72,9 +87,10 @@ export async function POST(request: Request) {
       userId: user.id,
       audioCredits: String(audio),
       videoCredits: String(video),
+      photoCredits: String(photo),
     },
     customer_email: user.email,
-    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}`,
+    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,
     cancel_url: `${baseUrl}/vault/buy`,
   });
 

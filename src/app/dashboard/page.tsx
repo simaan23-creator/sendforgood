@@ -213,7 +213,7 @@ export default function DashboardPage() {
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [requestsByItemId, setRequestsByItemId] = useState<Record<string, ReceivedMessage[]>>({});
   const [giftedItemsMap, setGiftedItemsMap] = useState<Record<string, GiftedItem>>({});
-  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; audioUsed: number; videoUsed: number; audioFromVMs: number; videoFromVMs: number; audioFromPurchased: number; videoFromPurchased: number} | null>(null);
+  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; photoCredits: number; audioUsed: number; videoUsed: number; audioFromVMs: number; videoFromVMs: number; audioFromPurchased: number; videoFromPurchased: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
@@ -412,9 +412,10 @@ export default function DashboardPage() {
 
     // Fetch vault credits and usage from Supabase
     try {
-      const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits').eq('user_id', user.id);
+      const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits, photo_credits').eq('user_id', user.id);
       const purchasedAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
       const purchasedVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
+      const purchasedPhoto = (creditsData || []).reduce((sum: number, c: { photo_credits?: number | null }) => sum + (c.photo_credits || 0), 0);
       let totalAudio = purchasedAudio;
       let totalVideo = purchasedVideo;
 
@@ -447,7 +448,7 @@ export default function DashboardPage() {
       }
 
       // Credits are deducted at vault creation time, so no separate "used" calculation needed
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo });
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, photoCredits: purchasedPhoto, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -1589,10 +1590,15 @@ export default function DashboardPage() {
                 {(() => {
                   const totalAudio = vaultCredits ? vaultCredits.audioCredits : 0;
                   const totalVideo = vaultCredits ? vaultCredits.videoCredits : 0;
-                  if (totalAudio > 0 || totalVideo > 0) {
+                  const totalPhoto = vaultCredits ? vaultCredits.photoCredits : 0;
+                  if (totalAudio > 0 || totalVideo > 0 || totalPhoto > 0) {
+                    const parts = [];
+                    if (totalAudio > 0) parts.push(`${totalAudio} audio`);
+                    if (totalVideo > 0) parts.push(`${totalVideo} video`);
+                    if (totalPhoto > 0) parts.push(`${totalPhoto} photo`);
                     return (
                       <span className="ml-2 text-forest">
-                        &middot; {totalAudio} audio + {totalVideo} video credits available
+                        &middot; {parts.join(" + ")} credits available
                       </span>
                     );
                   }

@@ -19,6 +19,7 @@ const OCCASIONS = [
 interface CreditBalance {
   audioCredits: number;
   videoCredits: number;
+  photoCredits: number;
   audioUsed: number;
   videoUsed: number;
 }
@@ -40,6 +41,7 @@ export default function CreateMemoryRequestPage() {
   const [sealedUntil, setSealedUntil] = useState("");
   const [maxAudioRecordings, setMaxAudioRecordings] = useState(0);
   const [maxVideoRecordings, setMaxVideoRecordings] = useState(0);
+  const [maxPhotoUploads, setMaxPhotoUploads] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Credit balance
@@ -83,7 +85,8 @@ export default function CreateMemoryRequestPage() {
   const availableVideo = credits
     ? credits.videoCredits - credits.videoUsed
     : 0;
-  const hasCredits = availableAudio > 0 || availableVideo > 0;
+  const availablePhoto = credits ? credits.photoCredits : 0;
+  const hasCredits = availableAudio > 0 || availableVideo > 0 || availablePhoto > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,9 +116,9 @@ export default function CreateMemoryRequestPage() {
       return;
     }
 
-    if (maxAudioRecordings <= 0 && maxVideoRecordings <= 0) {
+    if (maxAudioRecordings <= 0 && maxVideoRecordings <= 0 && maxPhotoUploads <= 0) {
       setError(
-        "Please allocate at least one audio or video credit to this vault."
+        "Please allocate at least one credit to this vault."
       );
       return;
     }
@@ -134,6 +137,13 @@ export default function CreateMemoryRequestPage() {
       return;
     }
 
+    if (maxPhotoUploads > availablePhoto) {
+      setError(
+        `You only have ${availablePhoto} photo credits available.`
+      );
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -148,6 +158,7 @@ export default function CreateMemoryRequestPage() {
           sealed_until: sealedUntil || null,
           max_audio_recordings: maxAudioRecordings,
           max_video_recordings: maxVideoRecordings,
+          max_photo_uploads: maxPhotoUploads,
         }),
       });
 
@@ -284,6 +295,7 @@ export default function CreateMemoryRequestPage() {
                   setSealedUntil("");
                   setMaxAudioRecordings(0);
                   setMaxVideoRecordings(0);
+                  setMaxPhotoUploads(0);
                 }}
                 className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition hover:bg-gold-light"
               >
@@ -305,8 +317,8 @@ export default function CreateMemoryRequestPage() {
             Create a Memory Vault
           </h1>
           <p className="mt-2 text-warm-gray">
-            Create a link that anyone can use to record a voice or video message
-            for you.
+            Create a link that anyone can use to record a message or upload a
+            photo for you.
           </p>
         </div>
 
@@ -340,6 +352,11 @@ export default function CreateMemoryRequestPage() {
               <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
                 {"\uD83C\uDFA5"} {availableVideo} video
               </span>
+              {availablePhoto > 0 && (
+                <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
+                  {"\uD83D\uDCF7"} {availablePhoto} photo
+                </span>
+              )}
             </div>
             <Link
               href="/vault/buy"
@@ -483,7 +500,7 @@ export default function CreateMemoryRequestPage() {
                 Allocate credits for this vault
               </p>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {availableAudio > 0 && (
                   <div>
                     <label
@@ -540,6 +557,36 @@ export default function CreateMemoryRequestPage() {
                     />
                     <p className="mt-1 text-xs text-warm-gray">
                       {availableVideo} available
+                    </p>
+                  </div>
+                )}
+
+                {availablePhoto > 0 && (
+                  <div>
+                    <label
+                      htmlFor="max_photo"
+                      className="mb-1 block text-xs font-medium text-warm-gray"
+                    >
+                      Max photo uploads
+                    </label>
+                    <input
+                      id="max_photo"
+                      type="number"
+                      min={0}
+                      max={availablePhoto}
+                      value={maxPhotoUploads}
+                      onChange={(e) =>
+                        setMaxPhotoUploads(
+                          Math.min(
+                            availablePhoto,
+                            Math.max(0, parseInt(e.target.value) || 0)
+                          )
+                        )
+                      }
+                      className="w-full rounded-lg border border-cream-dark bg-white px-4 py-2 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                    />
+                    <p className="mt-1 text-xs text-warm-gray">
+                      {availablePhoto} available
                     </p>
                   </div>
                 )}

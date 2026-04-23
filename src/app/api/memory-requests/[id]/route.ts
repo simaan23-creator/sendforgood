@@ -11,7 +11,7 @@ export async function GET(
 
   const { data: memoryRequest, error } = await supabaseAdmin
     .from("memory_requests")
-    .select("id, title, occasion, delivery_date, note_to_recorder, requester_id, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
+    .select("id, title, occasion, delivery_date, note_to_recorder, requester_id, sealed_until, is_sealed, max_audio_recordings, max_video_recordings, max_photo_uploads")
     .eq("unique_code", code)
     .in("status", ["active", "pending"])
     .single();
@@ -40,15 +40,18 @@ export async function GET(
 
   let audioRecorded = 0;
   let videoRecorded = 0;
+  let photoRecorded = 0;
   if (recordings) {
     for (const rec of recordings) {
       if (rec.message_format === "video") videoRecorded++;
+      else if (rec.message_format === "photo") photoRecorded++;
       else audioRecorded++;
     }
   }
 
   const audioSlotsLeft = Math.max(0, (memoryRequest.max_audio_recordings || 0) - audioRecorded);
   const videoSlotsLeft = Math.max(0, (memoryRequest.max_video_recordings || 0) - videoRecorded);
+  const photoSlotsLeft = Math.max(0, (memoryRequest.max_photo_uploads || 0) - photoRecorded);
 
   return NextResponse.json({
     title: memoryRequest.title,
@@ -60,6 +63,7 @@ export async function GET(
     is_sealed: memoryRequest.is_sealed,
     audio_slots_left: audioSlotsLeft,
     video_slots_left: videoSlotsLeft,
+    photo_slots_left: photoSlotsLeft,
   });
 }
 
@@ -73,7 +77,7 @@ export async function POST(
 
   if (!audio_url) {
     return NextResponse.json(
-      { error: "Audio URL is required" },
+      { error: "Media URL is required" },
       { status: 400 }
     );
   }
@@ -83,7 +87,7 @@ export async function POST(
   // Find the memory request
   const { data: memoryRequest, error: reqError } = await supabaseAdmin
     .from("memory_requests")
-    .select("id, requester_id, requester_email, title, delivery_date, sealed_until, is_sealed, max_audio_recordings, max_video_recordings")
+    .select("id, requester_id, requester_email, title, delivery_date, sealed_until, is_sealed, max_audio_recordings, max_video_recordings, max_photo_uploads")
     .eq("unique_code", code)
     .in("status", ["active", "pending"])
     .single();
@@ -96,7 +100,7 @@ export async function POST(
   }
 
   // Check credit availability for this format
-  const maxField = format === "video" ? "max_video_recordings" : "max_audio_recordings";
+  const maxField = format === "video" ? "max_video_recordings" : format === "photo" ? "max_photo_uploads" : "max_audio_recordings";
   const maxAllowed = memoryRequest[maxField] || 0;
 
   if (maxAllowed > 0) {

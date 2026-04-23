@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     sealed_until,
     max_audio_recordings,
     max_video_recordings,
+    max_photo_uploads,
   } = body;
 
   if (!title || !occasion || !delivery_date) {
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
       is_sealed: !!sealed_until,
       max_audio_recordings: max_audio_recordings || 0,
       max_video_recordings: max_video_recordings || 0,
+      max_photo_uploads: max_photo_uploads || 0,
       status: "active",
     })
     .select()
@@ -73,8 +75,9 @@ export async function POST(request: Request) {
   // Allocate voice messages and memory_credits to this vault
   const audioToAllocate = max_audio_recordings || 0;
   const videoToAllocate = max_video_recordings || 0;
+  const photoToAllocate = max_photo_uploads || 0;
 
-  if (audioToAllocate > 0 || videoToAllocate > 0) {
+  if (audioToAllocate > 0 || videoToAllocate > 0 || photoToAllocate > 0) {
     // Find VMs already used (completed requests or gifted)
     const [{ data: completedReqs }, { data: giftedItems }] = await Promise.all([
       supabaseAdmin
@@ -129,31 +132,36 @@ export async function POST(request: Request) {
     // Deduct any remaining allocation from memory_credits
     const audioFromCredits = audioToAllocate - audioToMark.length;
     const videoFromCredits = videoToAllocate - videoToMark.length;
+    const photoFromCredits = photoToAllocate; // Photos are always from credits (no VMs)
 
-    if (audioFromCredits > 0 || videoFromCredits > 0) {
+    if (audioFromCredits > 0 || videoFromCredits > 0 || photoFromCredits > 0) {
       const { data: creditRows } = await supabaseAdmin
         .from("memory_credits")
-        .select("id, audio_credits, video_credits")
+        .select("id, audio_credits, video_credits, photo_credits")
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
 
       let audioRemaining = audioFromCredits;
       let videoRemaining = videoFromCredits;
+      let photoRemaining = photoFromCredits;
 
       for (const row of creditRows || []) {
-        if (audioRemaining <= 0 && videoRemaining <= 0) break;
+        if (audioRemaining <= 0 && videoRemaining <= 0 && photoRemaining <= 0) break;
         const audioDeduct = Math.min(audioRemaining, row.audio_credits || 0);
         const videoDeduct = Math.min(videoRemaining, row.video_credits || 0);
-        if (audioDeduct > 0 || videoDeduct > 0) {
+        const photoDeduct = Math.min(photoRemaining, row.photo_credits || 0);
+        if (audioDeduct > 0 || videoDeduct > 0 || photoDeduct > 0) {
           await supabaseAdmin
             .from("memory_credits")
             .update({
               audio_credits: (row.audio_credits || 0) - audioDeduct,
               video_credits: (row.video_credits || 0) - videoDeduct,
+              photo_credits: (row.photo_credits || 0) - photoDeduct,
             })
             .eq("id", row.id);
           audioRemaining -= audioDeduct;
           videoRemaining -= videoDeduct;
+          photoRemaining -= photoDeduct;
         }
       }
     }

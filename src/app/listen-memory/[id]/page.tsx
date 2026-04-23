@@ -85,12 +85,13 @@ export default function ListenMemoryPage() {
   );
 
   const isVideo = recording.message_format === "video";
+  const isPhoto = recording.message_format === "photo";
 
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="rounded-2xl border border-cream-dark bg-white p-8 text-center shadow-md">
-          <span className="text-5xl">{isVideo ? "🎬" : "🎙️"}</span>
+          <span className="text-5xl">{isPhoto ? "\uD83D\uDCF7" : isVideo ? "\uD83C\uDFAC" : "\uD83C\uDFA4"}</span>
 
           <h1 className="mt-5 text-2xl font-bold text-navy">{requestTitle}</h1>
 
@@ -103,7 +104,14 @@ export default function ListenMemoryPage() {
 
           {/* Media player */}
           <div className="mt-8 rounded-xl bg-cream p-6">
-            {isVideo ? (
+            {isPhoto ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={recording.audio_url}
+                alt={`Photo from ${recorderName}`}
+                className="mx-auto max-h-[600px] w-full rounded-lg object-contain"
+              />
+            ) : isVideo ? (
               <video
                 controls
                 playsInline

@@ -64,15 +64,20 @@ export async function GET(request: Request) {
       const recordingListHtml = recordings
         .map((rec) => {
           const name = rec.recorder_name || "Anonymous";
-          const formatLabel = rec.message_format === "video" ? "Video" : "Audio";
+          const formatLabel = rec.message_format === "video" ? "Video" : rec.message_format === "photo" ? "Photo" : "Audio";
+          const buttonLabel = rec.message_format === "video" ? "Watch Now" : rec.message_format === "photo" ? "View Photo" : "Listen Now";
+          const photoPreview = rec.message_format === "photo"
+            ? `<div style="margin:8px 0;"><img src="${rec.audio_url}" alt="Photo from ${escapeHtml(name)}" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;" /></div>`
+            : "";
           return `
             <div style="background:#fdf8f0;border-radius:8px;padding:16px;margin-bottom:12px;">
               <p style="color:#1B2A4A;font-size:16px;font-weight:600;margin:0 0 4px 0;">
                 ${escapeHtml(name)}
               </p>
               <p style="color:#888;font-size:12px;margin:0 0 8px 0;">${formatLabel} message</p>
+              ${photoPreview}
               <a href="${baseUrl}/listen-memory/${rec.id}" style="display:inline-block;background:#1B2A4A;color:#fdf8f0;padding:10px 24px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">
-                ${rec.message_format === "video" ? "Watch Now" : "Listen Now"}
+                ${buttonLabel}
               </a>
             </div>`;
         })

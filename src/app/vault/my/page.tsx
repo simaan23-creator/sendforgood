@@ -18,12 +18,14 @@ interface MemoryRequest {
   is_sealed: boolean;
   max_audio_recordings: number;
   max_video_recordings: number;
+  max_photo_uploads: number;
   note_to_recorder: string | null;
 }
 
 interface CreditBalance {
   audioCredits: number;
   videoCredits: number;
+  photoCredits: number;
   audioUsed: number;
   videoUsed: number;
 }
@@ -176,6 +178,7 @@ export default function MyVaultsPage() {
   const availableVideo = credits
     ? credits.videoCredits - credits.videoUsed
     : 0;
+  const availablePhoto = credits ? credits.photoCredits : 0;
 
   if (loading) {
     return (
@@ -216,7 +219,7 @@ export default function MyVaultsPage() {
         {credits && (
           <div className="mb-8 rounded-xl border border-cream-dark bg-white p-5">
             <p className="text-sm font-medium text-navy">Credit Balance</p>
-            <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="mt-3 flex flex-wrap gap-4">
               <div>
                 <p className="text-2xl font-bold text-navy">{availableAudio}</p>
                 <p className="text-xs text-warm-gray">Audio available</p>
@@ -225,18 +228,12 @@ export default function MyVaultsPage() {
                 <p className="text-2xl font-bold text-navy">{availableVideo}</p>
                 <p className="text-xs text-warm-gray">Video available</p>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-warm-gray">
-                  {credits.audioUsed}
-                </p>
-                <p className="text-xs text-warm-gray">Audio used</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-warm-gray">
-                  {credits.videoUsed}
-                </p>
-                <p className="text-xs text-warm-gray">Video used</p>
-              </div>
+              {availablePhoto > 0 && (
+                <div>
+                  <p className="text-2xl font-bold text-navy">{availablePhoto}</p>
+                  <p className="text-xs text-warm-gray">Photo available</p>
+                </div>
+              )}
             </div>
             <p className="mt-3 text-xs text-warm-gray">
               Unused credits never expire and stay in your balance until used.
@@ -335,6 +332,12 @@ export default function MyVaultsPage() {
                     {vault.max_video_recordings > 0 && (
                       <span className="ml-3">
                         {"\uD83C\uDFA5"} {vault.max_video_recordings} video
+                        slots
+                      </span>
+                    )}
+                    {vault.max_photo_uploads > 0 && (
+                      <span className="ml-3">
+                        {"\uD83D\uDCF7"} {vault.max_photo_uploads} photo
                         slots
                       </span>
                     )}
