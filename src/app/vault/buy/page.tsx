@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+type DurationTier = "standard" | "extended";
+
 export default function VaultBuyPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -12,6 +14,7 @@ export default function VaultBuyPage() {
   const [audioQty, setAudioQty] = useState(0);
   const [videoQty, setVideoQty] = useState(10);
   const [photoQty, setPhotoQty] = useState(0);
+  const [durationTier, setDurationTier] = useState<DurationTier>("standard");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +33,17 @@ export default function VaultBuyPage() {
     checkAuth();
   }, [supabase, router]);
 
-  const total = audioQty * 5 + videoQty * 10 + photoQty * 2;
+  const multiplier = durationTier === "extended" ? 2 : 1;
+  const videoPriceCents = 100 * multiplier;
+  const audioPriceCents = 25 * multiplier;
+  const photoPriceCents = 25 * multiplier;
+  const vaultFeeCents = 1000;
+
+  const slotTotal =
+    audioQty * audioPriceCents +
+    videoQty * videoPriceCents +
+    photoQty * photoPriceCents;
+  const total = vaultFeeCents + slotTotal;
   const hasItems = audioQty > 0 || videoQty > 0 || photoQty > 0;
 
   async function handleCheckout() {
@@ -46,6 +59,7 @@ export default function VaultBuyPage() {
           audioCredits: audioQty,
           videoCredits: videoQty,
           photoCredits: photoQty,
+          durationTier,
         }),
       });
 
@@ -60,6 +74,12 @@ export default function VaultBuyPage() {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setSubmitting(false);
     }
+  }
+
+  function formatPrice(cents: number) {
+    return cents >= 100
+      ? `$${(cents / 100).toFixed(0)}`
+      : `$${(cents / 100).toFixed(2)}`;
   }
 
   if (loading) {
@@ -87,6 +107,37 @@ export default function VaultBuyPage() {
           </p>
         </div>
 
+        {/* Duration Tier Selector */}
+        <div className="mb-6 rounded-2xl border border-cream-dark bg-white p-4 shadow-md">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-navy/50">
+            Vault Duration
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setDurationTier("standard")}
+              className={`rounded-xl border-2 px-4 py-3 text-center transition ${
+                durationTier === "standard"
+                  ? "border-gold bg-gold/10 shadow-sm"
+                  : "border-cream-dark hover:border-gold/50"
+              }`}
+            >
+              <p className="text-sm font-bold text-navy">Standard</p>
+              <p className="text-xs text-warm-gray">Up to 10 years</p>
+            </button>
+            <button
+              onClick={() => setDurationTier("extended")}
+              className={`rounded-xl border-2 px-4 py-3 text-center transition ${
+                durationTier === "extended"
+                  ? "border-gold bg-gold/10 shadow-sm"
+                  : "border-cream-dark hover:border-gold/50"
+              }`}
+            >
+              <p className="text-sm font-bold text-navy">Extended</p>
+              <p className="text-xs text-warm-gray">11 &ndash; 20 years</p>
+            </button>
+          </div>
+        </div>
+
         {/* Credit selectors */}
         <div className="space-y-4">
           {/* Video — recommended */}
@@ -107,7 +158,7 @@ export default function VaultBuyPage() {
                 </p>
               </div>
               <p className="text-xl font-bold text-navy">
-                $10
+                {formatPrice(videoPriceCents)}
                 <span className="text-sm font-normal text-warm-gray">
                   {" "}
                   each
@@ -138,7 +189,7 @@ export default function VaultBuyPage() {
               </button>
               {videoQty > 0 && (
                 <span className="ml-auto text-sm font-semibold text-navy">
-                  ${videoQty * 10}
+                  {formatPrice(videoQty * videoPriceCents)}
                 </span>
               )}
             </div>
@@ -159,7 +210,7 @@ export default function VaultBuyPage() {
                 </p>
               </div>
               <p className="text-xl font-bold text-navy">
-                $5
+                {formatPrice(audioPriceCents)}
                 <span className="text-sm font-normal text-warm-gray">
                   {" "}
                   each
@@ -190,7 +241,7 @@ export default function VaultBuyPage() {
               </button>
               {audioQty > 0 && (
                 <span className="ml-auto text-sm font-semibold text-navy">
-                  ${audioQty * 5}
+                  {formatPrice(audioQty * audioPriceCents)}
                 </span>
               )}
             </div>
@@ -211,7 +262,7 @@ export default function VaultBuyPage() {
                 </p>
               </div>
               <p className="text-xl font-bold text-navy">
-                $2
+                {formatPrice(photoPriceCents)}
                 <span className="text-sm font-normal text-warm-gray">
                   {" "}
                   each
@@ -242,7 +293,7 @@ export default function VaultBuyPage() {
               </button>
               {photoQty > 0 && (
                 <span className="ml-auto text-sm font-semibold text-navy">
-                  ${photoQty * 2}
+                  {formatPrice(photoQty * photoPriceCents)}
                 </span>
               )}
             </div>
@@ -256,9 +307,27 @@ export default function VaultBuyPage() {
 
         {/* Total & checkout */}
         <div className="mt-8 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold text-navy">Total</span>
-            <span className="text-3xl font-bold text-navy">${total}</span>
+          <div className="space-y-2 text-sm text-warm-gray">
+            <div className="flex justify-between">
+              <span>Vault fee</span>
+              <span className="font-medium text-navy">$10</span>
+            </div>
+            {hasItems && (
+              <div className="flex justify-between">
+                <span>Recording slots</span>
+                <span className="font-medium text-navy">
+                  {formatPrice(slotTotal)}
+                </span>
+              </div>
+            )}
+            <div className="border-t border-cream-dark pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold text-navy">Total</span>
+                <span className="text-3xl font-bold text-navy">
+                  {formatPrice(total)}
+                </span>
+              </div>
+            </div>
           </div>
 
           {error && (

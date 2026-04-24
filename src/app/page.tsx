@@ -711,7 +711,7 @@ export default function HomePage() {
                 🎙️
               </span>
               <h3 className="mt-5 text-xl font-semibold text-navy">
-                Audio or Video &mdash; from $5/year
+                Audio or Video &mdash; from $2/year
               </h3>
               <p className="mt-3 leading-relaxed text-warm-gray">
                 Record your voice or face and we deliver it by email every year.

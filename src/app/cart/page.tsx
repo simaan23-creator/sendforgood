@@ -289,13 +289,13 @@ export default function CartPage() {
                     {voice.audioQuantity > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Audio</span>
-                        <p className="font-medium text-navy">{voice.audioQuantity} &times; $5 each</p>
+                        <p className="font-medium text-navy">{voice.audioQuantity} &times; $2 each</p>
                       </div>
                     )}
                     {voice.videoQuantity > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Video</span>
-                        <p className="font-medium text-navy">{voice.videoQuantity} &times; $10 each</p>
+                        <p className="font-medium text-navy">{voice.videoQuantity} &times; $3 each</p>
                       </div>
                     )}
                     <div>
@@ -350,13 +350,13 @@ export default function CartPage() {
                     {vault.audioCredits > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Audio</span>
-                        <p className="font-medium text-navy">{vault.audioCredits} &times; $5</p>
+                        <p className="font-medium text-navy">{vault.audioCredits} &times; $0.25</p>
                       </div>
                     )}
                     {vault.videoCredits > 0 && (
                       <div>
                         <span className="text-warm-gray-light">Video</span>
-                        <p className="font-medium text-navy">{vault.videoCredits} &times; $10</p>
+                        <p className="font-medium text-navy">{vault.videoCredits} &times; $1</p>
                       </div>
                     )}
                     <div>

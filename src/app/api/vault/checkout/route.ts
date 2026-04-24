@@ -13,11 +13,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits } = body;
+  const { audioCredits, videoCredits, photoCredits, durationTier } = body;
 
   const audio = Math.max(0, Math.floor(audioCredits || 0));
   const video = Math.max(0, Math.floor(videoCredits || 0));
   const photo = Math.max(0, Math.floor(photoCredits || 0));
+  const tier = durationTier === "extended" ? "extended" : "standard";
+  const multiplier = tier === "extended" ? 2 : 1;
 
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
@@ -35,6 +37,19 @@ export async function POST(request: Request) {
     quantity: number;
   }> = [];
 
+  // Vault fee — $10 flat
+  lineItems.push({
+    price_data: {
+      currency: "usd",
+      product_data: {
+        name: "Memory Vault Fee",
+        description: `One-time vault creation fee (${tier === "extended" ? "11–20 year" : "up to 10 year"} vault)`,
+      },
+      unit_amount: 1000,
+    },
+    quantity: 1,
+  });
+
   if (audio > 0) {
     lineItems.push({
       price_data: {
@@ -43,7 +58,7 @@ export async function POST(request: Request) {
           name: "Audio Memory Credit",
           description: "One person can record a voice message for your vault",
         },
-        unit_amount: 500, // $5
+        unit_amount: 25 * multiplier, // $0.25 standard, $0.50 extended
       },
       quantity: audio,
     });
@@ -57,7 +72,7 @@ export async function POST(request: Request) {
           name: "Video Memory Credit",
           description: "One person can record a video message for your vault",
         },
-        unit_amount: 1000, // $10
+        unit_amount: 100 * multiplier, // $1 standard, $2 extended
       },
       quantity: video,
     });
@@ -71,7 +86,7 @@ export async function POST(request: Request) {
           name: "Photo Memory Credit",
           description: "One person can upload a photo to your vault",
         },
-        unit_amount: 200, // $2
+        unit_amount: 25 * multiplier, // $0.25 standard, $0.50 extended
       },
       quantity: photo,
     });
@@ -88,9 +103,10 @@ export async function POST(request: Request) {
       audioCredits: String(audio),
       videoCredits: String(video),
       photoCredits: String(photo),
+      durationTier: tier,
     },
     customer_email: user.email,
-    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,
+    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}&tier=${tier}`,
     cancel_url: `${baseUrl}/vault/buy`,
   });
 

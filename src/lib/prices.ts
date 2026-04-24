@@ -17,11 +17,14 @@ export const TIER_PRICES_MAP: Record<string, { name: string; price: number; desc
 };
 
 export const VOICE_PRICES = {
-  audio: { label: "Audio Message", price: 500 },
-  video: { label: "Video Message", price: 1000 },
+  audio: { label: "Audio Message", price: 200 },
+  video: { label: "Video Message", price: 300 },
 } as const;
 
 export const VAULT_PRICES = {
-  audio: { label: "Audio Credit", price: 500 },
-  video: { label: "Video Credit", price: 1000 },
+  audio: { label: "Audio Credit", price: 25 },
+  video: { label: "Video Credit", price: 100 },
+  photo: { label: "Photo Credit", price: 25 },
 } as const;
+
+export const VAULT_FEE = 1000; // $10 flat vault fee

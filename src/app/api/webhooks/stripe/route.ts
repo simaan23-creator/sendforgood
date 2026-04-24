@@ -650,7 +650,7 @@ async function handleCartOrder(
       title: `Audio Message ${i + 1}`,
       status: "draft",
       stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: 500,
+      amount_paid: 200,
       message_format: "audio",
     });
   }
@@ -662,7 +662,7 @@ async function handleCartOrder(
       title: `Video Message ${i + 1}`,
       status: "draft",
       stripe_payment_intent_id: session.payment_intent as string,
-      amount_paid: 1000,
+      amount_paid: 300,
       message_format: "video",
     });
   }
@@ -960,7 +960,7 @@ async function handleCartOrder(
             <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${voiceAudioCount} audio + ${voiceVideoCount} video</td>
             <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">Draft</td>
             <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${voiceAudioCount + voiceVideoCount}</td>
-            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${((voiceAudioCount * 500 + voiceVideoCount * 1000) / 100).toFixed(0)}</td>
+            <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">$${((voiceAudioCount * 200 + voiceVideoCount * 300) / 100).toFixed(0)}</td>
           </tr>`
       : "";
 
@@ -1782,9 +1782,9 @@ async function handleVaultCreditOrder(
           <p>Thank you for purchasing Memory Vault credits. You can now create a vault and share the link with your loved ones.</p>
           <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0; font-size: 18px;">Credit Summary</h2>
-            ${audioCredits > 0 ? `<p><strong>Audio Credits:</strong> ${audioCredits} ($5 each)</p>` : ""}
-            ${videoCredits > 0 ? `<p><strong>Video Credits:</strong> ${videoCredits} ($10 each)</p>` : ""}
-            ${photoCredits > 0 ? `<p><strong>Photo Credits:</strong> ${photoCredits} ($2 each)</p>` : ""}
+            ${audioCredits > 0 ? `<p><strong>Audio Credits:</strong> ${audioCredits} ($0.25 each)</p>` : ""}
+            ${videoCredits > 0 ? `<p><strong>Video Credits:</strong> ${videoCredits} ($1 each)</p>` : ""}
+            ${photoCredits > 0 ? `<p><strong>Photo Credits:</strong> ${photoCredits} ($0.25 each)</p>` : ""}
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
           <p>Credits are consumed only when someone records a message. Unused credits never expire.</p>

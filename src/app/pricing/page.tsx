@@ -17,7 +17,7 @@ const FAQ = [
   {
     question: "How do messages work?",
     answer:
-      "Buy digital letters ($1), physical letters ($10), letter + photo ($15), audio messages ($5), or video messages ($10). Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule, forever.",
+      "Buy digital letters ($1), physical letters ($10), letter + photo ($15), audio messages ($2), or video messages ($3). Write your letters and record your messages from your dashboard. Set delivery dates or milestones \u2014 your words arrive on schedule, forever.",
   },
   {
     question: "Can I assign the same gift to multiple years?",
@@ -189,7 +189,7 @@ export default function PricingPage() {
                 Audio Message
               </h3>
               <p className="mt-2">
-                <span className="text-4xl font-extrabold tracking-tight text-navy">$5</span>
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$2</span>
                 <span className="text-sm text-warm-gray"> per message</span>
               </p>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">
@@ -214,7 +214,7 @@ export default function PricingPage() {
                 Video Message
               </h3>
               <p className="mt-2">
-                <span className="text-4xl font-extrabold tracking-tight text-navy">$10</span>
+                <span className="text-4xl font-extrabold tracking-tight text-navy">$3</span>
                 <span className="text-sm text-warm-gray"> per message</span>
               </p>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">

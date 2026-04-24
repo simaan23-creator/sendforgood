@@ -12,7 +12,7 @@ const STEPS = [
     emoji: "\u{1F6D2}",
     title: "Buy recording slots",
     description:
-      "$10 per video, $5 per audio, $2 per photo. Buy as many as you have guests. Unused slots never expire.",
+      "$1 per video, $0.25 per audio, $0.25 per photo + a $10 vault fee. Buy as many as you have guests. Unused slots never expire.",
   },
   {
     emoji: "\u{1F517}",
@@ -212,23 +212,32 @@ export default function WeddingPage() {
           <div className="mx-auto mt-10 max-w-md rounded-2xl bg-white p-8 shadow-lg">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
+                <span className="font-semibold text-navy">Vault fee</span>
+                <span className="text-2xl font-extrabold tracking-tight text-navy">
+                  $10<span className="text-sm font-normal text-warm-gray"> one-time</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
                 <span className="font-semibold text-navy">Video recording slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
-                  $10<span className="text-sm font-normal text-warm-gray"> each</span>
+                  $1<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
                 <span className="font-semibold text-navy">Audio recording slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
-                  $5<span className="text-sm font-normal text-warm-gray"> each</span>
+                  $0.25<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
                 <span className="font-semibold text-navy">Photo upload slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
-                  $2<span className="text-sm font-normal text-warm-gray"> each</span>
+                  $0.25<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
+              <p className="text-xs text-warm-gray italic">
+                Prices shown for vaults up to 10 years. Extended vaults (11&ndash;20 years) are double per slot.
+              </p>
               <ul className="mt-4 space-y-2 text-sm text-warm-gray">
                 <li className="flex items-center gap-2">
                   <svg className="h-4 w-4 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor">

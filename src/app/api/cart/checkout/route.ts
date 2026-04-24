@@ -193,9 +193,9 @@ export async function POST(request: Request) {
               currency: "usd",
               product_data: {
                 name: `Audio Messages (${voice.audioQuantity})`,
-                description: `${voice.audioQuantity} audio message${voice.audioQuantity > 1 ? "s" : ""} at $5/yr each`,
+                description: `${voice.audioQuantity} audio message${voice.audioQuantity > 1 ? "s" : ""} at $2/yr each`,
               },
-              unit_amount: 500,
+              unit_amount: 200,
             },
             quantity: voice.audioQuantity,
           });
@@ -206,9 +206,9 @@ export async function POST(request: Request) {
               currency: "usd",
               product_data: {
                 name: `Video Messages (${voice.videoQuantity})`,
-                description: `${voice.videoQuantity} video message${voice.videoQuantity > 1 ? "s" : ""} at $10/yr each`,
+                description: `${voice.videoQuantity} video message${voice.videoQuantity > 1 ? "s" : ""} at $3/yr each`,
               },
-              unit_amount: 1000,
+              unit_amount: 300,
             },
             quantity: voice.videoQuantity,
           });
@@ -225,9 +225,9 @@ export async function POST(request: Request) {
               currency: "usd",
               product_data: {
                 name: `Vault Audio Credits (${vault.audioCredits})`,
-                description: `${vault.audioCredits} audio credit${vault.audioCredits > 1 ? "s" : ""} at $5 each`,
+                description: `${vault.audioCredits} audio credit${vault.audioCredits > 1 ? "s" : ""} at $0.25 each`,
               },
-              unit_amount: 500,
+              unit_amount: 25,
             },
             quantity: vault.audioCredits,
           });
@@ -238,9 +238,9 @@ export async function POST(request: Request) {
               currency: "usd",
               product_data: {
                 name: `Vault Video Credits (${vault.videoCredits})`,
-                description: `${vault.videoCredits} video credit${vault.videoCredits > 1 ? "s" : ""} at $10 each`,
+                description: `${vault.videoCredits} video credit${vault.videoCredits > 1 ? "s" : ""} at $1 each`,
               },
-              unit_amount: 1000,
+              unit_amount: 100,
             },
             quantity: vault.videoCredits,
           });

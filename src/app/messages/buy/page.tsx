@@ -5,8 +5,8 @@ import Link from "next/link";
 import { addLetterToCart, addVoiceToCart } from "@/lib/cart";
 import { DELIVERY_TYPE_PRICES } from "@/lib/prices";
 
-const AUDIO_PRICE_CENTS = 500;
-const VIDEO_PRICE_CENTS = 1000;
+const AUDIO_PRICE_CENTS = 200;
+const VIDEO_PRICE_CENTS = 300;
 
 type DeliveryType = "digital" | "physical" | "physical_photo";
 
