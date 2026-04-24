@@ -54,7 +54,7 @@ export default function VaultPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/messages/buy"
+              href="/vault/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Create Your Vault
@@ -163,23 +163,32 @@ export default function VaultPage() {
             Simple pricing
           </h2>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2">
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
+              <span className="text-5xl" role="img" aria-label="Video">🎬</span>
+              <h3 className="mt-4 text-xl font-semibold text-navy">
+                Video Slot &mdash; $1
+              </h3>
+              <p className="mt-3 text-warm-gray">
+                Each slot allows one person to record a video message for your vault.
+              </p>
+            </div>
             <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
               <span className="text-5xl" role="img" aria-label="Audio">🎤</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Audio Recording Slot &mdash; $5
+                Audio Slot &mdash; $0.25
               </h3>
               <p className="mt-3 text-warm-gray">
                 Each slot allows one person to record a voice message for your vault.
               </p>
             </div>
             <div className="rounded-2xl border border-cream-dark bg-cream p-8 text-center">
-              <span className="text-5xl" role="img" aria-label="Video">🎬</span>
+              <span className="text-5xl" role="img" aria-label="Photo">📷</span>
               <h3 className="mt-4 text-xl font-semibold text-navy">
-                Video Recording Slot &mdash; $10
+                Photo Slot &mdash; $0.25
               </h3>
               <p className="mt-3 text-warm-gray">
-                Each slot allows one person to record a video message for your vault.
+                Each slot allows one person to upload a photo to your vault.
               </p>
             </div>
           </div>
@@ -201,8 +210,8 @@ export default function VaultPage() {
             </ul>
             <div className="mt-6 rounded-lg bg-white/80 p-4">
               <p className="text-sm text-navy/80 italic">
-                Example: Buy 20 video recording slots ($200) for your wedding.
-                If only 15 guests record, you keep 5 slots for next time.
+                Example: Buy 50 video recording slots ($50) + a $10 vault fee for your wedding.
+                If only 40 guests record, you keep 10 slots for next time.
               </p>
             </div>
           </div>
@@ -221,7 +230,7 @@ export default function VaultPage() {
           </p>
           <div className="mt-10">
             <Link
-              href="/messages/buy"
+              href="/vault/buy"
               className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
               Create Your Vault

@@ -79,7 +79,7 @@ const FAQ = [
   {
     question: "What\u2019s the difference between audio and video?",
     answer:
-      "Audio messages ($5 per message) capture your voice. Video messages ($10 per message) capture both your face and your voice \u2014 the most personal option. Both are delivered the same way by email.",
+      "Audio messages ($2 per message) capture your voice. Video messages ($3 per message) capture both your face and your voice \u2014 the most personal option. Both are delivered the same way by email.",
   },
   {
     question: "What if the recipient\u2019s email changes?",
@@ -121,7 +121,7 @@ export default function VoiceMessagesPage() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-warm-gray-light">
-            Audio $5 per message &middot; Video $10 per message &middot; No subscriptions &middot; Delivered
+            Audio $2 per message &middot; Video $3 per message &middot; No subscriptions &middot; Delivered
             forever
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function VoiceMessagesPage() {
                 </h3>
                 <p className="mt-3">
                   <span className="text-5xl font-extrabold tracking-tight text-navy">
-                    $5
+                    $2
                   </span>
                   <span className="text-sm text-warm-gray">
                     {" "}per message
@@ -176,7 +176,7 @@ export default function VoiceMessagesPage() {
                 href="/messages/buy"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                Record Audio &mdash; $5
+                Record Audio &mdash; $2
               </Link>
             </div>
 
@@ -192,7 +192,7 @@ export default function VoiceMessagesPage() {
                 </h3>
                 <p className="mt-3">
                   <span className="text-5xl font-extrabold tracking-tight text-navy">
-                    $10
+                    $3
                   </span>
                   <span className="text-sm text-warm-gray">
                     {" "}per message
@@ -219,7 +219,7 @@ export default function VoiceMessagesPage() {
                 href="/messages/buy"
                 className="mt-8 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
-                Record Video &mdash; $10
+                Record Video &mdash; $3
               </Link>
             </div>
           </div>
@@ -355,7 +355,7 @@ export default function VoiceMessagesPage() {
             href="/messages/buy"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-forest px-10 py-4 text-lg font-semibold text-cream shadow-lg transition hover:bg-forest-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
-            Record Your First Message &mdash; From $5
+            Record Your First Message &mdash; From $2
           </Link>
           <p className="mt-10 text-sm text-warm-gray">
             Are you an executor? If the account holder has passed or is unable

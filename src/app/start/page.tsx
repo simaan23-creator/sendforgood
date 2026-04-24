@@ -29,7 +29,7 @@ const CARDS = [
       "Send written letters, voice messages, or video messages. Digital or physical. Your words, delivered forever.",
     features: [
       "Letters from $1",
-      "Audio $5, Video $10",
+      "Audio $2, Video $3",
       "Never expire",
     ],
     cta: "Send a Message",

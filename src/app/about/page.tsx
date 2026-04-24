@@ -84,7 +84,7 @@ const products = [
     name: "Memory Vault",
     description:
       "Collect messages from others. Sealed until the right moment.",
-    price: "From $5 per recording",
+    price: "From $0.25 per slot",
     href: "/vault",
   },
 ];
