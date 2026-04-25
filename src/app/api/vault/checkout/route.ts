@@ -13,13 +13,11 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits, durationTier } = body;
+  const { audioCredits, videoCredits, photoCredits } = body;
 
   const audio = Math.max(0, Math.floor(audioCredits || 0));
   const video = Math.max(0, Math.floor(videoCredits || 0));
   const photo = Math.max(0, Math.floor(photoCredits || 0));
-  const tier = durationTier === "extended" ? "extended" : "standard";
-  const multiplier = tier === "extended" ? 2 : 1;
 
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
@@ -43,7 +41,7 @@ export async function POST(request: Request) {
       currency: "usd",
       product_data: {
         name: "Memory Vault Fee",
-        description: `One-time vault creation fee (${tier === "extended" ? "11–20 year" : "up to 10 year"} vault)`,
+        description: "One-time vault creation fee",
       },
       unit_amount: 1000,
     },
@@ -58,7 +56,7 @@ export async function POST(request: Request) {
           name: "Audio Memory Credit",
           description: "One person can record a voice message for your vault",
         },
-        unit_amount: 25 * multiplier, // $0.25 standard, $0.50 extended
+        unit_amount: 25, // $0.25
       },
       quantity: audio,
     });
@@ -72,7 +70,7 @@ export async function POST(request: Request) {
           name: "Video Memory Credit",
           description: "One person can record a video message for your vault",
         },
-        unit_amount: 100 * multiplier, // $1 standard, $2 extended
+        unit_amount: 100, // $1
       },
       quantity: video,
     });
@@ -86,7 +84,7 @@ export async function POST(request: Request) {
           name: "Photo Memory Credit",
           description: "One person can upload a photo to your vault",
         },
-        unit_amount: 25 * multiplier, // $0.25 standard, $0.50 extended
+        unit_amount: 25, // $0.25
       },
       quantity: photo,
     });
@@ -103,10 +101,9 @@ export async function POST(request: Request) {
       audioCredits: String(audio),
       videoCredits: String(video),
       photoCredits: String(photo),
-      durationTier: tier,
     },
     customer_email: user.email,
-    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}&tier=${tier}`,
+    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,
     cancel_url: `${baseUrl}/vault/buy`,
   });
 

@@ -236,7 +236,7 @@ export default function WeddingPage() {
                 </span>
               </div>
               <p className="text-xs text-warm-gray italic">
-                Prices shown for vaults up to 10 years. Extended vaults (11&ndash;20 years) are double per slot.
+                Slots never expire. Use them for any vault, any seal date.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-warm-gray">
                 <li className="flex items-center gap-2">
