@@ -24,7 +24,7 @@ export default function RecordMemoryPage() {
   const supabase = createClient();
 
   const [request, setRequest] = useState<MemoryRequest | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recorderName, setRecorderName] = useState("");
   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
