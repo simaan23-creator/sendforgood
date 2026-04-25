@@ -95,9 +95,24 @@ export default function WeddingKitPage() {
     }
   }
 
-  function printTableCard() {
+  async function printTableCard() {
     const printContents = tableCardRef.current;
     if (!printContents) return;
+
+    // Convert QR image to data URL so the print window has no external dependencies
+    let qrDataUrl = qrUrl;
+    try {
+      const res = await fetch(qrUrl);
+      const blob = await res.blob();
+      qrDataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      // Fall back to external URL
+    }
+
     const w = window.open("", "", "width=800,height=600");
     if (!w) return;
     w.document.write(`
@@ -121,22 +136,15 @@ export default function WeddingKitPage() {
             <h2>Record a Video Message for ${names.replace(/'/g, "\\'")}</h2>
             <p>We are sealing these messages until our ${anniversaryLabel}.</p>
             <p>Scan the QR code to record &mdash; takes less than 2 minutes.</p>
-            <div class="qr"><img src="${qrUrl}" alt="QR Code" /></div>
+            <div class="qr"><img src="${qrDataUrl}" alt="QR Code" /></div>
             <p class="small">No app or account needed.</p>
           </div>
         </body>
       </html>
     `);
     w.document.close();
-    // Wait for QR image to load before printing
-    const img = w.document.querySelector("img");
-    if (img) {
-      img.onload = () => { w.print(); w.close(); };
-      img.onerror = () => { w.print(); w.close(); };
-    } else {
-      w.print();
-      w.close();
-    }
+    // Small delay to ensure rendering is complete
+    setTimeout(() => { w.print(); w.close(); }, 300);
   }
 
   // Template texts
