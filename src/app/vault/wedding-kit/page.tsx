@@ -11,7 +11,7 @@ export default function WeddingKitPage() {
   const supabase = createClient();
   const code = searchParams.get("code") || "";
   const vaultLink = `https://sendforgood.com/record/${code}`;
-  const qrUrl = `https://api.qrserver.com/create-qr-code/?size=300x300&data=${encodeURIComponent(vaultLink)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(vaultLink)}`;
 
   const [coupleNames, setCoupleNames] = useState("");
   const [anniversaryYears, setAnniversaryYears] = useState("");
@@ -79,12 +79,20 @@ export default function WeddingKitPage() {
     setTimeout(() => setLinkCopied(false), 2000);
   }
 
-  function downloadQr() {
-    const a = document.createElement("a");
-    a.href = qrUrl;
-    a.download = "wedding-vault-qr.png";
-    a.target = "_blank";
-    a.click();
+  async function downloadQr() {
+    try {
+      const res = await fetch(qrUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "wedding-vault-qr.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open in new tab so user can right-click save
+      window.open(qrUrl, "_blank");
+    }
   }
 
   function printTableCard() {
