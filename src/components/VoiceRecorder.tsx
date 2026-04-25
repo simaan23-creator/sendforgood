@@ -111,23 +111,39 @@ export default function VoiceRecorder({
 
   const startRecording = useCallback(async () => {
     setError(null);
+
+    // Check if MediaRecorder is available
+    if (typeof MediaRecorder === "undefined") {
+      setError("Your browser does not support recording. Please try using a recent version of Safari, Chrome, or Firefox.");
+      return;
+    }
+
     try {
       let stream: MediaStream;
 
       if (format === "video") {
-        // Try HD first, fall back to basic video if device rejects constraints
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: { facingMode: facingModeRef.current, width: { ideal: 1920 }, height: { ideal: 1080 } },
-          });
-        } catch {
-          // Fallback: let the device pick its own resolution
-          stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: { facingMode: facingModeRef.current },
-          });
+        // Try progressively simpler constraints until one works
+        const constraintAttempts: MediaStreamConstraints[] = [
+          { audio: true, video: { facingMode: facingModeRef.current, width: { ideal: 1920 }, height: { ideal: 1080 } } },
+          { audio: true, video: { facingMode: facingModeRef.current } },
+          { audio: true, video: true },
+        ];
+
+        let lastErr: unknown;
+        stream = null as unknown as MediaStream;
+        for (const constraints of constraintAttempts) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            break;
+          } catch (e) {
+            lastErr = e;
+            // If it's a permission error, don't retry with simpler constraints
+            if (e instanceof DOMException && (e.name === "NotAllowedError" || e.name === "PermissionDeniedError")) {
+              throw e;
+            }
+          }
         }
+        if (!stream) throw lastErr;
       } else {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
@@ -135,34 +151,20 @@ export default function VoiceRecorder({
       streamRef.current = stream;
 
       // Pick the best supported mime type (iOS Safari uses MP4, others use WebM)
-      let mimeType: string;
+      const recorderOptions: MediaRecorderOptions = {};
       if (format === "video") {
-        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")) {
-          mimeType = "video/webm;codecs=vp9,opus";
-        } else if (MediaRecorder.isTypeSupported("video/webm")) {
-          mimeType = "video/webm";
-        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
-          mimeType = "video/mp4";
-        } else {
-          mimeType = "";
+        const videoTypes = ["video/webm;codecs=vp9,opus", "video/webm", "video/mp4;codecs=h264,aac", "video/mp4"];
+        for (const t of videoTypes) {
+          if (MediaRecorder.isTypeSupported(t)) { recorderOptions.mimeType = t; break; }
         }
+        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps HD
       } else {
-        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-          mimeType = "audio/webm;codecs=opus";
-        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
-          mimeType = "audio/webm";
-        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          mimeType = "audio/mp4";
-        } else {
-          mimeType = "";
+        const audioTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"];
+        for (const t of audioTypes) {
+          if (MediaRecorder.isTypeSupported(t)) { recorderOptions.mimeType = t; break; }
         }
       }
 
-      const recorderOptions: MediaRecorderOptions = {};
-      if (mimeType) recorderOptions.mimeType = mimeType;
-      if (format === "video") {
-        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps HD
-      }
       const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
@@ -192,12 +194,21 @@ export default function VoiceRecorder({
       setIsPaused(false);
       setMediaUrl(null);
       startTimer();
-    } catch {
-      setError(
-        format === "video"
-          ? "Camera and microphone access are required for video messages. Please allow access and try again."
-          : "Microphone access is required to record a voice message. Please allow microphone access and try again."
-      );
+    } catch (err) {
+      // Give a specific message based on the error type
+      if (err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")) {
+        setError(
+          format === "video"
+            ? "Camera and microphone access were denied. On iPhone, go to Settings > Safari > Camera & Microphone Access to re-enable, then reload this page."
+            : "Microphone access was denied. On iPhone, go to Settings > Safari > Microphone Access to re-enable, then reload this page."
+        );
+      } else {
+        setError(
+          format === "video"
+            ? "Could not start video recording. Please make sure no other app is using your camera, then reload the page and try again."
+            : "Could not start audio recording. Please make sure no other app is using your microphone, then reload the page and try again."
+        );
+      }
     }
   }, [startTimer, format]);
 
