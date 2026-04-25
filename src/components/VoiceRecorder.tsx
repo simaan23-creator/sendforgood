@@ -17,7 +17,7 @@ interface VoiceRecorderProps {
 export default function VoiceRecorder({
   onRecordingComplete,
   onFormatChange,
-  maxDurationSeconds = 300,
+  maxDurationSeconds = 120,
   defaultFormat = "audio",
   showFormatToggle = true,
   disableAudio = false,
@@ -112,7 +112,7 @@ export default function VoiceRecorder({
     try {
       const constraints: MediaStreamConstraints =
         format === "video"
-          ? { audio: true, video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } }
+          ? { audio: true, video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } }
           : { audio: true };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -129,7 +129,7 @@ export default function VoiceRecorder({
 
       const recorderOptions: MediaRecorderOptions = { mimeType };
       if (format === "video") {
-        recorderOptions.videoBitsPerSecond = 1_000_000; // 1 Mbps — keeps 5-min video ~37 MB
+        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps — 1080p HD, ~60 MB for 2 min
       }
       const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;

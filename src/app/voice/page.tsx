@@ -74,7 +74,7 @@ const FAQ = [
   {
     question: "How long can my recording be?",
     answer:
-      "Both audio and video messages can be up to 5 minutes long. We find that the most meaningful messages are often just 1\u20132 minutes of heartfelt words.",
+      "Both audio and video messages can be up to 2 minutes long \u2014 recorded in full HD (1080p). We find that the most meaningful messages are often just 30\u201360 seconds of heartfelt words.",
   },
   {
     question: "What\u2019s the difference between audio and video?",
@@ -158,7 +158,7 @@ export default function VoiceMessagesPage() {
               </div>
               <ul className="mt-8 space-y-3">
                 {[
-                  "Record up to 5 minutes",
+                  "Record up to 2 minutes",
                   "Delivered by email on the scheduled date",
                   "Secure, private listening link",
                   "Annual or milestone delivery",
@@ -201,7 +201,7 @@ export default function VoiceMessagesPage() {
               </div>
               <ul className="mt-8 space-y-3">
                 {[
-                  "Record up to 5 minutes of video",
+                  "Record up to 2 minutes of video in HD",
                   "Your face and voice, delivered together",
                   "Secure, private viewing link",
                   "Annual or milestone delivery",

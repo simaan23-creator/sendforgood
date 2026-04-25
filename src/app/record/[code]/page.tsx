@@ -425,7 +425,7 @@ export default function RecordMemoryPage() {
             <VoiceRecorder
               onRecordingComplete={handleRecordingComplete}
               onFormatChange={(f) => setMediaFormat(f)}
-              maxDurationSeconds={300}
+              maxDurationSeconds={120}
               defaultFormat={defaultFormat as MediaFormat}
               disableAudio={!canRecordAudio}
               disableVideo={!canRecordVideo}

@@ -82,7 +82,7 @@ const FAQS = [
   },
   {
     q: "How long can each message be?",
-    a: "Up to 5 minutes per recording.",
+    a: "Up to 2 minutes per recording — recorded in full HD (1080p).",
   },
   {
     q: "Can guests upload photos too?",
