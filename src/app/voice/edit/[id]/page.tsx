@@ -111,15 +111,15 @@ export default function EditVoiceMessagePage() {
     setUploading(true);
     try {
       const supabase = createClient();
-      const ext = message.message_format === "video" ? "webm" : "webm";
+      const isMP4 = recordingBlob.type.includes("mp4");
+      const ext = isMP4 ? "mp4" : "webm";
       const path = `${message.id}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("voice-messages")
         .upload(path, recordingBlob, {
           upsert: true,
-          contentType:
-            message.message_format === "video" ? "video/webm" : "audio/webm",
+          contentType: recordingBlob.type || (message.message_format === "video" ? "video/webm" : "audio/webm"),
         });
 
       if (uploadError) throw uploadError;

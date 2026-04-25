@@ -112,37 +112,70 @@ export default function VoiceRecorder({
   const startRecording = useCallback(async () => {
     setError(null);
     try {
-      const constraints: MediaStreamConstraints =
-        format === "video"
-          ? { audio: true, video: { facingMode: facingModeRef.current, width: { ideal: 1920 }, height: { ideal: 1080 } } }
-          : { audio: true };
+      let stream: MediaStream;
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (format === "video") {
+        // Try HD first, fall back to basic video if device rejects constraints
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: { facingMode: facingModeRef.current, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          });
+        } catch {
+          // Fallback: let the device pick its own resolution
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: { facingMode: facingModeRef.current },
+          });
+        }
+      } else {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
       streamRef.current = stream;
 
-      const mimeType =
-        format === "video"
-          ? MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
-            ? "video/webm;codecs=vp9,opus"
-            : "video/webm"
-          : MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-            ? "audio/webm;codecs=opus"
-            : "audio/webm";
-
-      const recorderOptions: MediaRecorderOptions = { mimeType };
+      // Pick the best supported mime type (iOS Safari uses MP4, others use WebM)
+      let mimeType: string;
       if (format === "video") {
-        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps — 1080p HD, ~60 MB for 2 min
+        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")) {
+          mimeType = "video/webm;codecs=vp9,opus";
+        } else if (MediaRecorder.isTypeSupported("video/webm")) {
+          mimeType = "video/webm";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          mimeType = "video/mp4";
+        } else {
+          mimeType = "";
+        }
+      } else {
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        } else {
+          mimeType = "";
+        }
+      }
+
+      const recorderOptions: MediaRecorderOptions = {};
+      if (mimeType) recorderOptions.mimeType = mimeType;
+      if (format === "video") {
+        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps HD
       }
       const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
+
+      // Use the actual mimeType the recorder chose (may differ from requested)
+      const actualMimeType = recorder.mimeType;
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const blob = new Blob(chunksRef.current, { type: actualMimeType });
         const url = URL.createObjectURL(blob);
         setMediaUrl(url);
         onCompleteRef.current(blob, elapsedRef.current);

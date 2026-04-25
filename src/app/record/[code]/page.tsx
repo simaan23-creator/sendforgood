@@ -114,8 +114,9 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
-      const ext = mediaFormat === "video" ? "webm" : "webm";
-      const contentType = mediaFormat === "video" ? "video/webm" : "audio/webm";
+      const isMP4 = mediaBlob.type.includes("mp4");
+      const ext = isMP4 ? "mp4" : "webm";
+      const contentType = mediaBlob.type || (mediaFormat === "video" ? "video/webm" : "audio/webm");
       const fileName = `${code}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
