@@ -225,6 +225,7 @@ export default function ContributePage() {
                 <VoiceRecorder
                   defaultFormat={request.format as "audio" | "video"}
                   showFormatToggle={false}
+                  maxDurationSeconds={120}
                   onRecordingComplete={(blob) => setRecordingBlob(blob)}
                 />
               </div>

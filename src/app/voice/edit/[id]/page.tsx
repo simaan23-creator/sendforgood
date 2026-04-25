@@ -289,6 +289,7 @@ export default function EditVoiceMessagePage() {
                 onRecordingComplete={handleRecordingComplete}
                 defaultFormat={message.message_format}
                 showFormatToggle={false}
+                maxDurationSeconds={300}
                 disableAudio={message.message_format === "video"}
                 disableVideo={message.message_format === "audio"}
               />

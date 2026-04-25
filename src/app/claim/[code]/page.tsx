@@ -181,7 +181,7 @@ function GiftInstructions({ gift }: { gift: GiftedItem }) {
           </NumberedStep>
           <NumberedStep number={2}>
             Click <span className="font-semibold">Record Message</span> to
-            record your {formatLabel} (up to 2 minutes).
+            record your {formatLabel} (up to 5 minutes).
           </NumberedStep>
           <NumberedStep number={3}>
             Set who it is for and when it should be delivered — a birthday,

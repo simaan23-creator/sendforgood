@@ -193,7 +193,7 @@ export default function PricingPage() {
                 <span className="text-sm text-warm-gray"> per message</span>
               </p>
               <p className="mt-3 text-sm leading-relaxed text-warm-gray">
-                Your voice, delivered by email. Up to 2 minutes per message.
+                Your voice, delivered by email. Up to 5 minutes per message.
               </p>
               <Link
                 href="/messages/buy"
