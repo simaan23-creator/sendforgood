@@ -464,7 +464,7 @@ export default function RecordMemoryPage() {
                 <span className="mt-2 text-sm font-medium text-navy">
                   {selectedPhotos.length > 0
                     ? `${selectedPhotos.length} photo${selectedPhotos.length > 1 ? "s" : ""} selected`
-                    : "Tap to choose a photo"}
+                    : "Tap to take or choose a photo"}
                 </span>
                 <span className="mt-1 text-xs text-warm-gray">
                   JPG, PNG, HEIC &mdash; max 10MB
@@ -472,7 +472,6 @@ export default function RecordMemoryPage() {
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   multiple
                   onChange={handlePhotoSelect}
                   className="hidden"
