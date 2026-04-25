@@ -5,6 +5,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -63,6 +64,7 @@ export default async function RootLayout({
         `}</Script>
       </head>
       <body className={isAdmin ? "" : "min-h-screen flex flex-col"}>
+        <ScrollToTop />
         {!isAdmin && <Header />}
         {isAdmin ? children : <main className="flex-1">{children}</main>}
         {!isAdmin && <Footer />}
