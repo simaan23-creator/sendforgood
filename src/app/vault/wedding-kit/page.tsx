@@ -95,10 +95,71 @@ export default function WeddingKitPage() {
     }
   }
 
-  function printTableCard() {
-    document.body.classList.add("printing-table-card");
-    window.print();
-    document.body.classList.remove("printing-table-card");
+  async function printTableCard() {
+    // Fetch QR as data URL so the iframe has no external dependencies
+    let qrDataUrl = qrUrl;
+    try {
+      const res = await fetch(qrUrl);
+      const blob = await res.blob();
+      qrDataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      // Fall back to external URL
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.left = "-9999px";
+    iframe.style.top = "-9999px";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) return;
+
+    doc.open();
+    doc.write(`
+      <html>
+        <head>
+          <style>
+            @page { margin: 0.5in; }
+            body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; }
+            .card { width: 5in; padding: 1in 0.75in; border: 3px solid #C8A962; border-radius: 12px; text-align: center; font-family: Georgia, serif; }
+            .card .emoji { font-size: 48px; }
+            .card h2 { font-size: 22px; color: #1B2A4A; margin: 16px 0 8px; }
+            .card p { font-size: 14px; color: #555; margin: 8px 0; line-height: 1.5; }
+            .card .qr { margin: 20px auto; }
+            .card .qr img { width: 200px; height: 200px; }
+            .card .small { font-size: 12px; color: #888; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="emoji">\uD83C\uDFAC</div>
+            <h2>Record a Video Message for ${names.replace(/"/g, "&quot;").replace(/'/g, "&#39;")}</h2>
+            <p>We are sealing these messages until our ${anniversaryLabel}.</p>
+            <p>Scan the QR code to record &mdash; takes less than 2 minutes.</p>
+            <div class="qr"><img src="${qrDataUrl}" alt="QR Code" /></div>
+            <p class="small">No app or account needed.</p>
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    // Wait for content to render, then print
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      }, 300);
+    };
+    // Trigger load for data URL content
+    iframe.contentWindow?.dispatchEvent(new Event("load"));
   }
 
   // Template texts
@@ -255,7 +316,6 @@ No account needed. Takes less than 2 minutes.
         <Section title="Printable Table Card">
           <div
             ref={tableCardRef}
-            id="print-table-card"
             className="mx-auto max-w-sm rounded-xl border-[3px] border-gold bg-white px-8 py-10 text-center"
           >
             <p className="text-5xl">{"\uD83C\uDFAC"}</p>

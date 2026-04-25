@@ -24,27 +24,3 @@
     @apply bg-gold/30;
   }
 }
-
-/* Print styles for wedding table card */
-@media print {
-  body.printing-table-card * {
-    visibility: hidden !important;
-  }
-  body.printing-table-card #print-table-card,
-  body.printing-table-card #print-table-card * {
-    visibility: visible !important;
-  }
-  body.printing-table-card #print-table-card {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 5in;
-    padding: 1in 0.75in;
-    border: 3px solid #C8A962 !important;
-    border-radius: 12px;
-    background: #fff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
