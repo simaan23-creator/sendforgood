@@ -236,36 +236,12 @@ export default function VoiceRecorder({
     chunksRef.current = [];
   }, [mediaUrl]);
 
-  const switchCamera = useCallback(async () => {
+  const switchCamera = useCallback(() => {
     const newMode = facingModeRef.current === "user" ? "environment" : "user";
     facingModeRef.current = newMode;
     setFacingMode(newMode);
     setMirrored(newMode === "user");
-
-    // If recording, swap the video track on the live stream
-    if (isRecording && streamRef.current) {
-      try {
-        const newStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: newMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        });
-        const newVideoTrack = newStream.getVideoTracks()[0];
-        const oldVideoTrack = streamRef.current.getVideoTracks()[0];
-        if (oldVideoTrack) {
-          streamRef.current.removeTrack(oldVideoTrack);
-          oldVideoTrack.stop();
-        }
-        streamRef.current.addTrack(newVideoTrack);
-        if (videoPreviewRef.current) {
-          videoPreviewRef.current.srcObject = streamRef.current;
-        }
-      } catch {
-        // Camera switch failed — revert
-        facingModeRef.current = newMode === "user" ? "environment" : "user";
-        setFacingMode(facingModeRef.current);
-        setMirrored(facingModeRef.current === "user");
-      }
-    }
-  }, [isRecording]);
+  }, []);
 
   function formatTime(seconds: number): string {
     const m = Math.floor(seconds / 60);
@@ -347,31 +323,17 @@ export default function VoiceRecorder({
             <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
             Video
           </span>
-          <div className="absolute right-3 top-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={switchCamera}
-              className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-black/70"
-              title="Switch camera"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
-                <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
-                <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3H4.5a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM12 17.25a5.25 5.25 0 1 0 0-10.5 5.25 5.25 0 0 0 0 10.5Z" clipRule="evenodd" />
-              </svg>
-              Flip
-            </button>
-            <button
-              type="button"
-              onClick={() => setMirrored((m) => !m)}
-              className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-black/70"
-              title={mirrored ? "Un-mirror preview" : "Mirror preview"}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-                <path fillRule="evenodd" d="M13.2 2.24a.75.75 0 0 0 .04 1.06l2.1 1.95H6.75a.75.75 0 0 0 0 1.5h8.59l-2.1 1.95a.75.75 0 1 0 1.02 1.1l3.5-3.25a.75.75 0 0 0 0-1.1l-3.5-3.25a.75.75 0 0 0-1.06.04Zm-6.4 8a.75.75 0 0 0-1.06-.04l-3.5 3.25a.75.75 0 0 0 0 1.1l3.5 3.25a.75.75 0 1 0 1.02-1.1l-2.1-1.95h8.59a.75.75 0 0 0 0-1.5H4.66l2.1-1.95a.75.75 0 0 0 .04-1.06Z" clipRule="evenodd" />
-              </svg>
-              {mirrored ? "Mirrored" : "Normal"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMirrored((m) => !m)}
+            className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-black/70"
+            title={mirrored ? "Un-mirror preview" : "Mirror preview"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+              <path fillRule="evenodd" d="M13.2 2.24a.75.75 0 0 0 .04 1.06l2.1 1.95H6.75a.75.75 0 0 0 0 1.5h8.59l-2.1 1.95a.75.75 0 1 0 1.02 1.1l3.5-3.25a.75.75 0 0 0 0-1.1l-3.5-3.25a.75.75 0 0 0-1.06.04Zm-6.4 8a.75.75 0 0 0-1.06-.04l-3.5 3.25a.75.75 0 0 0 0 1.1l3.5 3.25a.75.75 0 1 0 1.02-1.1l-2.1-1.95h8.59a.75.75 0 0 0 0-1.5H4.66l2.1-1.95a.75.75 0 0 0 .04-1.06Z" clipRule="evenodd" />
+            </svg>
+            {mirrored ? "Mirrored" : "Normal"}
+          </button>
         </div>
       )}
 
@@ -480,7 +442,7 @@ export default function VoiceRecorder({
               )}
             </div>
             {format === "video" ? (
-              <video controls src={mediaUrl} className="w-full rounded-lg" />
+              <video controls playsInline src={mediaUrl} className="w-full rounded-lg" />
             ) : (
               <audio controls src={mediaUrl} className="w-full" />
             )}
