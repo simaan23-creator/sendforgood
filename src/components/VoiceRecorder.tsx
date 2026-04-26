@@ -341,7 +341,7 @@ export default function VoiceRecorder({
             ref={videoPreviewRef}
             muted
             playsInline
-            className="mx-auto aspect-video w-full max-w-md object-cover"
+            className="mx-auto w-full rounded-xl"
             style={mirrored ? { transform: "scaleX(-1)" } : undefined}
           />
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-2.5 py-1 text-xs font-bold text-white">
