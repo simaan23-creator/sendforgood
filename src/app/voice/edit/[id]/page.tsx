@@ -296,6 +296,7 @@ export default function EditVoiceMessagePage() {
                 defaultFormat={message.message_format}
                 showFormatToggle={false}
                 maxDurationSeconds={300}
+                videoBitrate={2_500_000}
                 disableAudio={message.message_format === "video"}
                 disableVideo={message.message_format === "audio"}
               />

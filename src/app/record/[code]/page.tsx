@@ -126,6 +126,9 @@ export default function RecordMemoryPage() {
       }
 
       // Step 2: Upload directly to Supabase storage via signed URL
+      const sizeMB = (mediaBlob.size / (1024 * 1024)).toFixed(1);
+      console.log(`Uploading ${sizeMB}MB ${urlData.contentType} to storage...`);
+
       const uploadRes = await fetch(urlData.signedUrl, {
         method: "PUT",
         headers: { "Content-Type": urlData.contentType },
@@ -133,7 +136,9 @@ export default function RecordMemoryPage() {
       });
 
       if (!uploadRes.ok) {
-        throw new Error("Failed to upload recording. Please try again.");
+        const errText = await uploadRes.text().catch(() => "");
+        console.error(`Upload failed: ${uploadRes.status} ${errText}`);
+        throw new Error(`Upload failed (${sizeMB}MB, status ${uploadRes.status}). Please try again.`);
       }
 
       // Step 3: Submit metadata to the API
@@ -455,7 +460,7 @@ export default function RecordMemoryPage() {
                   disabled={submitting}
                   className="w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Submitting..." : "Submit Recording"}
+                  {submitting ? "Uploading... please wait" : "Submit Recording"}
                 </button>
               </div>
             )}

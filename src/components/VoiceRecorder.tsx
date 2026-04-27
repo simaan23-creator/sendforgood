@@ -12,6 +12,7 @@ interface VoiceRecorderProps {
   showFormatToggle?: boolean;
   disableAudio?: boolean;
   disableVideo?: boolean;
+  videoBitrate?: number;
 }
 
 export default function VoiceRecorder({
@@ -22,6 +23,7 @@ export default function VoiceRecorder({
   showFormatToggle = true,
   disableAudio = false,
   disableVideo = false,
+  videoBitrate = 1_500_000,
 }: VoiceRecorderProps) {
   const [format, setFormat] = useState<MediaFormat>(defaultFormat);
   const [isRecording, setIsRecording] = useState(false);
@@ -158,7 +160,7 @@ export default function VoiceRecorder({
         for (const t of videoTypes) {
           if (MediaRecorder.isTypeSupported(t)) { recorderOptions.mimeType = t; break; }
         }
-        recorderOptions.videoBitsPerSecond = 4_000_000; // 4 Mbps HD
+        recorderOptions.videoBitsPerSecond = videoBitrate;
       } else {
         const audioTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"];
         for (const t of audioTypes) {
