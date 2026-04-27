@@ -2109,13 +2109,274 @@ function GiftAssignmentsTab() {
   );
 }
 
+// ─── Gift Vaults Tab ────────────────────────────────────────────────────────
+
+interface AdminVaultGift {
+  id: string;
+  recipient_name: string;
+  recipient_email: string;
+  audio_credits: number;
+  video_credits: number;
+  photo_credits: number;
+  message: string | null;
+  claim_code: string;
+  status: string;
+  claimed_at: string | null;
+  created_at: string;
+}
+
+function GiftVaultsTab() {
+  const [gifts, setGifts] = useState<AdminVaultGift[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  // Form fields
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [audioCredits, setAudioCredits] = useState(5);
+  const [videoCredits, setVideoCredits] = useState(5);
+  const [photoCredits, setPhotoCredits] = useState(10);
+  const [message, setMessage] = useState("");
+
+  const fetchGifts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/gift-vaults", {
+        headers: { "x-admin-password": ADMIN_PASSWORD },
+      });
+      const data = await res.json();
+      if (data.gifts) setGifts(data.gifts);
+    } catch {
+      // silently fail
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchGifts();
+  }, [fetchGifts]);
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSending(true);
+    setSent(false);
+
+    try {
+      const res = await fetch("/api/admin/gift-vaults", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": ADMIN_PASSWORD,
+        },
+        body: JSON.stringify({
+          recipientName,
+          recipientEmail,
+          audioCredits,
+          videoCredits,
+          photoCredits,
+          message: message || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to send gift");
+      }
+
+      setSent(true);
+      setRecipientName("");
+      setRecipientEmail("");
+      setAudioCredits(5);
+      setVideoCredits(5);
+      setPhotoCredits(10);
+      setMessage("");
+      fetchGifts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Send Gift Form */}
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Send a Vault Gift</h2>
+        <form onSubmit={handleSend} className="bg-gray-50 rounded-lg p-4 space-y-4 max-w-lg">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Recipient Name</label>
+              <input
+                type="text"
+                required
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="Jane & John"
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Recipient Email</label>
+              <input
+                type="email"
+                required
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="jane@example.com"
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Audio Credits</label>
+              <input
+                type="number"
+                min={0}
+                value={audioCredits}
+                onChange={(e) => setAudioCredits(Math.max(0, parseInt(e.target.value) || 0))}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Video Credits</label>
+              <input
+                type="number"
+                min={0}
+                value={videoCredits}
+                onChange={(e) => setVideoCredits(Math.max(0, parseInt(e.target.value) || 0))}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Photo Credits</label>
+              <input
+                type="number"
+                min={0}
+                value={photoCredits}
+                onChange={(e) => setPhotoCredits(Math.max(0, parseInt(e.target.value) || 0))}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Personal Message <span className="text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Congratulations on your wedding!"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {sent && (
+            <div className="rounded bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
+              Gift sent successfully! The recipient will receive an email with a claim link.
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={sending}
+            className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50 transition"
+          >
+            {sending ? "Sending..." : "Send Gift"}
+          </button>
+        </form>
+      </div>
+
+      {/* Gift History */}
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Gift History</h2>
+        {loading ? (
+          <p className="text-gray-400 text-sm">Loading...</p>
+        ) : gifts.length === 0 ? (
+          <p className="text-gray-400 text-sm">No gifts sent yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
+                <th className="pb-2 pr-4">Recipient</th>
+                <th className="pb-2 pr-4">Credits</th>
+                <th className="pb-2 pr-4">Status</th>
+                <th className="pb-2 pr-4">Sent</th>
+                <th className="pb-2">Claim Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gifts.map((gift) => {
+                const parts = [];
+                if (gift.audio_credits > 0) parts.push(`${gift.audio_credits}A`);
+                if (gift.video_credits > 0) parts.push(`${gift.video_credits}V`);
+                if (gift.photo_credits > 0) parts.push(`${gift.photo_credits}P`);
+
+                return (
+                  <tr key={gift.id} className="border-b border-gray-100">
+                    <td className="py-2.5 pr-4">
+                      <div className="font-medium text-gray-900">{gift.recipient_name}</div>
+                      <div className="text-xs text-gray-400">{gift.recipient_email}</div>
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-600">{parts.join(" / ")}</td>
+                    <td className="py-2.5 pr-4">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                          gift.status === "claimed"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {capitalize(gift.status)}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-400">
+                      {new Date(gift.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="py-2.5">
+                      <button
+                        onClick={() => {
+                          const url = `${window.location.origin}/claim/vault/${gift.claim_code}`;
+                          navigator.clipboard.writeText(url);
+                        }}
+                        className="text-xs text-gray-400 hover:text-gray-600 underline"
+                      >
+                        Copy link
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [tab, setTab] = useState<
-    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments"
+    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments" | "gift-vaults"
   >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -2261,6 +2522,16 @@ export default function AdminDashboard() {
               >
                 Gift Assignments
               </button>
+              <button
+                onClick={() => setTab("gift-vaults")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "gift-vaults"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Gift Vaults
+              </button>
             </div>
 
             {/* Content */}
@@ -2281,6 +2552,8 @@ export default function AdminDashboard() {
                 <AffiliatesTab />
               ) : tab === "gift-assignments" ? (
                 <GiftAssignmentsTab />
+              ) : tab === "gift-vaults" ? (
+                <GiftVaultsTab />
               ) : (
                 <OrdersTab />
               )}

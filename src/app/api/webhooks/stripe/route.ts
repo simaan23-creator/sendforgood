@@ -35,7 +35,9 @@ export async function POST(request: Request) {
 
     try {
       // Check order type
-      if (metadata.isVaultOrder === "true") {
+      if (metadata.isVaultFee === "true") {
+        await handleVaultFeeOrder(session, metadata);
+      } else if (metadata.isVaultOrder === "true") {
         await handleVaultCreditOrder(session, metadata);
       } else if (metadata.isVoiceMessageOrder === "true") {
         await handleVoiceMessageOrder(session, metadata);
@@ -1762,6 +1764,13 @@ async function handleVaultCreditOrder(
 
   if (creditError) throw creditError;
 
+  // Insert vault fee record (each credit purchase includes a $10 vault fee)
+  await supabaseAdmin.from("vault_fees").insert({
+    user_id: userId,
+    source: "purchase",
+    source_id: session.payment_intent as string,
+  });
+
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 
@@ -1827,6 +1836,45 @@ async function handleVaultCreditOrder(
 /* ═══════════════════════════════════════════════════════════════════════════
    Affiliate Referral Processing
    ═══════════════════════════════════════════════════════════════════════════ */
+
+async function handleVaultFeeOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  const userId = metadata.userId;
+
+  const { error } = await supabaseAdmin.from("vault_fees").insert({
+    user_id: userId,
+    source: "purchase",
+    source_id: session.payment_intent as string,
+  });
+
+  if (error) throw error;
+
+  // Send confirmation email
+  const customerEmail = session.customer_email || metadata.email;
+  if (customerEmail) {
+    try {
+      await resend.emails.send({
+        from: "SendForGood <noreply@sendforgood.com>",
+        to: customerEmail,
+        subject: "Your vault creation fee is confirmed!",
+        html: `
+          <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
+            <h1 style="color: #1a2744;">Vault fee confirmed!</h1>
+            <p>Your $10 vault creation fee has been processed. You can now create a new Memory Vault.</p>
+            <p style="margin-top: 24px;">
+              <a href="https://sendforgood.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
+            </p>
+            <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send vault fee confirmation email:", emailError);
+    }
+  }
+}
 
 async function processAffiliateReferral(
   session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null; id?: string },

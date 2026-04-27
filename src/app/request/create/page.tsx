@@ -48,6 +48,11 @@ export default function CreateMemoryRequestPage() {
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [loadingCredits, setLoadingCredits] = useState(false);
 
+  // Vault fee
+  const [hasFee, setHasFee] = useState(false);
+  const [loadingFee, setLoadingFee] = useState(true);
+  const [payingFee, setPayingFee] = useState(false);
+
   // Success state
   const [createdRequest, setCreatedRequest] = useState<{
     unique_code: string;
@@ -64,17 +69,23 @@ export default function CreateMemoryRequestPage() {
       }
       setLoading(false);
 
-      // Fetch credit balance
-      try {
-        const res = await fetch("/api/vault/credits");
-        if (res.ok) {
-          const data = await res.json();
-          setCredits(data);
-        }
-      } catch {
-        // silently fail
+      // Fetch credit balance and vault fee status in parallel
+      const [creditsRes, feeRes] = await Promise.all([
+        fetch("/api/vault/credits").catch(() => null),
+        fetch("/api/vault/fee-status").catch(() => null),
+      ]);
+
+      if (creditsRes?.ok) {
+        const data = await creditsRes.json();
+        setCredits(data);
       }
       setLoadingCredits(false);
+
+      if (feeRes?.ok) {
+        const data = await feeRes.json();
+        setHasFee(data.hasFee);
+      }
+      setLoadingFee(false);
     }
     checkAuth();
   }, [supabase, router]);
@@ -87,6 +98,23 @@ export default function CreateMemoryRequestPage() {
     : 0;
   const availablePhoto = credits ? credits.photoCredits : 0;
   const hasCredits = availableAudio > 0 || availableVideo > 0 || availablePhoto > 0;
+
+  async function handlePayFee() {
+    setPayingFee(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/vault/fee-checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || "Failed to start checkout");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setPayingFee(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -164,6 +192,10 @@ export default function CreateMemoryRequestPage() {
 
       if (!res.ok) {
         const data = await res.json();
+        if (data.needsFee) {
+          setHasFee(false);
+          throw new Error("Vault creation requires a $10 fee. Please pay the fee first.");
+        }
         throw new Error(data.error || "Failed to create request");
       }
 
@@ -364,6 +396,25 @@ export default function CreateMemoryRequestPage() {
             >
               Buy more credits
             </Link>
+          </div>
+        )}
+
+        {/* Vault fee gate */}
+        {!loadingFee && !hasFee && hasCredits && (
+          <div className="mb-6 rounded-xl border border-gold/30 bg-gold/5 p-6 text-center">
+            <p className="text-navy font-medium">
+              Vault creation fee required
+            </p>
+            <p className="mt-1 text-sm text-warm-gray">
+              Each vault requires a one-time $10 creation fee.
+            </p>
+            <button
+              onClick={handlePayFee}
+              disabled={payingFee}
+              className="mt-4 inline-flex items-center rounded-lg bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition hover:bg-navy-light disabled:opacity-60"
+            >
+              {payingFee ? "Redirecting..." : "Pay $10 Vault Fee"}
+            </button>
           </div>
         )}
 
@@ -615,7 +666,7 @@ export default function CreateMemoryRequestPage() {
 
           <button
             type="submit"
-            disabled={submitting || !hasCredits}
+            disabled={submitting || !hasCredits || !hasFee}
             className="w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Creating..." : "Create Vault"}

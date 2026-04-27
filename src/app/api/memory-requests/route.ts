@@ -48,6 +48,29 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check for unused vault fee ($10)
+  const { data: vaultFee } = await supabaseAdmin
+    .from("vault_fees")
+    .select("id")
+    .eq("user_id", user.id)
+    .is("used_at", null)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single();
+
+  if (!vaultFee) {
+    return NextResponse.json(
+      { error: "Vault creation requires a $10 fee", needsFee: true },
+      { status: 403 }
+    );
+  }
+
+  // Mark vault fee as used
+  await supabaseAdmin
+    .from("vault_fees")
+    .update({ used_at: new Date().toISOString() })
+    .eq("id", vaultFee.id);
+
   const { data, error } = await supabaseAdmin
     .from("memory_requests")
     .insert({
