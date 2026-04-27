@@ -1764,12 +1764,14 @@ async function handleVaultCreditOrder(
 
   if (creditError) throw creditError;
 
-  // Insert vault fee record (each credit purchase includes a $10 vault fee)
-  await supabaseAdmin.from("vault_fees").insert({
+  // Insert vault fee records
+  const vaultFeeQty = parseInt(metadata.vaultFeeQty) || 1;
+  const vaultFeeRows = Array.from({ length: vaultFeeQty }, () => ({
     user_id: userId,
     source: "purchase",
     source_id: session.payment_intent as string,
-  });
+  }));
+  await supabaseAdmin.from("vault_fees").insert(vaultFeeRows);
 
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;

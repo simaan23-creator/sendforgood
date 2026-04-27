@@ -213,7 +213,7 @@ export default function DashboardPage() {
   const [memoryRequests, setMemoryRequests] = useState<MemoryRequest[]>([]);
   const [requestsByItemId, setRequestsByItemId] = useState<Record<string, ReceivedMessage[]>>({});
   const [giftedItemsMap, setGiftedItemsMap] = useState<Record<string, GiftedItem>>({});
-  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; photoCredits: number; audioUsed: number; videoUsed: number; audioFromVMs: number; videoFromVMs: number; audioFromPurchased: number; videoFromPurchased: number} | null>(null);
+  const [vaultCredits, setVaultCredits] = useState<{audioCredits: number; videoCredits: number; photoCredits: number; audioUsed: number; videoUsed: number; audioFromVMs: number; videoFromVMs: number; audioFromPurchased: number; videoFromPurchased: number; vaultFees: number} | null>(null);
   const [giftCredits, setGiftCredits] = useState<Array<{id: string; tier: string; quantity: number; quantity_used: number; amount_paid: number; created_at: string; assignments: Array<{id: string; recipient_name: string; occasion_type: string; occasion_date: string; scheduled_year: number; status: string}>}>>([]);
   const [giftsGiven, setGiftsGiven] = useState<Array<{id: string; recipient_name: string; recipient_email: string | null; tier: string; status: string; claim_code: string; created_at: string}>>([]);
   const [phone, setPhone] = useState("");
@@ -447,8 +447,12 @@ export default function DashboardPage() {
         }
       }
 
+      // Count unused vault fees
+      const { data: vaultFeesData } = await supabase.from('vault_fees').select('id').eq('user_id', user.id).is('used_at', null);
+      const vaultFeeCount = vaultFeesData?.length || 0;
+
       // Credits are deducted at vault creation time, so no separate "used" calculation needed
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, photoCredits: purchasedPhoto, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo });
+      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, photoCredits: purchasedPhoto, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo, vaultFees: vaultFeeCount });
     } catch { /* silently fail */ }
   }, [supabase, router]);
 
@@ -1591,8 +1595,10 @@ export default function DashboardPage() {
                   const totalAudio = vaultCredits ? vaultCredits.audioCredits : 0;
                   const totalVideo = vaultCredits ? vaultCredits.videoCredits : 0;
                   const totalPhoto = vaultCredits ? vaultCredits.photoCredits : 0;
-                  if (totalAudio > 0 || totalVideo > 0 || totalPhoto > 0) {
+                  const totalFees = vaultCredits ? vaultCredits.vaultFees : 0;
+                  if (totalAudio > 0 || totalVideo > 0 || totalPhoto > 0 || totalFees > 0) {
                     const parts = [];
+                    if (totalFees > 0) parts.push(`${totalFees} vault`);
                     if (totalAudio > 0) parts.push(`${totalAudio} audio`);
                     if (totalVideo > 0) parts.push(`${totalVideo} video`);
                     if (totalPhoto > 0) parts.push(`${totalPhoto} photo`);

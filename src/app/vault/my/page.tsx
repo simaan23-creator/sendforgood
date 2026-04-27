@@ -32,6 +32,7 @@ interface CreditBalance {
   photoCredits: number;
   audioUsed: number;
   videoUsed: number;
+  vaultCredits: number;
 }
 
 export default function MyVaultsPage() {
@@ -306,6 +307,10 @@ export default function MyVaultsPage() {
           <div className="mb-8 rounded-xl border border-cream-dark bg-white p-5">
             <p className="text-sm font-medium text-navy">Credit Balance</p>
             <div className="mt-3 flex flex-wrap gap-4">
+              <div>
+                <p className="text-2xl font-bold text-navy">{credits.vaultCredits || 0}</p>
+                <p className="text-xs text-warm-gray">Vault available</p>
+              </div>
               <div>
                 <p className="text-2xl font-bold text-navy">{availableAudio}</p>
                 <p className="text-xs text-warm-gray">Audio available</p>

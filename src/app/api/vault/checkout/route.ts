@@ -13,11 +13,12 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits } = body;
+  const { audioCredits, videoCredits, photoCredits, vaultFeeQty } = body;
 
   const audio = Math.max(0, Math.floor(audioCredits || 0));
   const video = Math.max(0, Math.floor(videoCredits || 0));
   const photo = Math.max(0, Math.floor(photoCredits || 0));
+  const vaultFees = Math.max(1, Math.floor(vaultFeeQty || 1));
 
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
@@ -35,17 +36,17 @@ export async function POST(request: Request) {
     quantity: number;
   }> = [];
 
-  // Vault fee — $10 flat
+  // Vault fee — $10 each
   lineItems.push({
     price_data: {
       currency: "usd",
       product_data: {
         name: "Memory Vault Fee",
-        description: "One-time vault creation fee",
+        description: "One-time vault creation fee ($10 per vault)",
       },
       unit_amount: 1000,
     },
-    quantity: 1,
+    quantity: vaultFees,
   });
 
   if (audio > 0) {
@@ -101,6 +102,7 @@ export async function POST(request: Request) {
       audioCredits: String(audio),
       videoCredits: String(video),
       photoCredits: String(photo),
+      vaultFeeQty: String(vaultFees),
     },
     customer_email: user.email,
     success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,

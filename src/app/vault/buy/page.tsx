@@ -9,6 +9,7 @@ export default function VaultBuyPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const [vaultFeeQty, setVaultFeeQty] = useState(1);
   const [audioQty, setAudioQty] = useState(0);
   const [videoQty, setVideoQty] = useState(10);
   const [photoQty, setPhotoQty] = useState(0);
@@ -31,7 +32,8 @@ export default function VaultBuyPage() {
   }, [supabase, router]);
 
   const slotTotal = audioQty * 25 + videoQty * 100 + photoQty * 25;
-  const total = 1000 + slotTotal; // $10 vault fee + slots
+  const feeTotal = vaultFeeQty * 1000;
+  const total = feeTotal + slotTotal;
   const hasItems = audioQty > 0 || videoQty > 0 || photoQty > 0;
 
   async function handleCheckout() {
@@ -47,6 +49,7 @@ export default function VaultBuyPage() {
           audioCredits: audioQty,
           videoCredits: videoQty,
           photoCredits: photoQty,
+          vaultFeeQty,
         }),
       });
 
@@ -96,6 +99,56 @@ export default function VaultBuyPage() {
 
         {/* Credit selectors */}
         <div className="space-y-4">
+          {/* Vault fee */}
+          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{"\uD83D\uDD12"}</span>
+                  <h3 className="text-lg font-bold text-navy">
+                    Vault Credits
+                  </h3>
+                </div>
+                <p className="mt-1 text-sm text-warm-gray">
+                  Each vault credit lets you create one Memory Vault
+                </p>
+              </div>
+              <p className="text-xl font-bold text-navy">
+                $10
+                <span className="text-sm font-normal text-warm-gray">
+                  {" "}
+                  each
+                </span>
+              </p>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                onClick={() => setVaultFeeQty(Math.max(1, vaultFeeQty - 1))}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-cream-dark text-lg font-bold text-navy transition hover:bg-cream-dark"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min={1}
+                value={vaultFeeQty}
+                onChange={(e) =>
+                  setVaultFeeQty(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-20 rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-center text-lg font-bold text-navy outline-none focus:border-gold"
+              />
+              <button
+                onClick={() => setVaultFeeQty(vaultFeeQty + 1)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-cream-dark text-lg font-bold text-navy transition hover:bg-cream-dark"
+              >
+                +
+              </button>
+              <span className="ml-auto text-sm font-semibold text-navy">
+                {formatPrice(vaultFeeQty * 1000)}
+              </span>
+            </div>
+          </div>
+
           {/* Video — recommended */}
           <div className="rounded-2xl border-2 border-gold bg-white p-6 shadow-md">
             <div className="flex items-start justify-between">
@@ -265,8 +318,8 @@ export default function VaultBuyPage() {
         <div className="mt-8 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
           <div className="space-y-2 text-sm text-warm-gray">
             <div className="flex justify-between">
-              <span>Vault fee</span>
-              <span className="font-medium text-navy">$10</span>
+              <span>Vault credit{vaultFeeQty > 1 ? `s (x${vaultFeeQty})` : ""}</span>
+              <span className="font-medium text-navy">{formatPrice(feeTotal)}</span>
             </div>
             {hasItems && (
               <div className="flex justify-between">

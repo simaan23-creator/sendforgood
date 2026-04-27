@@ -8,6 +8,9 @@ create table if not exists vault_fees (
   created_at timestamptz default now()
 );
 
+alter table vault_fees enable row level security;
+create policy "Users can read own vault fees" on vault_fees for select using (auth.uid() = user_id);
+
 -- Admin vault gifts: gift packages sent by admin to friends
 create table if not exists admin_vault_gifts (
   id uuid primary key default gen_random_uuid(),

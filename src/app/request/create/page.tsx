@@ -22,6 +22,7 @@ interface CreditBalance {
   photoCredits: number;
   audioUsed: number;
   videoUsed: number;
+  vaultCredits: number;
 }
 
 export default function CreateMemoryRequestPage() {
@@ -52,6 +53,7 @@ export default function CreateMemoryRequestPage() {
   const [hasFee, setHasFee] = useState(false);
   const [loadingFee, setLoadingFee] = useState(true);
   const [payingFee, setPayingFee] = useState(false);
+  const [vaultCredits, setVaultCredits] = useState(0);
 
   // Success state
   const [createdRequest, setCreatedRequest] = useState<{
@@ -69,22 +71,20 @@ export default function CreateMemoryRequestPage() {
       }
       setLoading(false);
 
-      // Fetch credit balance and vault fee status in parallel
-      const [creditsRes, feeRes] = await Promise.all([
-        fetch("/api/vault/credits").catch(() => null),
-        fetch("/api/vault/fee-status").catch(() => null),
-      ]);
-
-      if (creditsRes?.ok) {
-        const data = await creditsRes.json();
-        setCredits(data);
+      // Fetch credit balance (includes vault fee count)
+      try {
+        const res = await fetch("/api/vault/credits");
+        if (res.ok) {
+          const data = await res.json();
+          setCredits(data);
+          const vc = data.vaultCredits || 0;
+          setVaultCredits(vc);
+          setHasFee(vc > 0);
+        }
+      } catch {
+        // silently fail
       }
       setLoadingCredits(false);
-
-      if (feeRes?.ok) {
-        const data = await feeRes.json();
-        setHasFee(data.hasFee);
-      }
       setLoadingFee(false);
     }
     checkAuth();
@@ -377,7 +377,10 @@ export default function CreateMemoryRequestPage() {
         {!loadingCredits && hasCredits && (
           <div className="mb-6 rounded-xl border border-cream-dark bg-white p-5">
             <p className="text-sm font-medium text-navy">Available credits</p>
-            <div className="mt-2 flex gap-4">
+            <div className="mt-2 flex flex-wrap gap-3">
+              <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
+                {"\uD83D\uDD12"} {vaultCredits} vault
+              </span>
               <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
                 {"\uD83C\uDFA4"} {availableAudio} audio
               </span>

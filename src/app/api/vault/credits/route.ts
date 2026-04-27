@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET() {
   const TIMEOUT_MS = 5000;
-  const fallback = { audioCredits: 0, videoCredits: 0, photoCredits: 0, audioUsed: 0, videoUsed: 0 };
+  const fallback = { audioCredits: 0, videoCredits: 0, photoCredits: 0, audioUsed: 0, videoUsed: 0, vaultCredits: 0 };
 
   const result = await Promise.race([
     (async () => {
@@ -93,6 +93,13 @@ export async function GET() {
         }
       }
 
+      // Count unused vault fees
+      const { data: vaultFees } = await supabaseAdmin
+        .from("vault_fees")
+        .select("id")
+        .eq("user_id", user.id)
+        .is("used_at", null);
+
       // Credits are deducted at vault creation time (VMs marked vault_allocated,
       // memory_credits decremented), so no separate "used" calculation needed.
       return NextResponse.json({
@@ -101,6 +108,7 @@ export async function GET() {
         photoCredits: totalPhoto,
         audioUsed: 0,
         videoUsed: 0,
+        vaultCredits: vaultFees?.length || 0,
       });
     })(),
     new Promise<NextResponse>((resolve) =>
