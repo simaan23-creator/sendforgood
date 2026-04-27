@@ -50,6 +50,11 @@ export default function MyVaultsPage() {
   });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [addingCreditsId, setAddingCreditsId] = useState<string | null>(null);
+  const [addForm, setAddForm] = useState({ audio: 0, video: 0, photo: 0 });
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [returningId, setReturningId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -173,6 +178,83 @@ export default function MyVaultsPage() {
       setEditError("Failed to save");
     } finally {
       setEditSaving(false);
+    }
+  }
+
+  async function reloadData() {
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+    try {
+      const vaultsRes = await Promise.race([fetch("/api/memory-requests"), timeout(8000)]) as Response;
+      if (vaultsRes.ok) { const data = await vaultsRes.json(); setVaults(data); }
+    } catch { /* timeout */ }
+    try {
+      const creditsRes = await Promise.race([fetch("/api/vault/credits"), timeout(8000)]) as Response;
+      if (creditsRes.ok) { const data = await creditsRes.json(); setCredits(data); }
+    } catch { /* timeout */ }
+  }
+
+  function startAddingCredits(vault: MemoryRequest) {
+    setAddingCreditsId(vault.id);
+    setAddForm({ audio: 0, video: 0, photo: 0 });
+    setAddError(null);
+  }
+
+  async function saveAddCredits(vaultId: string) {
+    if (addForm.audio <= 0 && addForm.video <= 0 && addForm.photo <= 0) {
+      setAddError("Add at least one credit");
+      return;
+    }
+    setAddSaving(true);
+    setAddError(null);
+
+    try {
+      const res = await fetch(`/api/memory-requests/${vaultId}/add-credits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addForm),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setAddError(data.error || "Failed to add credits");
+        setAddSaving(false);
+        return;
+      }
+
+      setAddingCreditsId(null);
+      await reloadData();
+    } catch {
+      setAddError("Something went wrong");
+    } finally {
+      setAddSaving(false);
+    }
+  }
+
+  async function returnCredits(vault: MemoryRequest) {
+    const unusedAudio = Math.max(0, vault.max_audio_recordings - vault.audio_recorded);
+    const unusedVideo = Math.max(0, vault.max_video_recordings - vault.video_recorded);
+    const unusedPhoto = Math.max(0, vault.max_photo_uploads - vault.photo_recorded);
+
+    if (unusedAudio === 0 && unusedVideo === 0 && unusedPhoto === 0) return;
+
+    setReturningId(vault.id);
+    try {
+      const res = await fetch(`/api/memory-requests/${vault.id}/return-credits`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to return credits");
+        setReturningId(null);
+        return;
+      }
+
+      await reloadData();
+    } catch {
+      alert("Something went wrong");
+    } finally {
+      setReturningId(null);
     }
   }
 
@@ -372,6 +454,67 @@ export default function MyVaultsPage() {
                     </div>
                   )}
 
+                  {/* Add credits form */}
+                  {addingCreditsId === vault.id && (
+                    <div className="mt-4 rounded-lg border border-cream-dark bg-cream/50 p-4">
+                      <p className="mb-3 text-sm font-semibold text-navy">Add credits to this vault</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-navy">Audio</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={availableAudio}
+                            value={addForm.audio}
+                            onChange={(e) => setAddForm((f) => ({ ...f, audio: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            className="w-full rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy"
+                          />
+                          <p className="mt-0.5 text-[10px] text-warm-gray">{availableAudio} avail</p>
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-navy">Video</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={availableVideo}
+                            value={addForm.video}
+                            onChange={(e) => setAddForm((f) => ({ ...f, video: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            className="w-full rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy"
+                          />
+                          <p className="mt-0.5 text-[10px] text-warm-gray">{availableVideo} avail</p>
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-navy">Photo</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={availablePhoto}
+                            value={addForm.photo}
+                            onChange={(e) => setAddForm((f) => ({ ...f, photo: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            className="w-full rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy"
+                          />
+                          <p className="mt-0.5 text-[10px] text-warm-gray">{availablePhoto} avail</p>
+                        </div>
+                      </div>
+                      {addError && <p className="mt-2 text-sm text-red-600">{addError}</p>}
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => saveAddCredits(vault.id)}
+                          disabled={addSaving}
+                          className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-cream transition hover:bg-navy-light disabled:opacity-50"
+                        >
+                          {addSaving ? "Adding..." : "Add Credits"}
+                        </button>
+                        <button
+                          onClick={() => setAddingCreditsId(null)}
+                          className="rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition hover:bg-cream-dark"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Inline edit form */}
                   {isEditing && (
                     <div className="mt-4 rounded-lg border border-cream-dark bg-cream/50 p-4">
@@ -510,6 +653,31 @@ export default function MyVaultsPage() {
                         Edit
                       </button>
                     )}
+                    {!addingCreditsId && (
+                      <button
+                        onClick={() => startAddingCredits(vault)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-forest/50 bg-forest/10 px-4 py-2 text-sm font-medium text-forest transition hover:bg-forest/20"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                          <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                        </svg>
+                        Add Credits
+                      </button>
+                    )}
+                    {(vault.max_audio_recordings - vault.audio_recorded > 0 ||
+                      vault.max_video_recordings - vault.video_recorded > 0 ||
+                      vault.max_photo_uploads - vault.photo_recorded > 0) && (
+                      <button
+                        onClick={() => returnCredits(vault)}
+                        disabled={returningId === vault.id}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition hover:bg-cream-dark disabled:opacity-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                          <path fillRule="evenodd" d="M7.793 2.232a.75.75 0 0 1-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 0 1 0 10.75H10.75a.75.75 0 0 1 0-1.5h2.875a3.875 3.875 0 0 0 0-7.75H3.622l4.146 3.957a.75.75 0 0 1-1.036 1.085l-5.5-5.25a.75.75 0 0 1 0-1.085l5.5-5.25a.75.75 0 0 1 1.06.025Z" clipRule="evenodd" />
+                        </svg>
+                        {returningId === vault.id ? "Returning..." : "Return Unused"}
+                      </button>
+                    )}
                     <Link
                       href={`/vault/wedding-kit?code=${vault.unique_code}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-gold/50 bg-gold/10 px-4 py-2 text-sm font-medium text-navy transition hover:bg-gold/20"
@@ -517,7 +685,7 @@ export default function MyVaultsPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                         <path fillRule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm4.75 6.75a.75.75 0 0 0-1.5 0v2.546l-.943-1.048a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.114 0l2.25-2.5a.75.75 0 1 0-1.114-1.004l-.943 1.048V8.75Z" clipRule="evenodd" />
                       </svg>
-                      Get Wedding Kit
+                      Wedding Kit
                     </Link>
                   </div>
                 </div>
