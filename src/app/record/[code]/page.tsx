@@ -33,6 +33,11 @@ export default function RecordMemoryPage() {
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
+  // Scroll to top when showing the thank you screen
+  useEffect(() => {
+    if (submitted) window.scrollTo(0, 0);
+  }, [submitted]);
+
   // Sync format and tab when request data loads
   useEffect(() => {
     if (request) {
