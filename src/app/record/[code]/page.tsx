@@ -470,24 +470,38 @@ export default function RecordMemoryPage() {
                 Upload a photo for the vault. {request ? `${request.photo_slots_left} slot${request.photo_slots_left !== 1 ? "s" : ""} remaining.` : ""}
               </p>
 
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-cream-dark bg-cream/50 p-8 transition hover:border-gold hover:bg-gold/5">
-                <span className="text-4xl">{"\uD83D\uDCF7"}</span>
-                <span className="mt-2 text-sm font-medium text-navy">
-                  {selectedPhotos.length > 0
-                    ? `${selectedPhotos.length} photo${selectedPhotos.length > 1 ? "s" : ""} selected`
-                    : "Tap to take or choose a photo"}
-                </span>
-                <span className="mt-1 text-xs text-warm-gray">
-                  JPG, PNG, HEIC &mdash; max 10MB
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoSelect}
-                  className="hidden"
-                />
-              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-cream-dark bg-cream/50 p-6 transition hover:border-gold hover:bg-gold/5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8 text-navy">
+                    <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+                    <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3H4.5a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM12 17.25a5.25 5.25 0 1 0 0-10.5 5.25 5.25 0 0 0 0 10.5Z" clipRule="evenodd" />
+                  </svg>
+                  <span className="mt-2 text-sm font-medium text-navy">Take Photo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                  />
+                </label>
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-cream-dark bg-cream/50 p-6 transition hover:border-gold hover:bg-gold/5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8 text-navy">
+                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clipRule="evenodd" />
+                  </svg>
+                  <span className="mt-2 text-sm font-medium text-navy">Choose from Gallery</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="mt-2 text-center text-xs text-warm-gray">
+                JPG, PNG, HEIC &mdash; max 10MB
+              </p>
 
               {/* Photo previews */}
               {photoPreviews.length > 0 && (
