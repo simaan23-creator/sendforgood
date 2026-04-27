@@ -33,12 +33,19 @@ export default function RecordMemoryPage() {
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
-  // Auto-select photo tab when recording is not available
+  // Sync format and tab when request data loads
   useEffect(() => {
     if (request) {
       const audioAvail = request.audio_slots_left > 0;
       const videoAvail = request.video_slots_left > 0;
       const photoAvail = request.photo_slots_left > 0;
+      // Set the correct default media format based on available slots
+      if (videoAvail) {
+        setMediaFormat("video");
+      } else if (audioAvail) {
+        setMediaFormat("audio");
+      }
+      // Auto-select photo tab when recording is not available
       if (!audioAvail && !videoAvail && photoAvail) {
         setActiveTab("photo");
       }
