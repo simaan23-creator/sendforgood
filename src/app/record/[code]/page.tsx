@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import VoiceRecorder, { type MediaFormat } from "@/components/VoiceRecorder";
 
 interface MemoryRequest {
@@ -21,7 +20,6 @@ interface MemoryRequest {
 export default function RecordMemoryPage() {
   const params = useParams();
   const code = params.code as string;
-  const supabase = createClient();
 
   const [request, setRequest] = useState<MemoryRequest | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,32 +112,37 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
-      const isMP4 = mediaBlob.type.includes("mp4");
-      const ext = isMP4 ? "mp4" : "webm";
       const contentType = mediaBlob.type || (mediaFormat === "video" ? "video/webm" : "audio/webm");
-      const fileName = `${code}/${Date.now()}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("memory-recordings")
-        .upload(fileName, mediaBlob, {
-          contentType,
-          upsert: false,
-        });
+      // Step 1: Get a signed upload URL from the server
+      const urlRes = await fetch(`/api/memory-requests/${code}/upload-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType }),
+      });
+      const urlData = await urlRes.json();
+      if (!urlRes.ok) {
+        throw new Error(urlData.error || "Failed to prepare upload");
+      }
 
-      if (uploadError) {
+      // Step 2: Upload directly to Supabase storage via signed URL
+      const uploadRes = await fetch(urlData.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": urlData.contentType },
+        body: mediaBlob,
+      });
+
+      if (!uploadRes.ok) {
         throw new Error("Failed to upload recording. Please try again.");
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("memory-recordings").getPublicUrl(fileName);
-
+      // Step 3: Submit metadata to the API
       const res = await fetch(`/api/memory-requests/${code}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recorder_name: recorderName || null,
-          audio_url: publicUrl,
+          audio_url: urlData.publicUrl,
           message_format: mediaFormat,
         }),
       });
@@ -164,30 +167,37 @@ export default function RecordMemoryPage() {
 
     try {
       for (const photo of selectedPhotos) {
-        const ext = photo.name.split(".").pop() || "jpg";
-        const fileName = `${code}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const contentType = photo.type || "image/jpeg";
 
-        const { error: uploadError } = await supabase.storage
-          .from("memory-recordings")
-          .upload(fileName, photo, {
-            contentType: photo.type,
-            upsert: false,
-          });
+        // Step 1: Get a signed upload URL from the server
+        const urlRes = await fetch(`/api/memory-requests/${code}/upload-url`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contentType }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) {
+          throw new Error(urlData.error || "Failed to prepare upload");
+        }
 
-        if (uploadError) {
+        // Step 2: Upload directly to Supabase storage via signed URL
+        const uploadRes = await fetch(urlData.signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": contentType },
+          body: photo,
+        });
+
+        if (!uploadRes.ok) {
           throw new Error(`Failed to upload ${photo.name}. Please try again.`);
         }
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("memory-recordings").getPublicUrl(fileName);
-
+        // Step 3: Submit metadata to the API
         const res = await fetch(`/api/memory-requests/${code}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             recorder_name: recorderName || null,
-            audio_url: publicUrl,
+            audio_url: urlData.publicUrl,
             message_format: "photo",
           }),
         });

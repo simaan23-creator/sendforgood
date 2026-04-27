@@ -110,23 +110,29 @@ export default function EditVoiceMessagePage() {
 
     setUploading(true);
     try {
-      const supabase = createClient();
-      const isMP4 = recordingBlob.type.includes("mp4");
-      const ext = isMP4 ? "mp4" : "webm";
-      const path = `${message.id}/${Date.now()}.${ext}`;
+      const contentType = recordingBlob.type || (message.message_format === "video" ? "video/webm" : "audio/webm");
 
-      const { error: uploadError } = await supabase.storage
-        .from("voice-messages")
-        .upload(path, recordingBlob, {
-          upsert: true,
-          contentType: recordingBlob.type || (message.message_format === "video" ? "video/webm" : "audio/webm"),
-        });
+      // Step 1: Get a signed upload URL from the server
+      const urlRes = await fetch(`/api/voice-messages/${message.id}/upload-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType }),
+      });
+      const urlData = await urlRes.json();
+      if (!urlRes.ok) {
+        throw new Error(urlData.error || "Failed to prepare upload");
+      }
 
-      if (uploadError) throw uploadError;
+      // Step 2: Upload directly to Supabase storage via signed URL
+      const uploadRes = await fetch(urlData.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": urlData.contentType },
+        body: recordingBlob,
+      });
 
-      const { data: urlData } = supabase.storage
-        .from("voice-messages")
-        .getPublicUrl(path);
+      if (!uploadRes.ok) {
+        throw new Error("Failed to upload recording");
+      }
 
       setUploading(false);
       return urlData.publicUrl;
