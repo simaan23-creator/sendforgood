@@ -112,6 +112,25 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
+      // Re-check slot availability before uploading
+      const checkRes = await fetch(`/api/memory-requests/${code}`);
+      if (checkRes.ok) {
+        const fresh = await checkRes.json();
+        const slotsKey = mediaFormat === "video" ? "video_slots_left" : "audio_slots_left";
+        if (fresh[slotsKey] <= 0) {
+          setRequest(fresh);
+          throw new Error(
+            `All ${mediaFormat} slots are now filled. ${
+              mediaFormat === "video" && fresh.audio_slots_left > 0
+                ? "You can still record an audio message."
+                : mediaFormat === "audio" && fresh.video_slots_left > 0
+                  ? "You can still record a video message."
+                  : ""
+            }`
+          );
+        }
+      }
+
       const contentType = mediaBlob.type || (mediaFormat === "video" ? "video/webm" : "audio/webm");
 
       // Step 1: Get a signed upload URL from the server
@@ -171,6 +190,20 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
+      // Re-check slot availability before uploading
+      const checkRes = await fetch(`/api/memory-requests/${code}`);
+      if (checkRes.ok) {
+        const fresh = await checkRes.json();
+        if (fresh.photo_slots_left <= 0) {
+          setRequest(fresh);
+          throw new Error("All photo slots are now filled.");
+        }
+        if (fresh.photo_slots_left < selectedPhotos.length) {
+          setRequest(fresh);
+          throw new Error(`Only ${fresh.photo_slots_left} photo slot${fresh.photo_slots_left !== 1 ? "s" : ""} remaining. Please select fewer photos.`);
+        }
+      }
+
       for (const photo of selectedPhotos) {
         const contentType = photo.type || "image/jpeg";
 

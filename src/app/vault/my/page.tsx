@@ -13,6 +13,10 @@ interface MemoryRequest {
   unique_code: string;
   status: string;
   recording_count: number;
+  audio_recorded: number;
+  video_recorded: number;
+  photo_recorded: number;
+  recorder_names: string[];
   created_at: string;
   sealed_until: string | null;
   is_sealed: boolean;
@@ -285,10 +289,6 @@ export default function MyVaultsPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy">
-                        {vault.recording_count} recording
-                        {vault.recording_count !== 1 ? "s" : ""}
-                      </span>
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${
                           vault.status === "active"
@@ -320,28 +320,57 @@ export default function MyVaultsPage() {
                     </div>
                   )}
 
-                  {/* Delivery date */}
+                  {/* Delivery date & slot progress */}
                   <div className="mt-3 text-sm text-warm-gray">
                     Delivers {formatDate(vault.delivery_date)}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-3">
                     {vault.max_audio_recordings > 0 && (
-                      <span className="ml-3">
-                        {"\uD83C\uDFA4"} {vault.max_audio_recordings} audio
-                        slots
-                      </span>
+                      <div className="rounded-lg border border-cream-dark bg-cream/50 px-3 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <span>{"\uD83C\uDFA4"}</span>
+                          <span className="text-sm font-semibold text-navy">
+                            {vault.audio_recorded}/{vault.max_audio_recordings}
+                          </span>
+                          <span className="text-xs text-warm-gray">audio</span>
+                        </div>
+                      </div>
                     )}
                     {vault.max_video_recordings > 0 && (
-                      <span className="ml-3">
-                        {"\uD83C\uDFA5"} {vault.max_video_recordings} video
-                        slots
-                      </span>
+                      <div className="rounded-lg border border-cream-dark bg-cream/50 px-3 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <span>{"\uD83C\uDFA5"}</span>
+                          <span className="text-sm font-semibold text-navy">
+                            {vault.video_recorded}/{vault.max_video_recordings}
+                          </span>
+                          <span className="text-xs text-warm-gray">video</span>
+                        </div>
+                      </div>
                     )}
                     {vault.max_photo_uploads > 0 && (
-                      <span className="ml-3">
-                        {"\uD83D\uDCF7"} {vault.max_photo_uploads} photo
-                        slots
-                      </span>
+                      <div className="rounded-lg border border-cream-dark bg-cream/50 px-3 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <span>{"\uD83D\uDCF7"}</span>
+                          <span className="text-sm font-semibold text-navy">
+                            {vault.photo_recorded}/{vault.max_photo_uploads}
+                          </span>
+                          <span className="text-xs text-warm-gray">photos</span>
+                        </div>
+                      </div>
                     )}
                   </div>
+
+                  {/* Recorder names */}
+                  {vault.recorder_names.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-warm-gray">
+                        Recorded by:{" "}
+                        <span className="text-navy">
+                          {vault.recorder_names.join(", ")}
+                        </span>
+                      </p>
+                    </div>
+                  )}
 
                   {/* Inline edit form */}
                   {isEditing && (

@@ -186,7 +186,7 @@ export async function GET() {
 
       const { data: requests, error } = await supabaseAdmin
         .from("memory_requests")
-        .select("*, memory_recordings(id)")
+        .select("*, memory_recordings(id, message_format, recorder_name)")
         .eq("requester_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -195,12 +195,27 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // Add recording_count to each request
-      const mapped = (requests || []).map((req) => ({
-        ...req,
-        recording_count: req.memory_recordings?.length ?? 0,
-        memory_recordings: undefined,
-      }));
+      // Add per-format recording counts and recorder names
+      const mapped = (requests || []).map((req) => {
+        const recs = req.memory_recordings || [];
+        const audioCount = recs.filter((r: { message_format: string }) => r.message_format === "audio").length;
+        const videoCount = recs.filter((r: { message_format: string }) => r.message_format === "video").length;
+        const photoCount = recs.filter((r: { message_format: string }) => r.message_format === "photo").length;
+        const recorderNames = [...new Set(
+          recs
+            .map((r: { recorder_name: string | null }) => r.recorder_name)
+            .filter(Boolean) as string[]
+        )];
+        return {
+          ...req,
+          recording_count: recs.length,
+          audio_recorded: audioCount,
+          video_recorded: videoCount,
+          photo_recorded: photoCount,
+          recorder_names: recorderNames,
+          memory_recordings: undefined,
+        };
+      });
 
       return NextResponse.json(mapped);
     })(),
