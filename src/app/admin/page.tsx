@@ -2129,7 +2129,7 @@ function GiftVaultsTab() {
   const [gifts, setGifts] = useState<AdminVaultGift[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sentClaimUrl, setSentClaimUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   // Form fields
@@ -2161,7 +2161,7 @@ function GiftVaultsTab() {
     e.preventDefault();
     setError("");
     setSending(true);
-    setSent(false);
+    setSentClaimUrl(null);
 
     try {
       const res = await fetch("/api/admin/gift-vaults", {
@@ -2180,12 +2180,12 @@ function GiftVaultsTab() {
         }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Failed to send gift");
       }
 
-      setSent(true);
+      setSentClaimUrl(data.claimUrl);
       setRecipientName("");
       setRecipientEmail("");
       setAudioCredits(5);
@@ -2219,10 +2219,9 @@ function GiftVaultsTab() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Recipient Email</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Recipient Email <span className="text-gray-400">(optional)</span></label>
               <input
                 type="email"
-                required
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 placeholder="jane@example.com"
@@ -2283,9 +2282,41 @@ function GiftVaultsTab() {
             </div>
           )}
 
-          {sent && (
-            <div className="rounded bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
-              Gift sent successfully! The recipient will receive an email with a claim link.
+          {sentClaimUrl && (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-4 space-y-3">
+              <p className="text-sm font-medium text-green-700">
+                Gift created!{recipientEmail ? " Email sent to recipient." : ""}
+              </p>
+              <div className="flex items-start gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(sentClaimUrl)}`}
+                  alt="Claim QR code"
+                  width={150}
+                  height={150}
+                  className="rounded-lg border border-green-200"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 mb-1">Claim link:</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={sentClaimUrl}
+                      className="flex-1 rounded border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700"
+                    />
+                    <button
+                      onClick={() => navigator.clipboard.writeText(sentClaimUrl)}
+                      className="rounded bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 transition shrink-0"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-400">
+                    Save or text this QR code / link to the recipient.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -2349,15 +2380,27 @@ function GiftVaultsTab() {
                       })}
                     </td>
                     <td className="py-2.5">
-                      <button
-                        onClick={() => {
-                          const url = `${window.location.origin}/claim/vault/${gift.claim_code}`;
-                          navigator.clipboard.writeText(url);
-                        }}
-                        className="text-xs text-gray-400 hover:text-gray-600 underline"
-                      >
-                        Copy link
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/claim/vault/${gift.claim_code}`;
+                            navigator.clipboard.writeText(url);
+                          }}
+                          className="text-xs text-gray-400 hover:text-gray-600 underline"
+                        >
+                          Copy link
+                        </button>
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/claim/vault/${gift.claim_code}`;
+                            const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+                            window.open(qr, "_blank");
+                          }}
+                          className="text-xs text-gray-400 hover:text-gray-600 underline"
+                        >
+                          QR
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

@@ -45,9 +45,9 @@ export async function POST(request: Request) {
     message,
   } = body;
 
-  if (!recipientName || !recipientEmail) {
+  if (!recipientName) {
     return NextResponse.json(
-      { error: "Recipient name and email are required" },
+      { error: "Recipient name is required" },
       { status: 400 }
     );
   }
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     .from("admin_vault_gifts")
     .insert({
       recipient_name: recipientName,
-      recipient_email: recipientEmail,
+      recipient_email: recipientEmail || "",
       audio_credits: audioCredits,
       video_credits: videoCredits,
       photo_credits: photoCredits,
@@ -91,6 +91,7 @@ export async function POST(request: Request) {
   if (photoCredits > 0) creditParts.push(`${photoCredits} photo`);
   const creditSummary = creditParts.join(", ") + " recording slots";
 
+  if (recipientEmail) {
   try {
     await resend.emails.send({
       from: "SendForGood <hello@sendforgood.com>",
@@ -134,6 +135,7 @@ export async function POST(request: Request) {
     });
   } catch (emailError) {
     console.error("Failed to send vault gift email:", emailError);
+  }
   }
 
   return NextResponse.json({
