@@ -1784,6 +1784,9 @@ async function handleVaultCreditOrder(
   const audioCredits = parseInt(metadata.audioCredits) || 0;
   const videoCredits = parseInt(metadata.videoCredits) || 0;
   const photoCredits = parseInt(metadata.photoCredits) || 0;
+  const targetVaultId = typeof metadata.targetVaultId === "string" && metadata.targetVaultId.length > 0
+    ? metadata.targetVaultId
+    : null;
 
   // Insert credit record
   const { error: creditError } = await supabaseAdmin
@@ -1798,14 +1801,69 @@ async function handleVaultCreditOrder(
 
   if (creditError) throw creditError;
 
-  // Insert vault fee records
-  const vaultFeeQty = parseInt(metadata.vaultFeeQty) || 1;
-  const vaultFeeRows = Array.from({ length: vaultFeeQty }, () => ({
-    user_id: userId,
-    source: "purchase",
-    source_id: session.payment_intent as string,
-  }));
-  await supabaseAdmin.from("vault_fees").insert(vaultFeeRows);
+  // If buyer is topping up an existing vault, immediately bump that vault's
+  // max_* counts and deduct the same amounts from memory_credits so the new
+  // recordings are accepted there.
+  if (targetVaultId) {
+    const { data: vaultRow } = await supabaseAdmin
+      .from("memory_requests")
+      .select("id, requester_id, max_audio_recordings, max_video_recordings, max_photo_uploads")
+      .eq("id", targetVaultId)
+      .eq("requester_id", userId)
+      .single();
+
+    if (vaultRow) {
+      await supabaseAdmin
+        .from("memory_requests")
+        .update({
+          max_audio_recordings: (vaultRow.max_audio_recordings || 0) + audioCredits,
+          max_video_recordings: (vaultRow.max_video_recordings || 0) + videoCredits,
+          max_photo_uploads: (vaultRow.max_photo_uploads || 0) + photoCredits,
+        })
+        .eq("id", targetVaultId);
+
+      // Deduct from the credit row we just inserted (oldest available rows first).
+      let audioRemaining = audioCredits;
+      let videoRemaining = videoCredits;
+      let photoRemaining = photoCredits;
+      const { data: creditRows } = await supabaseAdmin
+        .from("memory_credits")
+        .select("id, audio_credits, video_credits, photo_credits")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      for (const row of creditRows || []) {
+        if (audioRemaining <= 0 && videoRemaining <= 0 && photoRemaining <= 0) break;
+        const audioDeduct = Math.min(audioRemaining, row.audio_credits || 0);
+        const videoDeduct = Math.min(videoRemaining, row.video_credits || 0);
+        const photoDeduct = Math.min(photoRemaining, row.photo_credits || 0);
+        if (audioDeduct > 0 || videoDeduct > 0 || photoDeduct > 0) {
+          await supabaseAdmin
+            .from("memory_credits")
+            .update({
+              audio_credits: (row.audio_credits || 0) - audioDeduct,
+              video_credits: (row.video_credits || 0) - videoDeduct,
+              photo_credits: (row.photo_credits || 0) - photoDeduct,
+            })
+            .eq("id", row.id);
+          audioRemaining -= audioDeduct;
+          videoRemaining -= videoDeduct;
+          photoRemaining -= photoDeduct;
+        }
+      }
+    }
+  }
+
+  // Insert vault fee records (skipped when targeting an existing vault — vaultFeeQty will be 0)
+  const vaultFeeQty = parseInt(metadata.vaultFeeQty) || 0;
+  if (vaultFeeQty > 0) {
+    const vaultFeeRows = Array.from({ length: vaultFeeQty }, () => ({
+      user_id: userId,
+      source: "purchase",
+      source_id: session.payment_intent as string,
+    }));
+    await supabaseAdmin.from("vault_fees").insert(vaultFeeRows);
+  }
 
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;

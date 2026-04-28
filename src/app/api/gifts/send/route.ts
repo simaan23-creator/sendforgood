@@ -23,7 +23,19 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { itemType, itemId, recipientName, recipientEmail, message } = body;
+  const { itemType, itemId, recipientName, recipientEmail, message, expiresInHours } = body;
+
+  // Validate expiry: allow 24, 48, 168 (7d), or null/0 for never
+  const allowedExpiries: Array<number | null> = [24, 48, 168, null];
+  let expiryHours: number | null = 48;
+  if (expiresInHours === null || expiresInHours === 0) {
+    expiryHours = null;
+  } else if (typeof expiresInHours === "number" && allowedExpiries.includes(expiresInHours)) {
+    expiryHours = expiresInHours;
+  }
+  const expiresAt = expiryHours
+    ? new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString()
+    : null;
 
   if (!itemType || !itemId) {
     return NextResponse.json(
@@ -118,6 +130,7 @@ export async function POST(request: Request) {
       message: message || null,
       claim_code: claimCode,
       status: "pending",
+      expires_at: expiresAt,
     });
 
   if (insertError) {

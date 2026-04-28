@@ -359,6 +359,15 @@ export default function MyVaultsPage() {
                 vault.is_sealed && vault.sealed_until && sealedDays > 0;
               const isEditing = editingId === vault.id;
 
+              // Compute unlock status from dates rather than relying on the cron
+              // (which only flips the row when delivery emails go out). A vault is
+              // unlocked when its delivery date has passed and any seal has lifted.
+              const todayIso = new Date().toISOString().split("T")[0];
+              const deliveryReached = vault.delivery_date <= todayIso;
+              const sealLifted = !vault.sealed_until || vault.sealed_until <= todayIso;
+              const isUnlocked =
+                vault.status === "active" && deliveryReached && sealLifted;
+
               return (
                 <div
                   key={vault.id}
@@ -378,18 +387,22 @@ export default function MyVaultsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                          vault.status === "active"
-                            ? "bg-forest/10 text-forest"
-                            : vault.status === "pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-500"
+                          isUnlocked
+                            ? "bg-amber-100 text-amber-700"
+                            : vault.status === "active"
+                              ? "bg-forest/10 text-forest"
+                              : vault.status === "pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-500"
                         }`}
                       >
-                        {vault.status === "active"
-                          ? "Active"
-                          : vault.status === "pending"
-                            ? "Pending"
-                            : "Completed"}
+                        {isUnlocked
+                          ? "Unlocked"
+                          : vault.status === "active"
+                            ? "Active"
+                            : vault.status === "pending"
+                              ? "Pending"
+                              : "Completed"}
                       </span>
                     </div>
                   </div>
@@ -607,10 +620,22 @@ export default function MyVaultsPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="mt-4 flex items-center gap-3 border-t border-cream-dark pt-4">
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-cream-dark pt-4">
+                    {isUnlocked && (
+                      <Link
+                        href={`/vault/view/${vault.id}`}
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-forest bg-forest px-3 py-2 text-sm font-medium text-cream transition hover:bg-forest/90"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                          <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                          <path fillRule="evenodd" d="M.664 10.59a1.65 1.65 0 0 1 0-1.18l.879-2.34a8.5 8.5 0 0 1 16.914 0l.879 2.34a1.65 1.65 0 0 1 0 1.18l-.879 2.34a8.5 8.5 0 0 1-16.914 0L.664 10.59ZM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z" clipRule="evenodd" />
+                        </svg>
+                        View Recordings
+                      </Link>
+                    )}
                     <button
                       onClick={() => copyLink(vault.unique_code, vault.id)}
-                      className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-sm font-medium transition ${
                         copiedId === vault.id
                           ? "border-forest bg-forest/10 text-forest"
                           : "border-cream-dark text-navy hover:bg-cream-dark"
@@ -644,7 +669,7 @@ export default function MyVaultsPage() {
                     {!isEditing && (
                       <button
                         onClick={() => startEditing(vault)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-navy transition hover:bg-cream-dark"
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-cream-dark px-3 py-2 text-sm font-medium text-navy transition hover:bg-cream-dark"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -661,7 +686,7 @@ export default function MyVaultsPage() {
                     {!addingCreditsId && (
                       <button
                         onClick={() => startAddingCredits(vault)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-forest/50 bg-forest/10 px-4 py-2 text-sm font-medium text-forest transition hover:bg-forest/20"
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-forest/50 bg-forest/10 px-3 py-2 text-sm font-medium text-forest transition hover:bg-forest/20"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                           <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
@@ -675,7 +700,7 @@ export default function MyVaultsPage() {
                       <button
                         onClick={() => returnCredits(vault)}
                         disabled={returningId === vault.id}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition hover:bg-cream-dark disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-cream-dark px-3 py-2 text-sm font-medium text-warm-gray transition hover:bg-cream-dark disabled:opacity-50"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                           <path fillRule="evenodd" d="M7.793 2.232a.75.75 0 0 1-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 0 1 0 10.75H10.75a.75.75 0 0 1 0-1.5h2.875a3.875 3.875 0 0 0 0-7.75H3.622l4.146 3.957a.75.75 0 0 1-1.036 1.085l-5.5-5.25a.75.75 0 0 1 0-1.085l5.5-5.25a.75.75 0 0 1 1.06.025Z" clipRule="evenodd" />
@@ -685,7 +710,7 @@ export default function MyVaultsPage() {
                     )}
                     <Link
                       href={`/vault/wedding-kit?code=${vault.unique_code}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-gold/50 bg-gold/10 px-4 py-2 text-sm font-medium text-navy transition hover:bg-gold/20"
+                      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy transition hover:bg-gold/20"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                         <path fillRule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm4.75 6.75a.75.75 0 0 0-1.5 0v2.546l-.943-1.048a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.114 0l2.25-2.5a.75.75 0 1 0-1.114-1.004l-.943 1.048V8.75Z" clipRule="evenodd" />

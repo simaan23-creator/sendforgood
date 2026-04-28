@@ -164,33 +164,24 @@ export default function CartPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-navy sm:text-3xl">Your Cart</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Link
               href="/gifts/buy"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-navy/70 transition hover:text-navy"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
               </svg>
-              Send Messages
+              Add Gifts
             </Link>
             <Link
               href="/messages/buy"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-navy/70 transition hover:text-navy"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
               </svg>
-              Add Letter
-            </Link>
-            <Link
-              href="/messages/buy"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 transition hover:text-navy"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-              </svg>
-              Add Messages
+              Add Letters or Messages
             </Link>
           </div>
         </div>

@@ -291,6 +291,8 @@ export default function ClaimPage() {
         setGift(data.gift);
         if (data.gift.status === "claimed") {
           setClaimed(true);
+        } else if (data.gift.status === "expired") {
+          setError("This gift link has expired and has been returned to the sender.");
         }
       }
       setLoading(false);
@@ -365,6 +367,33 @@ export default function ClaimPage() {
   }
 
   if (!gift) return null;
+
+  if (gift.status === "expired") {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-cream to-cream-dark px-4 py-16 sm:py-24">
+        <div className="mx-auto max-w-lg text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+            <span className="text-4xl">{"\u23F3"}</span>
+          </div>
+          <h1 className="text-2xl font-bold text-navy sm:text-3xl">
+            This gift has expired
+          </h1>
+          <p className="mt-3 text-warm-gray">
+            The sender set a deadline for claiming this gift, and that window
+            has now closed. The gift has been returned to{" "}
+            <span className="font-semibold text-navy">{gift.sender_first_name}</span>
+            , who can re-send it whenever they like.
+          </p>
+          <Link
+            href="/"
+            className="mt-8 inline-flex items-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream transition hover:bg-navy/90"
+          >
+            Go Home
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   const itemInfo = getItemDescription(gift);
 

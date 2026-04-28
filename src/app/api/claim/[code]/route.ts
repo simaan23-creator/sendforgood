@@ -23,7 +23,7 @@ export async function GET(
   const { data: item, error } = await supabaseAdmin
     .from("gifted_items")
     .select(
-      "id, sender_id, recipient_name, item_type, tier, message_format, delivery_type, message, status"
+      "id, sender_id, recipient_name, item_type, tier, message_format, delivery_type, message, status, expires_at"
     )
     .eq("claim_code", code)
     .single();
@@ -33,6 +33,20 @@ export async function GET(
       { error: "Gift not found or invalid claim code" },
       { status: 404 }
     );
+  }
+
+  // Auto-expire on read so users hitting an old link see the right state even
+  // if the cron has not yet run.
+  if (
+    item.status === "pending" &&
+    item.expires_at &&
+    new Date(item.expires_at).getTime() < Date.now()
+  ) {
+    await supabaseAdmin
+      .from("gifted_items")
+      .update({ status: "expired", expired_at: new Date().toISOString() })
+      .eq("id", item.id);
+    item.status = "expired";
   }
 
   // Get sender's first name
@@ -97,6 +111,16 @@ export async function POST(
   if (item.status === "claimed") {
     return NextResponse.json(
       { error: "This gift has already been claimed" },
+      { status: 400 }
+    );
+  }
+
+  if (
+    item.status === "expired" ||
+    (item.expires_at && new Date(item.expires_at).getTime() < Date.now())
+  ) {
+    return NextResponse.json(
+      { error: "This gift has expired and is no longer claimable" },
       { status: 400 }
     );
   }

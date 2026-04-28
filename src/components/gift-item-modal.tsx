@@ -18,6 +18,7 @@ export default function GiftItemModal({
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [expiresInHours, setExpiresInHours] = useState<number | null>(48);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [claimUrl, setClaimUrl] = useState("");
@@ -36,6 +37,7 @@ export default function GiftItemModal({
           recipientName: recipientName.trim() || undefined,
           recipientEmail: recipientEmail.trim() || undefined,
           message: message.trim() || undefined,
+          expiresInHours,
         }),
       });
 
@@ -197,6 +199,28 @@ export default function GiftItemModal({
                   />
                   <p className="mt-1 text-right text-xs text-warm-gray-light">
                     {message.length}/200
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-navy">
+                    Recipient has to claim within
+                  </label>
+                  <select
+                    value={expiresInHours === null ? "never" : String(expiresInHours)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setExpiresInHours(v === "never" ? null : parseInt(v, 10));
+                    }}
+                    className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                  >
+                    <option value="24">24 hours</option>
+                    <option value="48">48 hours (default)</option>
+                    <option value="168">7 days</option>
+                    <option value="never">Never expires</option>
+                  </select>
+                  <p className="mt-1 text-xs text-warm-gray-light">
+                    If they don&apos;t claim it in time, the gift returns to your dashboard.
                   </p>
                 </div>
               </div>

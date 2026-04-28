@@ -13,12 +13,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits, vaultFeeQty } = body;
+  const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId } = body;
 
   const audio = Math.max(0, Math.floor(audioCredits || 0));
   const video = Math.max(0, Math.floor(videoCredits || 0));
   const photo = Math.max(0, Math.floor(photoCredits || 0));
-  const vaultFees = Math.max(1, Math.floor(vaultFeeQty || 1));
+  const vaultFees = Math.max(0, Math.floor(vaultFeeQty || 0));
+  const targetVault = typeof targetVaultId === "string" && targetVaultId.length > 0 ? targetVaultId : null;
 
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
@@ -36,18 +37,20 @@ export async function POST(request: Request) {
     quantity: number;
   }> = [];
 
-  // Vault fee — $10 each
-  lineItems.push({
-    price_data: {
-      currency: "usd",
-      product_data: {
-        name: "Memory Vault Fee",
-        description: "One-time vault creation fee ($10 per vault)",
+  // Vault fee — $10 each (skipped when adding credits to an existing vault)
+  if (vaultFees > 0) {
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: "Memory Vault Fee",
+          description: "One-time vault creation fee ($10 per vault)",
+        },
+        unit_amount: 1000,
       },
-      unit_amount: 1000,
-    },
-    quantity: vaultFees,
-  });
+      quantity: vaultFees,
+    });
+  }
 
   if (audio > 0) {
     lineItems.push({
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
       videoCredits: String(video),
       photoCredits: String(photo),
       vaultFeeQty: String(vaultFees),
+      ...(targetVault ? { targetVaultId: targetVault } : {}),
     },
     customer_email: user.email,
     success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,

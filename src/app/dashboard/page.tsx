@@ -238,6 +238,39 @@ export default function DashboardPage() {
     itemFormat?: string;
   } | null>(null);
 
+  // Top-level tab state — drives which sections render. Persisted in URL.
+  const tabFromUrl = searchParams.get("tab") || "all";
+  const activeTab = (
+    ["all", "gifts", "letters", "messages", "vaults"].includes(tabFromUrl)
+      ? tabFromUrl
+      : "all"
+  ) as "all" | "gifts" | "letters" | "messages" | "vaults";
+
+  // Per-section status filter chips
+  const [letterStatusFilter, setLetterStatusFilter] = useState<string>("all");
+  const [giftsGivenFilter, setGiftsGivenFilter] = useState<string>("all");
+
+  function selectTab(tab: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "all") params.delete("tab");
+    else params.set("tab", tab);
+    const qs = params.toString();
+    router.replace(`/dashboard${qs ? `?${qs}` : ""}`, { scroll: false });
+  }
+
+  const showGifts = activeTab === "all" || activeTab === "gifts";
+  const showLetters = activeTab === "all" || activeTab === "letters";
+  const showMessages = activeTab === "all" || activeTab === "messages";
+  const showVaults = activeTab === "all" || activeTab === "vaults";
+
+  const TABS: Array<{ id: typeof activeTab; label: string }> = [
+    { id: "all", label: "All" },
+    { id: "gifts", label: "Gifts" },
+    { id: "letters", label: "Letters" },
+    { id: "messages", label: "Messages" },
+    { id: "vaults", label: "Vaults" },
+  ];
+
   const activeOrders = orders.filter((o) => o.status === "active");
   const uniqueRecipients = new Set(orders.map((o) => o.recipients?.name)).size;
   const deliveredCount = orders.reduce(
@@ -693,7 +726,31 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Top-level tabs */}
+        <div className="sticky top-0 z-10 -mx-4 mb-6 border-b border-cream-dark bg-cream/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+          <nav className="flex flex-wrap gap-2" aria-label="Dashboard sections">
+            {TABS.map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => selectTab(t.id)}
+                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-navy text-cream"
+                      : "border border-cream-dark text-navy hover:bg-cream-dark"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
         {/* My Gift Credits */}
+        {showGifts && (
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Gifts</h2>
@@ -804,13 +861,34 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Gifts You've Given */}
-        {giftsGiven.length > 0 && (
+        {showGifts && giftsGiven.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-xl font-bold text-navy mb-4">Gifts You&apos;ve Given</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-navy">Gifts You&apos;ve Given</h2>
+              <div className="flex flex-wrap gap-2">
+                {(["all", "pending", "claimed", "expired"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setGiftsGivenFilter(s)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      giftsGivenFilter === s
+                        ? "bg-navy text-cream"
+                        : "border border-cream-dark bg-white text-warm-gray hover:border-navy hover:text-navy"
+                    }`}
+                  >
+                    {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {giftsGiven.map((g) => {
+              {giftsGiven
+                .filter((g) => giftsGivenFilter === "all" || g.status === giftsGivenFilter)
+                .map((g) => {
                 const tierName = getTierName(g.tier);
                 const statusColors: Record<string, string> = {
                   pending: "bg-yellow-100 text-yellow-800",
@@ -850,6 +928,7 @@ export default function DashboardPage() {
         )}
 
         {/* Orders list */}
+        {showGifts && (
         <div className="space-y-4">
           {orders.map((order) => {
             const yearsUsed = order.years_purchased - order.years_remaining;
@@ -1029,17 +1108,37 @@ export default function DashboardPage() {
             );
           })}
         </div>
+        )}
 
         {/* My Letters Section */}
+        {showLetters && (
         <div className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Letters</h2>
-            <Link
-              href="/letters"
-              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light"
-            >
-              + Add Letter
-            </Link>
+          <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold text-navy">My Letters</h2>
+              <Link
+                href="/letters"
+                className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-gold-light whitespace-nowrap"
+              >
+                + Add Letter
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["all", "draft", "scheduled", "delivered"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setLetterStatusFilter(s)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    letterStatusFilter === s
+                      ? "bg-navy text-cream"
+                      : "border border-cream-dark bg-white text-warm-gray hover:border-navy hover:text-navy"
+                  }`}
+                >
+                  {s === "all" ? "All" : s === "delivered" ? "Sent" : s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           {letters.length === 0 ? (
@@ -1054,7 +1153,15 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {letters.map((letter) => {
+              {letters
+                .filter((letter) => {
+                  if (letterStatusFilter === "all") return true;
+                  if (letterStatusFilter === "delivered") {
+                    return letter.status === "delivered" || letter.status === "released";
+                  }
+                  return letter.status === letterStatusFilter;
+                })
+                .map((letter) => {
                 const giftInfo = giftedItemsMap[letter.id];
                 const isGifted = !!giftInfo;
                 const requests = requestsByItemId[letter.id] || [];
@@ -1254,13 +1361,28 @@ export default function DashboardPage() {
                               Release Now
                             </button>
                           )}
-                          {hasContent ? (
+                          {letter.status === "delivered" || letter.status === "released" ? (
                             <Link
-                              href={`/letters/edit/${letter.id}`}
+                              href={`/letters/view/${letter.id}`}
                               className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                             >
-                              Edit
+                              View
                             </Link>
+                          ) : hasContent ? (
+                            <>
+                              <Link
+                                href={`/letters/view/${letter.id}`}
+                                className="rounded-lg border-2 border-cream-dark px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-cream-dark"
+                              >
+                                View
+                              </Link>
+                              <Link
+                                href={`/letters/edit/${letter.id}`}
+                                className="rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
+                              >
+                                Edit
+                              </Link>
+                            </>
                           ) : (
                             <Link
                               href={`/letters/edit/${letter.id}`}
@@ -1314,8 +1436,10 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* My Voice Messages */}
+        {showMessages && (
         <div className="mt-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Voice Messages</h2>
@@ -1565,8 +1689,10 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* My Memory Vaults */}
+        {showVaults && (
         <div className="mt-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Memory Vaults</h2>
@@ -1630,6 +1756,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Account Settings */}
         <div className="mt-12 rounded-xl border border-cream-dark bg-white p-6">

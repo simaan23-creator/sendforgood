@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+type ExistingVault = {
+  id: string;
+  title: string;
+  occasion: string | null;
+};
+
 export default function VaultBuyPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -16,9 +22,11 @@ export default function VaultBuyPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingVaults, setExistingVaults] = useState<ExistingVault[]>([]);
+  const [targetVaultId, setTargetVaultId] = useState<string>("NEW");
 
   useEffect(() => {
-    async function checkAuth() {
+    async function init() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -26,15 +34,52 @@ export default function VaultBuyPage() {
         router.push("/auth?redirect=/vault/buy");
         return;
       }
+      // Fetch existing vaults so user can top up credits on one they already own
+      try {
+        const res = await fetch("/api/memory-requests");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped: ExistingVault[] = data.map((v: { id: string; title: string; occasion: string | null }) => ({
+              id: v.id,
+              title: v.title,
+              occasion: v.occasion,
+            }));
+            setExistingVaults(mapped);
+            // Default to most recently created vault (API returns newest first)
+            setTargetVaultId(mapped[0].id);
+            setVaultFeeQty(0);
+          }
+        }
+      } catch {
+        // Non-fatal — picker just won't appear
+      }
       setLoading(false);
     }
-    checkAuth();
+    init();
   }, [supabase, router]);
 
+  const targetingExisting = targetVaultId !== "NEW";
+
+  // When targeting an existing vault, no vault fee is charged
+  const effectiveVaultFeeQty = targetingExisting ? 0 : vaultFeeQty;
   const slotTotal = audioQty * 25 + videoQty * 100 + photoQty * 25;
-  const feeTotal = vaultFeeQty * 1000;
+  const feeTotal = effectiveVaultFeeQty * 1000;
   const total = feeTotal + slotTotal;
   const hasItems = audioQty > 0 || videoQty > 0 || photoQty > 0;
+  const targetVaultName = targetingExisting
+    ? existingVaults.find((v) => v.id === targetVaultId)?.title ?? "your vault"
+    : null;
+
+  function handleTargetVaultChange(value: string) {
+    setTargetVaultId(value);
+    if (value === "NEW") {
+      // User chose to create a new vault — restore vault fee
+      if (vaultFeeQty < 1) setVaultFeeQty(1);
+    } else {
+      setVaultFeeQty(0);
+    }
+  }
 
   async function handleCheckout() {
     if (!hasItems) return;
@@ -49,7 +94,8 @@ export default function VaultBuyPage() {
           audioCredits: audioQty,
           videoCredits: videoQty,
           photoCredits: photoQty,
-          vaultFeeQty,
+          vaultFeeQty: effectiveVaultFeeQty,
+          targetVaultId: targetingExisting ? targetVaultId : null,
         }),
       });
 
@@ -97,12 +143,41 @@ export default function VaultBuyPage() {
           </p>
         </div>
 
+        {/* Vault picker — only when user already has at least one vault */}
+        {existingVaults.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <label htmlFor="targetVault" className="block text-sm font-semibold text-navy">
+              Adding credits to
+            </label>
+            <select
+              id="targetVault"
+              value={targetVaultId}
+              onChange={(e) => handleTargetVaultChange(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-base text-navy outline-none focus:border-gold"
+            >
+              {existingVaults.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.title}
+                  {v.occasion ? ` — ${v.occasion}` : ""}
+                </option>
+              ))}
+              <option value="NEW">+ Create a new vault ($10 fee)</option>
+            </select>
+            {targetingExisting && (
+              <p className="mt-2 text-xs text-warm-gray">
+                New credits will be added to <span className="font-semibold text-navy">{targetVaultName}</span>. No vault creation fee.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Credit selectors */}
         <div className="space-y-4">
-          {/* Vault fee */}
+          {/* Vault fee — hidden when topping up an existing vault */}
+          {!targetingExisting && (
           <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{"\uD83D\uDD12"}</span>
                   <h3 className="text-lg font-bold text-navy">
@@ -113,13 +188,10 @@ export default function VaultBuyPage() {
                   Each vault credit lets you create one Memory Vault
                 </p>
               </div>
-              <p className="text-xl font-bold text-navy">
-                $10
-                <span className="text-sm font-normal text-warm-gray">
-                  {" "}
-                  each
-                </span>
-              </p>
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xl font-bold text-navy">$10</span>
+                <span className="text-sm font-normal text-warm-gray">/each</span>
+              </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
               <button
@@ -148,12 +220,13 @@ export default function VaultBuyPage() {
               </span>
             </div>
           </div>
+          )}
 
           {/* Video — recommended */}
           <div className="rounded-2xl border-2 border-gold bg-white p-6 shadow-md">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-2xl">{"\uD83C\uDFA5"}</span>
                   <h3 className="text-lg font-bold text-navy">
                     Video Credits
@@ -166,13 +239,10 @@ export default function VaultBuyPage() {
                   Guests record a video message from their phone
                 </p>
               </div>
-              <p className="text-xl font-bold text-navy">
-                $1
-                <span className="text-sm font-normal text-warm-gray">
-                  {" "}
-                  each
-                </span>
-              </p>
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xl font-bold text-navy">$1</span>
+                <span className="text-sm font-normal text-warm-gray">/each</span>
+              </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
               <button
@@ -206,8 +276,8 @@ export default function VaultBuyPage() {
 
           {/* Audio */}
           <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{"\uD83C\uDFA4"}</span>
                   <h3 className="text-lg font-bold text-navy">
@@ -218,13 +288,10 @@ export default function VaultBuyPage() {
                   Guests record a voice message
                 </p>
               </div>
-              <p className="text-xl font-bold text-navy">
-                $0.25
-                <span className="text-sm font-normal text-warm-gray">
-                  {" "}
-                  each
-                </span>
-              </p>
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xl font-bold text-navy">$0.25</span>
+                <span className="text-sm font-normal text-warm-gray">/each</span>
+              </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
               <button
@@ -258,8 +325,8 @@ export default function VaultBuyPage() {
 
           {/* Photo */}
           <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{"\uD83D\uDCF7"}</span>
                   <h3 className="text-lg font-bold text-navy">
@@ -270,13 +337,10 @@ export default function VaultBuyPage() {
                   Guests upload a photo to your vault
                 </p>
               </div>
-              <p className="text-xl font-bold text-navy">
-                $0.25
-                <span className="text-sm font-normal text-warm-gray">
-                  {" "}
-                  each
-                </span>
-              </p>
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xl font-bold text-navy">$0.25</span>
+                <span className="text-sm font-normal text-warm-gray">/each</span>
+              </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
               <button
@@ -317,10 +381,12 @@ export default function VaultBuyPage() {
         {/* Total & checkout */}
         <div className="mt-8 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
           <div className="space-y-2 text-sm text-warm-gray">
-            <div className="flex justify-between">
-              <span>Vault credit{vaultFeeQty > 1 ? `s (x${vaultFeeQty})` : ""}</span>
-              <span className="font-medium text-navy">{formatPrice(feeTotal)}</span>
-            </div>
+            {!targetingExisting && (
+              <div className="flex justify-between">
+                <span>Vault credit{vaultFeeQty > 1 ? `s (x${vaultFeeQty})` : ""}</span>
+                <span className="font-medium text-navy">{formatPrice(feeTotal)}</span>
+              </div>
+            )}
             {hasItems && (
               <div className="flex justify-between">
                 <span>Recording slots</span>

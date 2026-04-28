@@ -2,22 +2,43 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCart, clearCart, getLetterCart, clearLetterCart, clearVoiceCart, clearVaultCart, clearGiftCreditCart } from "@/lib/cart";
+import {
+  getCart,
+  clearCart,
+  getLetterCart,
+  clearLetterCart,
+  getVoiceCart,
+  clearVoiceCart,
+  getVaultCart,
+  clearVaultCart,
+  getGiftCreditCart,
+  clearGiftCreditCart,
+} from "@/lib/cart";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
-import type { CartItem, LetterCartItem } from "@/lib/cart";
+import type {
+  CartItem,
+  LetterCartItem,
+  VoiceCartItem,
+  VaultCartItem,
+  GiftCreditCartItem,
+} from "@/lib/cart";
 
 export default function CartSuccessPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [letterItems, setLetterItems] = useState<LetterCartItem[]>([]);
+  const [voiceItems, setVoiceItems] = useState<VoiceCartItem[]>([]);
+  const [vaultItems, setVaultItems] = useState<VaultCartItem[]>([]);
+  const [giftCreditItems, setGiftCreditItems] = useState<GiftCreditCartItem[]>([]);
   const [cleared, setCleared] = useState(false);
 
   useEffect(() => {
     // Grab items before clearing
     if (!cleared) {
-      const cartItems = getCart();
-      const cartLetters = getLetterCart();
-      setItems(cartItems);
-      setLetterItems(cartLetters);
+      setItems(getCart());
+      setLetterItems(getLetterCart());
+      setVoiceItems(getVoiceCart());
+      setVaultItems(getVaultCart());
+      setGiftCreditItems(getGiftCreditCart());
       clearCart();
       clearLetterCart();
       clearVoiceCart();
@@ -36,9 +57,25 @@ export default function CartSuccessPage() {
     return TIERS.find((t) => t.id === tierId)?.name ?? tierId;
   }
 
-  const giftTotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const letterTotal = letterItems.reduce((sum, l) => sum + l.totalPrice / 100, 0);
-  const total = giftTotal + letterTotal;
+  // Totals — gift items track totalPrice in dollars, everything else in cents.
+  const giftTotalDollars = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const letterTotalDollars = letterItems.reduce((sum, l) => sum + l.totalPrice / 100, 0);
+  const voiceTotalDollars = voiceItems.reduce((sum, v) => sum + v.totalPrice / 100, 0);
+  const vaultTotalDollars = vaultItems.reduce((sum, v) => sum + v.totalPrice / 100, 0);
+  const giftCreditTotalDollars = giftCreditItems.reduce((sum, gc) => sum + gc.totalPrice / 100, 0);
+  const total =
+    giftTotalDollars +
+    letterTotalDollars +
+    voiceTotalDollars +
+    vaultTotalDollars +
+    giftCreditTotalDollars;
+
+  const hasAnyItems =
+    items.length > 0 ||
+    letterItems.length > 0 ||
+    voiceItems.length > 0 ||
+    vaultItems.length > 0 ||
+    giftCreditItems.length > 0;
 
   return (
     <section className="bg-gradient-to-b from-cream to-cream-dark min-h-[80vh] py-16 sm:py-24">
@@ -62,24 +99,17 @@ export default function CartSuccessPage() {
 
         {/* Heading */}
         <h1 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight">
-          Your order is confirmed! 🎉
+          Order confirmed! 🎉
         </h1>
 
         <p className="mt-4 text-lg text-warm-gray max-w-lg mx-auto leading-relaxed">
-          Thank you for choosing SendForGood. We&rsquo;ve received your order
-          {items.length > 0 && (
-            <> for <span className="font-semibold text-navy">{items.length}</span>{" "}{items.length === 1 ? "gift" : "gifts"}</>
-          )}
-          {items.length > 0 && letterItems.length > 0 && " and"}
-          {letterItems.length > 0 && (() => {
-            const totalLetterQuantity = letterItems.reduce((sum, l) => sum + (l.quantity || 1), 0);
-            return <> <span className="font-semibold text-navy">{totalLetterQuantity}</span>{" "}{totalLetterQuantity === 1 ? "letter" : "letters"}</>;
-          })()}
-          {" "}and will take care of everything from here.
+          Your items are now in your dashboard. Head over to write, record, and
+          schedule everything you just bought — we&rsquo;ll take care of delivery
+          when the time comes.
         </p>
 
         {/* Order summary */}
-        {(items.length > 0 || letterItems.length > 0) && (
+        {hasAnyItems && (
           <div className="mt-10 rounded-xl border border-cream-dark bg-white p-6 sm:p-8 text-left shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gold mb-5">
               Order Summary
@@ -91,31 +121,93 @@ export default function CartSuccessPage() {
                   key={item.id}
                   className="flex items-center justify-between border-b border-cream-dark pb-3"
                 >
-                  <div>
-                    <p className="font-medium text-navy">{item.recipientName}</p>
+                  <div className="min-w-0 pr-3">
+                    <p className="font-medium text-navy truncate">{item.recipientName}</p>
                     <p className="text-xs text-warm-gray">
                       {getOccasionLabel(item)} &middot; {getTierName(item.tier)} &middot;{" "}
                       {item.years} {item.years === 1 ? "year" : "years"}
                     </p>
                   </div>
-                  <span className="font-medium text-navy">
+                  <span className="font-medium text-navy whitespace-nowrap">
                     ${item.totalPrice.toLocaleString()}
                   </span>
                 </div>
               ))}
+
               {letterItems.map((letter) => (
                 <div
                   key={letter.id}
                   className="flex items-center justify-between border-b border-cream-dark pb-3"
                 >
-                  <div>
-                    <p className="font-medium text-navy">{letter.deliveryLabel}</p>
+                  <div className="min-w-0 pr-3">
+                    <p className="font-medium text-navy truncate">{letter.deliveryLabel}</p>
                     <p className="text-xs text-warm-gray">
-                      {letter.quantity} {letter.quantity === 1 ? "year" : "years"}
+                      {letter.quantity} {letter.quantity === 1 ? "letter" : "letters"}
                     </p>
                   </div>
-                  <span className="font-medium text-navy">
+                  <span className="font-medium text-navy whitespace-nowrap">
                     ${(letter.totalPrice / 100).toFixed(0)}
+                  </span>
+                </div>
+              ))}
+
+              {voiceItems.map((voice) => {
+                const parts: string[] = [];
+                if (voice.audioQuantity > 0)
+                  parts.push(`${voice.audioQuantity} audio`);
+                if (voice.videoQuantity > 0)
+                  parts.push(`${voice.videoQuantity} video`);
+                return (
+                  <div
+                    key={voice.id}
+                    className="flex items-center justify-between border-b border-cream-dark pb-3"
+                  >
+                    <div className="min-w-0 pr-3">
+                      <p className="font-medium text-navy truncate">Voice / Video Messages</p>
+                      <p className="text-xs text-warm-gray">{parts.join(" + ")}</p>
+                    </div>
+                    <span className="font-medium text-navy whitespace-nowrap">
+                      ${(voice.totalPrice / 100).toFixed(0)}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {vaultItems.map((vault) => {
+                const parts: string[] = [];
+                if (vault.audioCredits > 0)
+                  parts.push(`${vault.audioCredits} audio`);
+                if (vault.videoCredits > 0)
+                  parts.push(`${vault.videoCredits} video`);
+                return (
+                  <div
+                    key={vault.id}
+                    className="flex items-center justify-between border-b border-cream-dark pb-3"
+                  >
+                    <div className="min-w-0 pr-3">
+                      <p className="font-medium text-navy truncate">Memory Vault Credits</p>
+                      <p className="text-xs text-warm-gray">{parts.join(" + ")}</p>
+                    </div>
+                    <span className="font-medium text-navy whitespace-nowrap">
+                      ${(vault.totalPrice / 100).toFixed(0)}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {giftCreditItems.map((gc) => (
+                <div
+                  key={gc.id}
+                  className="flex items-center justify-between border-b border-cream-dark pb-3"
+                >
+                  <div className="min-w-0 pr-3">
+                    <p className="font-medium text-navy truncate">{gc.tierName} Gift</p>
+                    <p className="text-xs text-warm-gray">
+                      {gc.quantity} {gc.quantity === 1 ? "gift" : "gifts"}
+                    </p>
+                  </div>
+                  <span className="font-medium text-navy whitespace-nowrap">
+                    ${(gc.totalPrice / 100).toFixed(0)}
                   </span>
                 </div>
               ))}
@@ -134,9 +226,12 @@ export default function CartSuccessPage() {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream transition hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy w-full sm:w-auto"
           >
-            View Your Dashboard
+            Go to dashboard
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+              <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+            </svg>
           </Link>
           <Link
             href="/gifts/buy"
