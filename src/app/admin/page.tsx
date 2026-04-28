@@ -152,8 +152,21 @@ interface AdminLetter {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const ADMIN_PASSWORD = "SendAdmin2026!";
 const SESSION_KEY = "sfg_admin_auth";
+const SESSION_PWD_KEY = "sfg_admin_pwd";
+
+function getAdminPassword(): string {
+  if (typeof window === "undefined") return "";
+  return sessionStorage.getItem(SESSION_PWD_KEY) || "";
+}
+
+function adminHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return { "x-admin-password": getAdminPassword(), ...extra };
+}
+
+function adminJsonHeaders(): Record<string, string> {
+  return { "Content-Type": "application/json", "x-admin-password": getAdminPassword() };
+}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
@@ -193,16 +206,32 @@ function PasswordGate({ onAuth }: { onAuth: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, "true");
-      onAuth();
-    } else {
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        sessionStorage.setItem(SESSION_PWD_KEY, password);
+        onAuth();
+      } else {
+        setError(true);
+        setShaking(true);
+        setTimeout(() => setShaking(false), 500);
+      }
+    } catch {
       setError(true);
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -236,9 +265,10 @@ function PasswordGate({ onAuth }: { onAuth: () => void }) {
         )}
         <button
           type="submit"
-          className="mt-4 w-full rounded-md bg-gray-900 text-white text-sm font-medium py-2 hover:bg-gray-800 transition"
+          disabled={submitting}
+          className="mt-4 w-full rounded-md bg-gray-900 text-white text-sm font-medium py-2 hover:bg-gray-800 transition disabled:opacity-50"
         >
-          Sign In
+          {submitting ? "Verifying..." : "Sign In"}
         </button>
       </form>
       <style jsx>{`
@@ -517,7 +547,7 @@ function ShipmentsTab({
   ) {
     const res = await fetch("/api/admin/shipments", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({
         shipment_id: shipmentId,
         status: "shipped",
@@ -533,7 +563,7 @@ function ShipmentsTab({
   async function handleMarkDelivered(shipmentId: string) {
     const res = await fetch("/api/admin/shipments", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({ shipment_id: shipmentId, status: "delivered" }),
     });
     if (res.ok) onRefresh();
@@ -881,7 +911,7 @@ function LettersTab({
   async function handleUpdateStatus(letterId: string, newStatus: string) {
     const res = await fetch("/api/admin/letters", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({ letter_id: letterId, status: newStatus }),
     });
     if (res.ok) onRefresh();
@@ -1138,7 +1168,7 @@ function AccessRequestsTab() {
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/executor-access");
+    const res = await fetch("/api/admin/executor-access", { headers: adminHeaders() });
     const data = await res.json();
     setRequests(data.requests || []);
     setLoading(false);
@@ -1152,7 +1182,7 @@ function AccessRequestsTab() {
     setUpdatingId(id);
     const res = await fetch("/api/admin/executor-access", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({ id, status }),
     });
     if (res.ok) {
@@ -1308,7 +1338,7 @@ function AffiliatesTab() {
   const [filterPaid, setFilterPaid] = useState("all");
 
   const fetchAffiliates = useCallback(async () => {
-    const res = await fetch("/api/admin/affiliates");
+    const res = await fetch("/api/admin/affiliates", { headers: adminHeaders() });
     const data = await res.json();
     setAffiliates(data.affiliates || []);
   }, []);
@@ -1317,7 +1347,7 @@ function AffiliatesTab() {
     const params = new URLSearchParams();
     if (filterAffiliateId !== "all") params.set("affiliate_id", filterAffiliateId);
     if (filterPaid !== "all") params.set("paid", filterPaid);
-    const res = await fetch(`/api/admin/affiliates/referrals?${params}`);
+    const res = await fetch(`/api/admin/affiliates/referrals?${params}`, { headers: adminHeaders() });
     const data = await res.json();
     setReferrals(data.referrals || []);
     setTotalUnpaid(data.totalUnpaid || 0);
@@ -1330,14 +1360,14 @@ function AffiliatesTab() {
   async function handleToggleActive(affiliate: Affiliate) {
     await fetch("/api/admin/affiliates", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({ id: affiliate.id, active: !affiliate.active }),
     });
     fetchAffiliates();
   }
 
   async function handleMarkPaid(affiliateId: string) {
-    await fetch(`/api/admin/affiliates/${affiliateId}/pay`, { method: "POST" });
+    await fetch(`/api/admin/affiliates/${affiliateId}/pay`, { method: "POST", headers: adminHeaders() });
     fetchAffiliates();
     fetchReferrals();
   }
@@ -1608,7 +1638,7 @@ function AffiliateFormModal({
 
     const res = await fetch("/api/admin/affiliates", {
       method: isEdit ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify(
         isEdit
           ? { id: affiliate.id, name, email, first_commission_rate: firstRate, repeat_commission_rate: repeatRate, notes, portal_password: portalPassword || null }
@@ -1802,7 +1832,7 @@ function GiftAssignmentsTab() {
 
   const fetchAssignments = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/gift-assignments");
+    const res = await fetch("/api/admin/gift-assignments", { headers: adminHeaders() });
     const data = await res.json();
     setAssignments(data.assignments || []);
     setLoading(false);
@@ -1816,7 +1846,7 @@ function GiftAssignmentsTab() {
     setUpdatingId(id);
     const res = await fetch("/api/admin/gift-assignments", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: adminJsonHeaders(),
       body: JSON.stringify({ id, ...payload }),
     });
     if (res.ok) {
@@ -2143,7 +2173,7 @@ function GiftVaultsTab() {
   const fetchGifts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/gift-vaults", {
-        headers: { "x-admin-password": ADMIN_PASSWORD },
+        headers: adminHeaders(),
       });
       const data = await res.json();
       if (data.gifts) setGifts(data.gifts);
@@ -2166,10 +2196,7 @@ function GiftVaultsTab() {
     try {
       const res = await fetch("/api/admin/gift-vaults", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": ADMIN_PASSWORD,
-        },
+        headers: adminJsonHeaders(),
         body: JSON.stringify({
           recipientName,
           recipientEmail,
@@ -2413,13 +2440,189 @@ function GiftVaultsTab() {
   );
 }
 
+// ─── Refunds Tab ────────────────────────────────────────────────────────────
+
+interface RefundRequest {
+  id: string;
+  order_id: string;
+  user_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  refund_amount: number | null;
+  processed_at: string | null;
+  stripe_refund_id: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  orders: {
+    tier: string;
+    years_remaining: number;
+    stripe_payment_intent_id: string | null;
+    recipients: { name: string } | null;
+  } | null;
+  profiles: { email: string; full_name: string | null } | null;
+}
+
+function RefundsTab() {
+  const [requests, setRequests] = useState<RefundRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"pending" | "all">("pending");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const url =
+        filter === "pending"
+          ? "/api/admin/refund-requests?status=pending"
+          : "/api/admin/refund-requests";
+      const res = await fetch(url, { headers: adminHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load");
+      setRequests(data.requests || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function act(id: string, action: "approve" | "deny") {
+    const verb = action === "approve" ? "issue this refund via Stripe" : "deny this request";
+    if (!confirm(`Are you sure you want to ${verb}?`)) return;
+    const notes = window.prompt("Optional admin notes (visible to you only):") || "";
+
+    setBusyId(id);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/refund-requests", {
+        method: "POST",
+        headers: adminJsonHeaders(),
+        body: JSON.stringify({ id, action, notes }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Action failed");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-gray-900">Refund Requests</h2>
+        <div className="flex gap-2 text-xs">
+          <button
+            onClick={() => setFilter("pending")}
+            className={`px-3 py-1 rounded ${filter === "pending" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"}`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-3 py-1 rounded ${filter === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"}`}
+          >
+            All
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
+
+      {loading ? (
+        <div className="py-12 text-center text-sm text-gray-400">Loading...</div>
+      ) : requests.length === 0 ? (
+        <div className="py-12 text-center text-sm text-gray-400">No refund requests.</div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map((r) => {
+            const amt = r.refund_amount != null ? `$${(r.refund_amount / 100).toFixed(2)}` : "—";
+            const recipient = r.orders?.recipients?.name || "—";
+            const customer = r.profiles?.email || "—";
+            const tier = r.orders?.tier || "—";
+            const isPending = r.status === "pending";
+            return (
+              <div key={r.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-sm space-y-1 flex-1">
+                    <div className="font-semibold text-gray-900">
+                      {recipient} · {tier} · {amt}
+                    </div>
+                    <div className="text-gray-600">{customer}</div>
+                    <div>
+                      <span className="text-gray-500">Reason:</span> {r.reason}
+                    </div>
+                    {r.details && (
+                      <div className="text-gray-700">
+                        <span className="text-gray-500">Details:</span> {r.details}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400">
+                      Requested {new Date(r.created_at).toLocaleString()}
+                      {r.processed_at && ` · Processed ${new Date(r.processed_at).toLocaleString()}`}
+                      {r.stripe_refund_id && ` · ${r.stripe_refund_id}`}
+                    </div>
+                    {r.admin_notes && (
+                      <div className="text-xs text-gray-500 italic">Notes: {r.admin_notes}</div>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex flex-col items-end gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs rounded font-medium ${
+                        r.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : r.status === "denied"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {r.status}
+                    </span>
+                    {isPending && (
+                      <div className="flex gap-2">
+                        <button
+                          disabled={busyId === r.id}
+                          onClick={() => act(r.id, "deny")}
+                          className="px-3 py-1.5 text-xs rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Deny
+                        </button>
+                        <button
+                          disabled={busyId === r.id}
+                          onClick={() => act(r.id, "approve")}
+                          className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                        >
+                          {busyId === r.id ? "Processing..." : "Approve & Refund"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [tab, setTab] = useState<
-    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments" | "gift-vaults"
+    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments" | "gift-vaults" | "refunds"
   >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -2575,6 +2778,16 @@ export default function AdminDashboard() {
               >
                 Gift Vaults
               </button>
+              <button
+                onClick={() => setTab("refunds")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "refunds"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Refunds
+              </button>
             </div>
 
             {/* Content */}
@@ -2597,6 +2810,8 @@ export default function AdminDashboard() {
                 <GiftAssignmentsTab />
               ) : tab === "gift-vaults" ? (
                 <GiftVaultsTab />
+              ) : tab === "refunds" ? (
+                <RefundsTab />
               ) : (
                 <OrdersTab />
               )}

@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  // 5 requests per IP per hour — these trigger emails to support.
+  const ip = getClientIp(request);
+  const limit = rateLimit(`executor-access:${ip}`, 5, 5 / 3600);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await request.json();
     const {

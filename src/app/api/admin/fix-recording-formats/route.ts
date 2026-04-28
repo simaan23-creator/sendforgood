@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // One-time fix: check each memory_recording's actual file content type
 // and update message_format accordingly (video recordings were saved as "audio")
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const supabase = await createClient();
   const {
     data: { user },

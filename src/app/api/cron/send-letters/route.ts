@@ -109,7 +109,6 @@ export async function GET(request: Request) {
           .eq("id", letter.id);
 
         sent++;
-        console.log(`Sent digital letter ${letter.id} to ${letter.recipient_email}`);
       } catch (emailError) {
         const msg = emailError instanceof Error ? emailError.message : "Unknown error";
         errors.push(`Letter ${letter.id}: ${msg}`);

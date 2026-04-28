@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 // GET: Public view of an admin vault gift by claim code
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  // 30 lookups per IP per hour to slow code enumeration.
+  const ip = getClientIp(request);
+  const limit = rateLimit(`claim-lookup:${ip}`, 30, 30 / 3600);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   const { code } = await params;
 
   const { data: gift, error } = await supabaseAdmin

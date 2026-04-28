@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe, TIER_PRICES } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
+import { log } from "@/lib/log";
 
 function generateClaimCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
@@ -25,9 +26,38 @@ export async function POST(request: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    log.error("stripe.webhook.signature_invalid", {}, err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
+
+  // Idempotency: record the event id; if it already exists, skip processing.
+  // Insert returns the inserted row only when it didn't already exist
+  // (we rely on the primary-key conflict to detect duplicates).
+  const { data: insertedEvent, error: idemError } = await supabaseAdmin
+    .from("stripe_webhook_events")
+    .upsert(
+      { id: event.id, type: event.type },
+      { onConflict: "id", ignoreDuplicates: true }
+    )
+    .select("id");
+
+  if (idemError) {
+    log.error(
+      "stripe.webhook.idempotency_check_failed",
+      { event_id: event.id, type: event.type },
+      idemError
+    );
+    // Fail open with 500 so Stripe retries.
+    return NextResponse.json({ error: "Idempotency error" }, { status: 500 });
+  }
+
+  if (!insertedEvent || insertedEvent.length === 0) {
+    log.info("stripe.webhook.duplicate", { event_id: event.id, type: event.type });
+    // Already processed — acknowledge so Stripe stops retrying.
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
+  log.info("stripe.webhook.received", { event_id: event.id, type: event.type });
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -54,7 +84,11 @@ export async function POST(request: Request) {
       // Process affiliate referral if affiliate code present
       await processAffiliateReferral(session, metadata);
     } catch (error) {
-      console.error("Error processing webhook:", error);
+      log.error(
+        "stripe.webhook.processing_failed",
+        { event_id: event.id, type: event.type },
+        error
+      );
       return NextResponse.json(
         { error: "Webhook processing failed" },
         { status: 500 }
@@ -1895,7 +1929,7 @@ async function processAffiliateReferral(
       .single();
 
     if (affError || !affiliate) {
-      console.log(`Affiliate code "${affiliateCode}" not found or inactive`);
+      // Don't log the attempted code (could enable enumeration via log scraping).
       return;
     }
 

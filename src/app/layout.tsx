@@ -6,6 +6,7 @@ import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,7 +14,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SendForGood — Legacy Gift Giving, Made Simple",
+  metadataBase: new URL("https://sendforgood.com"),
+  title: {
+    default: "SendForGood — Legacy Gift Giving, Made Simple",
+    template: "%s | SendForGood",
+  },
   description:
     "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
   icons: {
@@ -38,6 +43,23 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "SendForGood",
+  url: "https://sendforgood.com",
+  logo: "https://sendforgood.com/logo-icon.jpg",
+  description:
+    "Legacy gift giving made simple. Buy gift credits, write legacy letters, record voice and video messages.",
+  contactPoint: {
+    "@type": "ContactPoint",
+    email: "support@sendforgood.com",
+    telephone: "+1-631-707-4968",
+    contactType: "customer support",
+    areaServed: "US",
+  },
+};
+
 export default async function RootLayout({
   children,
 }: {
@@ -54,17 +76,16 @@ export default async function RootLayout({
           if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
           window.scrollTo(0, 0);
         `}</Script>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=AW-17462992858" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">{`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-622H0QNK45');
-          gtag('config', 'AW-17462992858');
-        `}</Script>
       </head>
       <body className={isAdmin ? "" : "min-h-screen flex flex-col"}>
+        <Script
+          id="organization-jsonld"
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <ScrollToTop />
+        {!isAdmin && <CookieConsent />}
         {!isAdmin && <Header />}
         {isAdmin ? children : <main className="flex-1">{children}</main>}
         {!isAdmin && <Footer />}

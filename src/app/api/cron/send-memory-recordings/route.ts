@@ -138,7 +138,6 @@ export async function GET(request: Request) {
           .eq("id", req.id);
 
         sent++;
-        console.log(`Sent memory recordings for request ${req.id} to ${req.requester_email}`);
       } catch (emailError) {
         const msg = emailError instanceof Error ? emailError.message : "Unknown error";
         errors.push(`Request ${req.id}: ${msg}`);

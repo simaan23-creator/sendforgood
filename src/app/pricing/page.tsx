@@ -56,9 +56,27 @@ const FAQ = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 export default function PricingPage() {
   return (
     <section className="px-6 py-16 sm:py-24">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <div className="mx-auto max-w-7xl">
         {/* Trust Bar */}
         <div className="mb-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-xl bg-cream px-6 py-4 text-sm font-medium text-navy">

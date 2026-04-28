@@ -158,8 +158,6 @@ export default function RecordMemoryPage() {
 
       // Step 2: Upload directly to Supabase storage via signed URL
       const sizeMB = (mediaBlob.size / (1024 * 1024)).toFixed(1);
-      console.log(`Uploading ${sizeMB}MB ${urlData.contentType} to storage...`);
-
       const uploadRes = await fetch(urlData.signedUrl, {
         method: "PUT",
         headers: { "Content-Type": urlData.contentType },

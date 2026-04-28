@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET: return all referrals with affiliate info
 export async function GET(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const { searchParams } = new URL(request.url);
   const affiliateId = searchParams.get("affiliate_id");
   const paidFilter = searchParams.get("paid");

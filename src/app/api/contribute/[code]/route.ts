@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 // GET: Fetch request details by claim code (public, no auth)
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  const ip = getClientIp(request);
+  const limit = rateLimit(`contribute:${ip}`, 30, 30 / 3600);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   const { code } = await params;
 
   const { data: item, error } = await supabaseAdmin

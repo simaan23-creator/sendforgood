@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 function maskEmail(email: string): string {
   if (!email || !email.includes("@")) return "***";
@@ -12,6 +13,16 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  // Tight limit for portal password attempts.
+  const ip = getClientIp(request);
+  const limit = rateLimit(`affiliate-portal:${ip}`, 10, 10 / 3600);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   const { code } = await params;
   const password = request.headers.get("x-portal-password") || new URL(request.url).searchParams.get("password");
 

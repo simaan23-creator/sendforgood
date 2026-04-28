@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET /api/admin/letters — get all letters (admin)
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const { data: letters, error } = await supabaseAdmin
       .from("letters")
@@ -27,6 +31,9 @@ export async function GET() {
 
 // PATCH /api/admin/letters — update letter status (admin)
 export async function PATCH(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { letter_id, status } = body;

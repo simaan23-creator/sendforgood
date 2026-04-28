@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET: Fetch all gift assignments across all users
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const { data, error } = await supabaseAdmin
     .from("gift_assignments")
     .select(`
@@ -47,6 +51,9 @@ export async function GET() {
 
 // PATCH: Update assignment status, tracking number, and/or notes
 export async function PATCH(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const body = await request.json();
   const { id, status, tracking_number, admin_notes } = body as {
     id: string;

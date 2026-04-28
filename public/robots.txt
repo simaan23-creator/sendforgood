@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Private, transactional, or single-use pages — keep out of search index.
+Disallow: /admin
+Disallow: /api/
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /executor-access
+Disallow: /claim/
+Disallow: /record/
+Disallow: /contribute/
+Disallow: /listen-memory/
+Disallow: /voice/edit/
+Disallow: /letters/edit/
+Disallow: /vault/my
+Disallow: /vault/buy
+Disallow: /vault/success
+Disallow: /cart
+Disallow: /cart/success
+Disallow: /send/success
+Disallow: /letters/success
+Disallow: /voice/success
+Disallow: /business/success
+Disallow: /business/dashboard
+Disallow: /business/signup
+
+Sitemap: https://sendforgood.com/sitemap.xml

@@ -120,7 +120,6 @@ export async function GET(request: Request) {
           .eq("id", message.id);
 
         sent++;
-        console.log(`Sent voice message ${message.id} to ${message.recipient_email}`);
       } catch (emailError) {
         const msg = emailError instanceof Error ? emailError.message : "Unknown error";
         errors.push(`Voice message ${message.id}: ${msg}`);

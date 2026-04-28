@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // One-time backfill: create vault_fees rows for users who already purchased
 // vault credits (their checkout included the $10 fee).
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const supabase = await createClient();
   const {
     data: { user },

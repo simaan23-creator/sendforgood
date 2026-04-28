@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // POST: mark all unpaid referrals for this affiliate as paid
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const { id } = await params;
 
   // Get all unpaid referrals for this affiliate

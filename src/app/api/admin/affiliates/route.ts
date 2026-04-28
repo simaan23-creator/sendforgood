@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET: return all affiliates with referral counts and totals
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const { data: affiliates, error } = await supabaseAdmin
     .from("affiliates")
     .select("*")
@@ -39,6 +43,9 @@ export async function GET() {
 
 // POST: create a new affiliate
 export async function POST(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const body = await request.json();
   const { name, email, code, first_commission_rate, repeat_commission_rate, notes, portal_password } = body;
 
@@ -91,6 +98,9 @@ export async function POST(request: Request) {
 
 // PATCH: update an affiliate
 export async function PATCH(request: Request) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   const body = await request.json();
   const { id, ...updates } = body;
 

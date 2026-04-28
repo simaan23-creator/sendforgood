@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
+import { requireAdmin } from "@/lib/admin-auth";
 import crypto from "crypto";
-
-const ADMIN_PASSWORD = "SendAdmin2026!";
 
 function generateClaimCode(): string {
   return crypto.randomBytes(8).toString("hex");
@@ -11,10 +10,8 @@ function generateClaimCode(): string {
 
 // GET: List all admin vault gifts
 export async function GET(request: Request) {
-  const password = request.headers.get("x-admin-password");
-  if (password !== ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const authError = requireAdmin(request);
+  if (authError) return authError;
 
   const { data: gifts, error } = await supabaseAdmin
     .from("admin_vault_gifts")
@@ -30,10 +27,8 @@ export async function GET(request: Request) {
 
 // POST: Send a vault gift package
 export async function POST(request: Request) {
-  const password = request.headers.get("x-admin-password");
-  if (password !== ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const authError = requireAdmin(request);
+  if (authError) return authError;
 
   const body = await request.json();
   const {

@@ -40,7 +40,9 @@ export async function GET(request: Request) {
         profiles:user_id(email, full_name)
       `)
       .eq("status", "pending")
-      .eq("occasion_date", targetDate);
+      .eq("occasion_date", targetDate)
+      // Idempotency: skip rows we've already reminded on.
+      .is("reminder_sent_at", null);
 
     if (fetchError) {
       console.error("Error fetching assignments:", fetchError);
@@ -79,6 +81,14 @@ export async function GET(request: Request) {
         const profileObj = Array.isArray(prof) ? prof[0] : prof;
         const customerEmail: string = profileObj?.email || "unknown";
         const customerName: string = profileObj?.full_name || "Unknown";
+
+        // Mark BEFORE sending so a transient send failure doesn't keep
+        // re-triggering. (Cost of double-send is annoying; cost of
+        // missed-mark is duplicate emails on next cron tick.)
+        await supabaseAdmin
+          .from("gift_assignments")
+          .update({ reminder_sent_at: new Date().toISOString() })
+          .eq("id", a.id);
 
         await resend.emails.send({
           from: "SendForGood <notifications@sendforgood.com>",

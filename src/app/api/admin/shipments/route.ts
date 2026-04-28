@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const { data: shipments, error } = await supabaseAdmin
       .from("shipments")
@@ -67,6 +71,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { shipment_id, status, tracking_number } = body;
