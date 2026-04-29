@@ -1216,14 +1216,54 @@ export default function DashboardPage() {
                             {letter.title || "Untitled Letter"}
                           </h3>
                         )}
-                        <p className="mt-1 text-sm text-warm-gray">
-                          To: {letter.recipient_name || letter.recipients?.name || "Not set"}{" "}
-                          {letter.recipients?.relationship && (
-                            <span className="text-warm-gray-light">
-                              &middot; {letter.recipients.relationship}
-                            </span>
-                          )}
-                        </p>
+                        {(() => {
+                          const recipientLabel =
+                            letter.recipient_name || letter.recipients?.name;
+                          if (recipientLabel) {
+                            return (
+                              <p className="mt-1 text-sm text-warm-gray">
+                                To: <span className="font-medium text-navy">{recipientLabel}</span>
+                                {letter.recipients?.relationship && (
+                                  <span className="text-warm-gray-light">
+                                    {" "}&middot; {letter.recipients.relationship}
+                                  </span>
+                                )}
+                              </p>
+                            );
+                          }
+                          return (
+                            <p className="mt-1 text-sm">
+                              <Link
+                                href={`/letters/edit/${letter.id}`}
+                                className="font-medium text-gold-dark underline-offset-2 hover:underline"
+                              >
+                                + Add recipient
+                              </Link>
+                            </p>
+                          );
+                        })()}
+                        {letter.letter_type === "milestone" && (() => {
+                          if (letter.milestone_label) {
+                            return (
+                              <p className="mt-1 text-sm text-warm-gray">
+                                Milestone:{" "}
+                                <span className="font-medium text-navy">
+                                  {letter.milestone_label}
+                                </span>
+                              </p>
+                            );
+                          }
+                          return (
+                            <p className="mt-1 text-sm">
+                              <Link
+                                href={`/letters/edit/${letter.id}`}
+                                className="font-medium text-gold-dark underline-offset-2 hover:underline"
+                              >
+                                + Set milestone
+                              </Link>
+                            </p>
+                          );
+                        })()}
                         <p className="mt-1 text-xs text-warm-gray-light">
                           Purchase Date: {new Date(letter.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           {letter.scheduled_date && (
@@ -1359,24 +1399,63 @@ export default function DashboardPage() {
                           >
                             Gift
                           </button>
-                          {/* Release button for milestone letters that are written */}
-                          {letter.letter_type === "milestone" && letter.status === "pending_release" && (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (!confirm("Are you sure you want to release this letter? It will be sent to the recipient.")) return;
-                                await fetch(`/api/letters/release`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ letterId: letter.id }),
-                                });
-                                window.location.reload();
-                              }}
-                              className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
-                            >
-                              Release Now
-                            </button>
-                          )}
+                          {/* Send button for milestone letters that are ready to go.
+                              Shows whenever the letter has content and is not already
+                              released/delivered/printed. We disable + redirect to the
+                              editor if recipient or milestone is missing so we don't
+                              ship an envelope with no address. */}
+                          {letter.letter_type === "milestone" &&
+                            hasContent &&
+                            !["released", "delivered", "printed"].includes(letter.status) && (() => {
+                              const missingRecipient =
+                                !letter.recipient_name && !letter.recipients?.name;
+                              const missingMilestone = !letter.milestone_label;
+                              const blocked = missingRecipient || missingMilestone;
+                              if (blocked) {
+                                const missing = [
+                                  missingRecipient && "recipient",
+                                  missingMilestone && "milestone",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" and ");
+                                return (
+                                  <Link
+                                    href={`/letters/edit/${letter.id}`}
+                                    title={`Add ${missing} before sending`}
+                                    className="rounded-lg border-2 border-gold bg-gold/10 px-4 py-2 text-sm font-semibold text-gold-dark transition-colors hover:bg-gold/20"
+                                  >
+                                    Add {missing} to send
+                                  </Link>
+                                );
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (
+                                      !confirm(
+                                        `Send this letter to ${letter.recipient_name || letter.recipients?.name} now? This cannot be undone.`
+                                      )
+                                    )
+                                      return;
+                                    const res = await fetch(`/api/letters/release`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ letterId: letter.id }),
+                                    });
+                                    if (!res.ok) {
+                                      const data = await res.json().catch(() => ({}));
+                                      alert(data.error || "Failed to send letter");
+                                      return;
+                                    }
+                                    window.location.reload();
+                                  }}
+                                  className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-gold-light"
+                                >
+                                  Send Now
+                                </button>
+                              );
+                            })()}
                           {letter.status === "delivered" || letter.status === "released" ? (
                             <Link
                               href={`/letters/view/${letter.id}`}

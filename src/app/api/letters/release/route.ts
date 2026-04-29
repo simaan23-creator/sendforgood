@@ -38,9 +38,29 @@ export async function POST(request: Request) {
       .update({ status: "released" })
       .eq("id", letterId);
 
-    // Send notification to admin
+    // Send notification to admin. Resolve recipient + address from direct
+    // letter columns first (new blank-slot flow), then fall back to the legacy
+    // recipients join.
     const senderName = (letter.profiles as { full_name?: string })?.full_name || user.email;
-    const recipientName = (letter.recipients as { name?: string })?.name || "recipient";
+    const joinedRecipient = letter.recipients as
+      | {
+          name?: string;
+          address_line1?: string;
+          city?: string;
+          state?: string;
+          postal_code?: string;
+        }
+      | null;
+    const recipientName =
+      letter.recipient_name || joinedRecipient?.name || "recipient";
+    const addr1 = letter.address_line1 || joinedRecipient?.address_line1 || "";
+    const city = letter.city || joinedRecipient?.city || "";
+    const stateCode = letter.state || joinedRecipient?.state || "";
+    const postal = letter.postal_code || joinedRecipient?.postal_code || "";
+    const hasMailingAddress = !!(addr1 && city && stateCode && postal);
+    const mailingAddressHtml = hasMailingAddress
+      ? `${addr1}, ${city}, ${stateCode} ${postal}`
+      : "<em style='color:#b91c1c;'>No mailing address on file</em>";
 
     await resend.emails.send({
       from: "SendForGood <noreply@sendforgood.com>",
@@ -59,7 +79,7 @@ export async function POST(request: Request) {
           </div>
           ${letter.delivery_type === "digital" && letter.recipient_email
             ? `<p><strong>Recipient email:</strong> ${letter.recipient_email}</p>`
-            : `<p><strong>Mailing address:</strong> ${(letter.recipients as { address_line1?: string; city?: string; state?: string; postal_code?: string })?.address_line1}, ${(letter.recipients as { city?: string })?.city}, ${(letter.recipients as { state?: string })?.state} ${(letter.recipients as { postal_code?: string })?.postal_code}</p>`
+            : `<p><strong>Mailing address:</strong> ${mailingAddressHtml}</p>`
           }
           <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin</a></p>
         </div>
