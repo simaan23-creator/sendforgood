@@ -110,8 +110,12 @@ export async function PATCH(
     .eq("user_id", user.id);
 
   if (updateError) {
+    console.error("voice_messages PATCH failed:", updateError);
     return NextResponse.json(
-      { error: "Failed to update voice message" },
+      {
+        error: "Failed to update voice message",
+        details: updateError.message,
+      },
       { status: 500 }
     );
   }
