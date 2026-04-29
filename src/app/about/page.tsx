@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — SendForGood & Legacy Letters",
+  title: "About — SendForGood, Legacy Letters & the Memory Vault",
 };
 
 /* ───────────────── Use-case data ───────────────── */
@@ -16,9 +16,15 @@ const useCases = [
   },
   {
     emoji: "\u{1F48D}",
-    title: "Your wedding, remembered forever",
+    title: "Turn 150 wedding guests into 150 second-shooters",
     description:
-      "Send a Memory Vault link to every guest at your reception. Seal their video messages for your 10th anniversary.",
+      "Your photographer can only be in one place. Your guests are everywhere \u2014 the back hallways, the bridal suite, the 2 a.m. afterparty. A QR code on each table turns every phone into a camera that drops straight into your vault.",
+  },
+  {
+    emoji: "\u23F3",
+    title: "Open it tomorrow, or in ten years \u2014 your call",
+    description:
+      "Set the vault to unlock the morning after your wedding so you can scroll through everything with coffee in bed. Or seal it for your 10th anniversary as a real time capsule. Or never lock it. It is your timeline.",
   },
   {
     emoji: "\u{1F3E0}",
@@ -68,24 +74,23 @@ const products = [
   {
     emoji: "\u{1F381}",
     name: "Gifts",
-    description: "Send gifts. Assign recipients. We deliver every year.",
+    description: "Buy gifts once. Assign recipients whenever you are ready. We deliver every year, on time, without you lifting a finger.",
     price: "From $20 per gift",
     href: "/gifts/buy",
   },
   {
     emoji: "\u2709\uFE0F",
     name: "Messages",
-    description: "Written letters, voice, or video \u2014 delivered by email or mail.",
+    description: "Written letters, voice notes, or video \u2014 mailed or emailed exactly when you choose. Even years from now. Even after you are gone.",
     price: "From $1 per letter",
     href: "/messages/buy",
   },
   {
     emoji: "\u{1F510}",
     name: "Memory Vault",
-    description:
-      "Collect messages from others. Sealed until the right moment.",
-    price: "From $0.25 per slot",
-    href: "/vault",
+    description: "Collect video, voice, and photos from everyone at your wedding (or any event). Server-locked until the date you pick \u2014 even from you.",
+    price: "$10 vault + $0.25\u2013$1 per slot",
+    href: "/wedding",
   },
 ];
 
@@ -254,6 +259,109 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ──────────────────── Founder Story: Memory Vault ──────────────── */}
+      <section className="bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Why the Memory Vault
+          </h2>
+
+          <div className="mx-auto mt-12 max-w-2xl">
+            <hr className="mb-10 border-t border-warm-gray/30" />
+
+            <div className="space-y-6 pl-4 sm:pl-8 text-[17px] leading-[1.85] text-warm-gray font-[350]" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+              <p>
+                I have been to a lot of weddings. I have stood in the back, I
+                have stood in the front, I have helped break a chair down at
+                the end of the night. And every single time, I leave thinking
+                the same thing: the most beautiful part of that day was not
+                the part the photographer was hired to shoot.
+              </p>
+
+              <p>
+                It was the bridesmaid crying in the bathroom because she
+                finally understood what her best friend was leaving behind. It
+                was the groom&rsquo;s grandfather telling a story to a
+                stranger at the bar that none of us had ever heard. It was the
+                kitchen staff dancing while they plated dinner. It was the
+                groom&rsquo;s dad practicing his speech in the parking lot
+                because he did not trust himself to do it sober.
+              </p>
+
+              <p>
+                One photographer cannot capture all of that. They are one
+                person, holding one camera, in one room. But your guests
+                are everywhere. They are already filming on their
+                phones&nbsp;&mdash; little vertical clips that get posted to
+                a story, watched once, and lost forever.
+              </p>
+
+              <p>
+                The Memory Vault is just the simplest possible
+                way&nbsp;&mdash; a QR code on the table, a link, a big record
+                button&nbsp;&mdash; to redirect all of those phones into one
+                place. Yours. Sealed until you decide to open it.
+              </p>
+
+              <p>
+                And here is the thing: it is the same mechanism that holds
+                the letter my father never got to write to my unborn son. The
+                same vault. The same lock. One product, three reasons to use
+                it&nbsp;&mdash; for the wedding you are about to have, for
+                the words you owe someone you love, for the message you want
+                to leave behind when you are gone.
+              </p>
+
+              <p className="font-semibold text-navy">
+                Activate the swarm. Lock it for the day that matters. Open it
+                together.
+              </p>
+
+              <p className="mt-4 text-right italic text-navy text-lg">
+                &mdash; Simaan
+              </p>
+            </div>
+
+            <hr className="mt-10 border-t border-warm-gray/30" />
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────── Featured Callout: Wedding Swarm ──────────────── */}
+      <section className="bg-navy px-6 py-20 sm:py-24">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-center text-sm font-semibold uppercase tracking-widest text-gold">
+            Featured use case
+          </p>
+          <h2 className="mt-3 text-center text-3xl font-bold leading-tight text-cream sm:text-4xl md:text-5xl">
+            Your photographer can only be in one place.
+            <br />
+            <span className="text-gold">Your guests are everywhere.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-cream/80">
+            Turn 150 phones into 150 second-shooters. Capture the back
+            hallways, the bridal suite, the cigar smoke, the 2 a.m. afterparty.
+            All the moments your photographer was never going to reach.
+            Server-locked until the date you choose &mdash; the morning after,
+            your tenth anniversary, or never.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/wedding"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-gold px-10 py-4 text-base font-bold text-navy shadow-lg transition hover:bg-gold-light sm:w-auto"
+            >
+              See the wedding pitch
+            </Link>
+            <Link
+              href="/vault/buy"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-cream px-8 py-4 text-base font-semibold text-cream transition hover:bg-cream hover:text-navy sm:w-auto"
+            >
+              Create a Memory Vault
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ──────────────── What can you do with SendForGood? ──────────────── */}
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl">
@@ -285,12 +393,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ────────────── One platform. Five ways to show love. ────────────── */}
+      {/* ────────────── One platform. Three ways to show love. ────────────── */}
       <section className="bg-cream px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
             One platform. Three ways to show love.
           </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-warm-gray">
+            Same vault. Same lock. Same promise: love delivered exactly when
+            the moment arrives, even if you are not there to hand it over.
+          </p>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
             {products.map((p) => (
@@ -321,18 +433,32 @@ export default function AboutPage() {
       <section className="bg-navy px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold text-cream sm:text-4xl md:text-5xl">
-            Ready to Start Your Legacy?
+            Ready to start?
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-cream/80">
-            It only takes a few minutes to buy Gifts and start assigning
-            recipients. Your loved ones deserve to feel your love&nbsp;&mdash; always.
+            Buy gifts that show up every year. Or activate the swarm at your
+            wedding. Or write the letter you owe someone you love. Pick
+            whichever one is heaviest on your chest right now &mdash; the
+            other two will be here when you are ready.
           </p>
-          <div className="mt-10">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/gifts/buy"
-              className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-gold px-10 py-4 text-base font-bold text-navy shadow-lg transition hover:bg-gold-light sm:w-auto"
             >
-              Get Started
+              Buy Gifts
+            </Link>
+            <Link
+              href="/wedding"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-cream px-10 py-4 text-base font-bold text-navy shadow-lg transition hover:bg-cream-dark sm:w-auto"
+            >
+              Wedding Vault
+            </Link>
+            <Link
+              href="/messages/buy"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-cream px-8 py-4 text-base font-semibold text-cream transition hover:bg-cream hover:text-navy sm:w-auto"
+            >
+              Write a Message
             </Link>
           </div>
         </div>
