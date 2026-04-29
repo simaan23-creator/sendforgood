@@ -2708,11 +2708,19 @@ export default function AdminDashboard() {
   const [letters, setLetters] = useState<AdminLetter[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Check existing session
+  // Check existing session — require BOTH the auth flag AND the stored
+  // password. If only the flag is present (stale session, older
+  // deployment, dev tools tampering), force a fresh login so admin API
+  // calls don't all silently 403.
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (sessionStorage.getItem(SESSION_KEY) === "true") {
+      const flagged = sessionStorage.getItem(SESSION_KEY) === "true";
+      const hasPwd = !!sessionStorage.getItem(SESSION_PWD_KEY);
+      if (flagged && hasPwd) {
         setAuthed(true);
+      } else if (flagged && !hasPwd) {
+        // Stale flag, clear it so PasswordGate shows.
+        sessionStorage.removeItem(SESSION_KEY);
       }
       setCheckingAuth(false);
     }
@@ -2722,16 +2730,26 @@ export default function AdminDashboard() {
     setLoading(true);
     // Fetch each independently with timeout so one slow API doesn't block others
     const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
-    
+
     const safeJson = async (url: string) => {
       try {
-        const res = await Promise.race([fetch(url), timeout(8000)]) as Response;
+        const res = (await Promise.race([
+          fetch(url, { headers: adminHeaders() }),
+          timeout(8000),
+        ])) as Response;
+        if (res.status === 403) {
+          // Session is stale or password env changed. Force re-login.
+          sessionStorage.removeItem(SESSION_KEY);
+          sessionStorage.removeItem(SESSION_PWD_KEY);
+          setAuthed(false);
+          return null;
+        }
         return await res.json();
       } catch { return null; }
     };
 
     setLoading(false); // Show dashboard immediately
-    
+
     // Load data in parallel, each independently
     safeJson("/api/admin/shipments").then(d => { if (d?.shipments) setShipments(d.shipments); });
     safeJson("/api/admin/orders").then(d => { if (d?.orders) setOrders(d.orders); });
@@ -2761,6 +2779,7 @@ export default function AdminDashboard() {
           <button
             onClick={() => {
               sessionStorage.removeItem(SESSION_KEY);
+              sessionStorage.removeItem(SESSION_PWD_KEY);
               setAuthed(false);
             }}
             className="text-xs text-gray-400 hover:text-gray-600 transition"
