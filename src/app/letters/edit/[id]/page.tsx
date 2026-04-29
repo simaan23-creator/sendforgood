@@ -85,6 +85,12 @@ interface LetterData {
   executor_email: string | null;
   executor_phone: string | null;
   executor_address: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
 }
 
 interface GiftExecutor {
@@ -113,6 +119,12 @@ export default function EditLetterPage() {
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [stateRegion, setStateRegion] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("US");
   const [deliveryMode, setDeliveryMode] = useState<"date" | "milestone">("date");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [giftExecutor, setGiftExecutor] = useState<GiftExecutor | null>(null);
@@ -170,6 +182,12 @@ export default function EditLetterPage() {
       setRecipientName(data.recipient_name || "");
       setRecipientEmail(data.recipient_email || "");
       setPhotoUrl(data.photo_url || "");
+      setAddressLine1(data.address_line1 || "");
+      setAddressLine2(data.address_line2 || "");
+      setCity(data.city || "");
+      setStateRegion(data.state || "");
+      setPostalCode(data.postal_code || "");
+      setCountry(data.country || "US");
 
       setLoading(false);
 
@@ -201,10 +219,19 @@ export default function EditLetterPage() {
     loadLetter();
   }, [letterId, router]);
 
+  const requiresAddress =
+    deliveryType === "physical" || deliveryType === "physical_photo";
+
   async function handleSave() {
     setSaving(true);
     setSaved(false);
     setError("");
+
+    if (requiresAddress && (!addressLine1.trim() || !city.trim() || !stateRegion.trim() || !postalCode.trim())) {
+      setError("Physical letters need a complete mailing address (street, city, state, postal code).");
+      setSaving(false);
+      return;
+    }
 
     try {
       const effectiveMilestone =
@@ -227,6 +254,12 @@ export default function EditLetterPage() {
           recipientName: recipientName || null,
           recipientEmail: recipientEmail || null,
           photoUrl: photoUrl || null,
+          addressLine1: requiresAddress ? (addressLine1 || null) : null,
+          addressLine2: requiresAddress ? (addressLine2 || null) : null,
+          city: requiresAddress ? (city || null) : null,
+          state: requiresAddress ? (stateRegion || null) : null,
+          postalCode: requiresAddress ? (postalCode || null) : null,
+          country: requiresAddress ? (country || null) : null,
         }),
       });
 
@@ -325,6 +358,73 @@ export default function EditLetterPage() {
               className="w-full rounded-lg border border-cream-dark bg-white px-4 py-3 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
+
+          {/* Mailing address (only shown for physical / physical_photo delivery) */}
+          {requiresAddress && (
+            <div className="rounded-xl border-2 border-amber-200 bg-amber-50/40 p-4">
+              <p className="mb-3 text-sm font-semibold text-navy">
+                Mailing Address <span className="text-red-500">*</span>
+              </p>
+              <p className="mb-4 text-xs text-warm-gray">
+                Where should we mail this letter? Required for physical delivery.
+              </p>
+
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={addressLine1}
+                  onChange={(e) => { setAddressLine1(e.target.value); setSaved(false); }}
+                  disabled={isLocked}
+                  placeholder="Street address"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+                <input
+                  type="text"
+                  value={addressLine2}
+                  onChange={(e) => { setAddressLine2(e.target.value); setSaved(false); }}
+                  disabled={isLocked}
+                  placeholder="Apt, suite, unit (optional)"
+                  className="w-full rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => { setCity(e.target.value); setSaved(false); }}
+                    disabled={isLocked}
+                    placeholder="City"
+                    className="rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                  <input
+                    type="text"
+                    value={stateRegion}
+                    onChange={(e) => { setStateRegion(e.target.value); setSaved(false); }}
+                    disabled={isLocked}
+                    placeholder="State / Region"
+                    className="rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={postalCode}
+                    onChange={(e) => { setPostalCode(e.target.value); setSaved(false); }}
+                    disabled={isLocked}
+                    placeholder="Postal code"
+                    className="rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                  <input
+                    type="text"
+                    value={country}
+                    onChange={(e) => { setCountry(e.target.value); setSaved(false); }}
+                    disabled={isLocked}
+                    placeholder="Country"
+                    className="rounded-lg border border-cream-dark bg-white px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* When should this be delivered? */}
           <div>

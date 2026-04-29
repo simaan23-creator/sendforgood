@@ -1234,6 +1234,22 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
+                        {(() => {
+                          const dt = (letter as { delivery_type?: string }).delivery_type;
+                          if (!dt) return null;
+                          const map: Record<string, { label: string; emoji: string; classes: string }> = {
+                            digital: { label: "Digital", emoji: "\u{1F4E7}", classes: "bg-blue-50 text-blue-700 border border-blue-200" },
+                            physical: { label: "Physical", emoji: "\u{2709}\u{FE0F}", classes: "bg-amber-50 text-amber-800 border border-amber-200" },
+                            physical_photo: { label: "Physical + Photo", emoji: "\u{1F4F8}", classes: "bg-purple-50 text-purple-700 border border-purple-200" },
+                          };
+                          const info = map[dt];
+                          if (!info) return null;
+                          return (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${info.classes}`}>
+                              <span>{info.emoji}</span>{info.label}
+                            </span>
+                          );
+                        })()}
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusInfo.classes}`}>
                           {statusInfo.label}
                         </span>

@@ -59,6 +59,12 @@ export async function PATCH(request: Request) {
       recipientEmail,
       photoUrl,
       letterType,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      postalCode,
+      country,
     } = body;
 
     if (!letterId) {
@@ -119,6 +125,12 @@ export async function PATCH(request: Request) {
     if (recipientEmail !== undefined) updates.recipient_email = recipientEmail;
     if (photoUrl !== undefined) updates.photo_url = photoUrl;
     if (letterType !== undefined) updates.letter_type = letterType;
+    if (addressLine1 !== undefined) updates.address_line1 = addressLine1;
+    if (addressLine2 !== undefined) updates.address_line2 = addressLine2;
+    if (city !== undefined) updates.city = city;
+    if (state !== undefined) updates.state = state;
+    if (postalCode !== undefined) updates.postal_code = postalCode;
+    if (country !== undefined) updates.country = country;
 
     const { data: updated, error } = await supabase
       .from("letters")
