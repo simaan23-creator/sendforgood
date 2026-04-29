@@ -37,6 +37,48 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // ── Seal enforcement ──────────────────────────────────────────────────────
+  // The vault's contents are gated server-side until both:
+  //   (a) the seal date has passed (or there is no seal), AND
+  //   (b) the delivery date has been reached.
+  // Until then we still return vault metadata + an aggregate count so the
+  // owner can see participation, but never the recording rows / media URLs.
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD in UTC
+  const sealLifted = !vault.sealed_until || vault.sealed_until <= today;
+  const deliveryReached = !vault.delivery_date || vault.delivery_date <= today;
+  const isLocked = !sealLifted || !deliveryReached;
+  const unlocksAt = !sealLifted
+    ? vault.sealed_until
+    : !deliveryReached
+      ? vault.delivery_date
+      : null;
+
+  const vaultMeta = {
+    id: vault.id,
+    title: vault.title,
+    occasion: vault.occasion,
+    delivery_date: vault.delivery_date,
+    sealed_until: vault.sealed_until,
+    is_sealed: vault.is_sealed,
+    status: vault.status,
+  };
+
+  if (isLocked) {
+    // Return only the count of pending recordings — never the rows or URLs.
+    const { count } = await supabaseAdmin
+      .from("memory_recordings")
+      .select("id", { count: "exact", head: true })
+      .eq("request_id", id);
+
+    return NextResponse.json({
+      vault: vaultMeta,
+      recordings: [],
+      locked: true,
+      unlocks_at: unlocksAt,
+      pending_count: count ?? 0,
+    });
+  }
+
   const { data: recordings, error: recError } = await supabaseAdmin
     .from("memory_recordings")
     .select("id, recorder_name, audio_url, message_format, duration_seconds, status, created_at")
@@ -48,15 +90,8 @@ export async function GET(
   }
 
   return NextResponse.json({
-    vault: {
-      id: vault.id,
-      title: vault.title,
-      occasion: vault.occasion,
-      delivery_date: vault.delivery_date,
-      sealed_until: vault.sealed_until,
-      is_sealed: vault.is_sealed,
-      status: vault.status,
-    },
+    vault: vaultMeta,
     recordings: recordings || [],
+    locked: false,
   });
 }

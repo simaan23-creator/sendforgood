@@ -39,6 +39,9 @@ export default function VaultViewPage() {
 
   const [vault, setVault] = useState<VaultMeta | null>(null);
   const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [locked, setLocked] = useState(false);
+  const [unlocksAt, setUnlocksAt] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +60,9 @@ export default function VaultViewPage() {
         const data = await res.json();
         setVault(data.vault);
         setRecordings(data.recordings || []);
+        setLocked(!!data.locked);
+        setUnlocksAt(data.unlocks_at ?? null);
+        setPendingCount(data.pending_count ?? 0);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -65,6 +71,14 @@ export default function VaultViewPage() {
     }
     load();
   }, [id, router]);
+
+  function daysUntil(iso: string): number {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(iso);
+    target.setHours(0, 0, 0, 0);
+    return Math.max(0, Math.ceil((target.getTime() - today.getTime()) / 86400000));
+  }
 
   if (loading) {
     return (
@@ -118,7 +132,47 @@ export default function VaultViewPage() {
           </p>
         </div>
 
-        {recordings.length === 0 ? (
+        {locked ? (
+          <div className="rounded-2xl border border-gold/40 bg-gradient-to-b from-white to-cream p-10 text-center shadow-md">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-navy text-3xl text-gold">
+              {"\u{1F510}"}
+            </div>
+            <h2 className="text-2xl font-bold text-navy">
+              This vault is sealed.
+            </h2>
+            {unlocksAt ? (
+              <>
+                <p className="mt-3 text-warm-gray">
+                  It opens on{" "}
+                  <span className="font-semibold text-navy">
+                    {formatDate(unlocksAt)}
+                  </span>
+                  .
+                </p>
+                <p className="mt-1 text-sm text-warm-gray">
+                  {daysUntil(unlocksAt) === 0
+                    ? "Today is the day. Refresh after midnight."
+                    : `${daysUntil(unlocksAt)} ${daysUntil(unlocksAt) === 1 ? "day" : "days"} to go.`}
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-warm-gray">
+                It will open on the date you set.
+              </p>
+            )}
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-cream-dark px-4 py-2 text-sm text-navy">
+              <span className="font-semibold">{pendingCount}</span>
+              <span className="text-warm-gray">
+                {pendingCount === 1 ? "memory waiting" : "memories waiting"} inside
+              </span>
+            </div>
+            <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-warm-gray">
+              Recordings are encrypted in your vault and cannot be viewed &mdash;
+              even by you &mdash; until the date you chose. That is what makes
+              this gift special. We will email you a link the moment it opens.
+            </p>
+          </div>
+        ) : recordings.length === 0 ? (
           <div className="rounded-2xl border border-cream-dark bg-white p-10 text-center shadow-sm">
             <p className="text-warm-gray">
               No one recorded a memory for this vault.
