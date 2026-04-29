@@ -127,7 +127,7 @@ interface AffiliateReferral {
 interface AdminLetter {
   id: string;
   user_id: string;
-  recipient_id: string;
+  recipient_id: string | null;
   letter_type: "annual" | "milestone";
   title: string;
   content: string;
@@ -136,8 +136,16 @@ interface AdminLetter {
   status: string;
   amount_paid: number;
   delivery_type: "digital" | "physical" | "physical_photo";
+  recipient_name: string | null;
   recipient_email: string | null;
   photo_url: string | null;
+  // New flow address columns (migration 026)
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
   executor_email: string | null;
   executor_name: string | null;
   executor_phone: string | null;
@@ -148,6 +156,28 @@ interface AdminLetter {
   updated_at: string;
   profiles: Profile | null;
   recipients: Recipient | null;
+}
+
+// Resolve recipient name + mailing address from either the new direct columns
+// (migration 026) or the legacy `recipients` table relation.
+function resolveLetterRecipient(letter: AdminLetter): { name: string; address: string } {
+  const name =
+    letter.recipient_name?.trim() ||
+    letter.recipients?.name?.trim() ||
+    "";
+  const line1 = letter.address_line1 || letter.recipients?.address_line1 || "";
+  const line2 = letter.address_line2 || letter.recipients?.address_line2 || "";
+  const city = letter.city || letter.recipients?.city || "";
+  const state = letter.state || letter.recipients?.state || "";
+  const postal = letter.postal_code || letter.recipients?.postal_code || "";
+  const country = letter.country || "";
+  const parts: string[] = [];
+  if (line1) parts.push(line1);
+  if (line2) parts.push(line2);
+  const cityLine = [city, state].filter(Boolean).join(", ");
+  if (cityLine || postal) parts.push([cityLine, postal].filter(Boolean).join(" "));
+  if (country && country.toUpperCase() !== "US") parts.push(country);
+  return { name, address: parts.join(" \u2022 ") };
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -903,10 +933,23 @@ function LettersTab({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deliveryFilter, setDeliveryFilter] = useState<"all" | "mailing_queue" | "physical" | "physical_photo" | "digital">("mailing_queue");
 
-  const filteredLetters = statusFilter === "all"
-    ? letters
-    : letters.filter((l) => l.status === statusFilter);
+  const filteredLetters = letters.filter((l) => {
+    if (statusFilter !== "all" && l.status !== statusFilter) return false;
+    if (deliveryFilter === "all") return true;
+    if (deliveryFilter === "mailing_queue") {
+      const isPhysical = l.delivery_type === "physical" || l.delivery_type === "physical_photo";
+      const needsAction = !["draft", "delivered"].includes(l.status);
+      return isPhysical && needsAction;
+    }
+    return l.delivery_type === deliveryFilter;
+  });
+
+  const mailingQueueCount = letters.filter((l) => {
+    const isPhysical = l.delivery_type === "physical" || l.delivery_type === "physical_photo";
+    return isPhysical && !["draft", "delivered"].includes(l.status);
+  }).length;
 
   async function handleUpdateStatus(letterId: string, newStatus: string) {
     const res = await fetch("/api/admin/letters", {
@@ -928,8 +971,34 @@ function LettersTab({
 
   return (
     <div>
+      {/* Mailing Queue banner */}
+      {mailingQueueCount > 0 && deliveryFilter !== "mailing_queue" && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          <span>
+            <span className="font-semibold">{mailingQueueCount}</span> physical letter{mailingQueueCount !== 1 ? "s" : ""} awaiting fulfillment
+          </span>
+          <button
+            onClick={() => { setDeliveryFilter("mailing_queue"); setStatusFilter("all"); }}
+            className="rounded bg-amber-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-amber-700 transition"
+          >
+            Show Mailing Queue
+          </button>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <select
+          value={deliveryFilter}
+          onChange={(e) => setDeliveryFilter(e.target.value as typeof deliveryFilter)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="mailing_queue">Mailing Queue (physical, needs action)</option>
+          <option value="all">All Deliveries</option>
+          <option value="physical">Physical only</option>
+          <option value="physical_photo">Physical + Photo</option>
+          <option value="digital">Digital (auto-sent)</option>
+        </select>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -970,6 +1039,8 @@ function LettersTab({
             <tbody>
               {filteredLetters.map((letter) => {
                 const isExpanded = expandedId === letter.id;
+                const resolved = resolveLetterRecipient(letter);
+                const isPhysical = letter.delivery_type === "physical" || letter.delivery_type === "physical_photo";
                 return (
                   <React.Fragment key={letter.id}>
                     <tr className="border-b border-gray-100 hover:bg-gray-50">
@@ -983,7 +1054,18 @@ function LettersTab({
                         )}
                       </td>
                       <td className="py-3 pr-4">
-                        {letter.recipients?.name || "\u2014"}
+                        <div className="font-medium text-gray-800">{resolved.name || "\u2014"}</div>
+                        {isPhysical && (
+                          resolved.address ? (
+                            <div className="text-xs text-gray-500 mt-0.5 max-w-[260px] truncate" title={resolved.address}>
+                              {resolved.address}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-red-600 mt-0.5 font-medium">
+                              Missing address
+                            </div>
+                          )
+                        )}
                       </td>
                       <td className="py-3 pr-4">
                         <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 capitalize">
@@ -1111,11 +1193,8 @@ function LettersTab({
                                       ? formatCurrency(letter.amount_paid)
                                       : "Included with gift plan"
                                   } />
-                                  <DetailRow label="Address" value={
-                                    letter.recipients
-                                      ? `${letter.recipients.address_line1 || ""}, ${letter.recipients.city || ""}, ${letter.recipients.state || ""} ${letter.recipients.postal_code || ""}`
-                                      : null
-                                  } />
+                                  <DetailRow label="Recipient Name" value={resolveLetterRecipient(letter).name || null} />
+                                  <DetailRow label="Mailing Address" value={resolveLetterRecipient(letter).address || null} />
                                 </div>
 
                                 {/* Status update buttons */}
