@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import VoiceRecorder, { type MediaFormat } from "@/components/VoiceRecorder";
+import { useUploadQueue } from "@/lib/use-upload-queue";
 
 interface MemoryRequest {
   title: string;
@@ -32,6 +33,29 @@ export default function RecordMemoryPage() {
   const [activeTab, setActiveTab] = useState<"record" | "photo">("record");
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+
+  // Offline-tolerant upload queue. Persists every recording / photo to
+  // IndexedDB the moment the user hits send. Auto-retries on online /
+  // visibility / 15s timer until each item lands. See lib/use-upload-queue.
+  const {
+    queue,
+    online,
+    processing,
+    enqueue,
+    processOnce,
+    discard,
+  } = useUploadQueue(code);
+
+  // Once the queue empties after a submit attempt, treat it as success.
+  // We track whether the user has actually pressed submit on this visit so
+  // queued items left over from a prior session don't trigger the thank-you
+  // before the user has done anything.
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  useEffect(() => {
+    if (submitAttempted && queue.length === 0 && !processing) {
+      setSubmitted(true);
+    }
+  }, [submitAttempted, queue.length, processing]);
 
   // Scroll to top when showing the thank you screen
   useEffect(() => {
@@ -124,69 +148,53 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
-      // Re-check slot availability before uploading
-      const checkRes = await fetch(`/api/memory-requests/${code}`);
-      if (checkRes.ok) {
-        const fresh = await checkRes.json();
-        const slotsKey = mediaFormat === "video" ? "video_slots_left" : "audio_slots_left";
-        if (fresh[slotsKey] <= 0) {
-          setRequest(fresh);
-          throw new Error(
-            `All ${mediaFormat} slots are now filled. ${
-              mediaFormat === "video" && fresh.audio_slots_left > 0
-                ? "You can still record an audio message."
-                : mediaFormat === "audio" && fresh.video_slots_left > 0
-                  ? "You can still record a video message."
-                  : ""
-            }`
-          );
+      // Best-effort slot pre-check. If we're offline this fetch will fail —
+      // we still queue the recording locally so it isn't lost. The server
+      // re-checks slots on the metadata POST regardless.
+      try {
+        const checkRes = await fetch(`/api/memory-requests/${code}`);
+        if (checkRes.ok) {
+          const fresh = await checkRes.json();
+          const slotsKey = mediaFormat === "video" ? "video_slots_left" : "audio_slots_left";
+          if (fresh[slotsKey] <= 0) {
+            setRequest(fresh);
+            throw new Error(
+              `All ${mediaFormat} slots are now filled. ${
+                mediaFormat === "video" && fresh.audio_slots_left > 0
+                  ? "You can still record an audio message."
+                  : mediaFormat === "audio" && fresh.video_slots_left > 0
+                    ? "You can still record a video message."
+                    : ""
+              }`
+            );
+          }
+        }
+      } catch (precheckErr) {
+        // Re-throw fatal slot errors. Swallow network errors so we still queue.
+        if (
+          precheckErr instanceof Error &&
+          precheckErr.message.startsWith("All ")
+        ) {
+          throw precheckErr;
         }
       }
 
-      const contentType = mediaBlob.type || (mediaFormat === "video" ? "video/webm" : "audio/webm");
+      const contentType =
+        mediaBlob.type || (mediaFormat === "video" ? "video/webm" : "audio/webm");
 
-      // Step 1: Get a signed upload URL from the server
-      const urlRes = await fetch(`/api/memory-requests/${code}/upload-url`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType }),
-      });
-      const urlData = await urlRes.json();
-      if (!urlRes.ok) {
-        throw new Error(urlData.error || "Failed to prepare upload");
-      }
-
-      // Step 2: Upload directly to Supabase storage via signed URL
-      const sizeMB = (mediaBlob.size / (1024 * 1024)).toFixed(1);
-      const uploadRes = await fetch(urlData.signedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": urlData.contentType },
-        body: mediaBlob,
-      });
-
-      if (!uploadRes.ok) {
-        const errText = await uploadRes.text().catch(() => "");
-        console.error(`Upload failed: ${uploadRes.status} ${errText}`);
-        throw new Error(`Upload failed (${sizeMB}MB, status ${uploadRes.status}). Please try again.`);
-      }
-
-      // Step 3: Submit metadata to the API
-      const res = await fetch(`/api/memory-requests/${code}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await enqueue({
+        blob: mediaBlob,
+        contentType,
+        metadata: {
           recorder_name: recorderName || null,
-          audio_url: urlData.publicUrl,
           message_format: mediaFormat,
-        }),
+        },
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to submit recording");
-      }
-
-      setSubmitted(true);
+      // Free local memory — IndexedDB now owns the blob.
+      setMediaBlob(null);
+      setSubmitAttempted(true);
+      processOnce();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -200,63 +208,50 @@ export default function RecordMemoryPage() {
     setError(null);
 
     try {
-      // Re-check slot availability before uploading
-      const checkRes = await fetch(`/api/memory-requests/${code}`);
-      if (checkRes.ok) {
-        const fresh = await checkRes.json();
-        if (fresh.photo_slots_left <= 0) {
-          setRequest(fresh);
-          throw new Error("All photo slots are now filled.");
+      // Best-effort slot pre-check (see note in handleRecordingSubmit).
+      try {
+        const checkRes = await fetch(`/api/memory-requests/${code}`);
+        if (checkRes.ok) {
+          const fresh = await checkRes.json();
+          if (fresh.photo_slots_left <= 0) {
+            setRequest(fresh);
+            throw new Error("All photo slots are now filled.");
+          }
+          if (fresh.photo_slots_left < selectedPhotos.length) {
+            setRequest(fresh);
+            throw new Error(
+              `Only ${fresh.photo_slots_left} photo slot${fresh.photo_slots_left !== 1 ? "s" : ""} remaining. Please select fewer photos.`
+            );
+          }
         }
-        if (fresh.photo_slots_left < selectedPhotos.length) {
-          setRequest(fresh);
-          throw new Error(`Only ${fresh.photo_slots_left} photo slot${fresh.photo_slots_left !== 1 ? "s" : ""} remaining. Please select fewer photos.`);
+      } catch (precheckErr) {
+        if (
+          precheckErr instanceof Error &&
+          (precheckErr.message.startsWith("All ") ||
+            precheckErr.message.startsWith("Only "))
+        ) {
+          throw precheckErr;
         }
       }
 
       for (const photo of selectedPhotos) {
         const contentType = photo.type || "image/jpeg";
-
-        // Step 1: Get a signed upload URL from the server
-        const urlRes = await fetch(`/api/memory-requests/${code}/upload-url`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contentType }),
-        });
-        const urlData = await urlRes.json();
-        if (!urlRes.ok) {
-          throw new Error(urlData.error || "Failed to prepare upload");
-        }
-
-        // Step 2: Upload directly to Supabase storage via signed URL
-        const uploadRes = await fetch(urlData.signedUrl, {
-          method: "PUT",
-          headers: { "Content-Type": contentType },
-          body: photo,
-        });
-
-        if (!uploadRes.ok) {
-          throw new Error(`Failed to upload ${photo.name}. Please try again.`);
-        }
-
-        // Step 3: Submit metadata to the API
-        const res = await fetch(`/api/memory-requests/${code}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        await enqueue({
+          blob: photo,
+          contentType,
+          metadata: {
             recorder_name: recorderName || null,
-            audio_url: urlData.publicUrl,
             message_format: "photo",
-          }),
+          },
         });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to submit photo");
-        }
       }
 
-      setSubmitted(true);
+      // Free preview URLs and clear selection — queue owns the photos now.
+      photoPreviews.forEach((url) => URL.revokeObjectURL(url));
+      setPhotoPreviews([]);
+      setSelectedPhotos([]);
+      setSubmitAttempted(true);
+      processOnce();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -414,6 +409,84 @@ export default function RecordMemoryPage() {
           </div>
         )}
 
+        {/* Upload queue status — only render when there's something to say. */}
+        {queue.length > 0 && (
+          <div
+            className={`mb-6 rounded-lg border p-4 ${
+              !online
+                ? "border-amber-300 bg-amber-50"
+                : queue.some((q) => q.status === "fatal")
+                  ? "border-red-300 bg-red-50"
+                  : "border-navy/20 bg-navy/5"
+            }`}
+          >
+            {!online ? (
+              <>
+                <p className="text-sm font-semibold text-amber-900">
+                  &#x1F4F6; No service right now
+                </p>
+                <p className="mt-1 text-xs text-amber-800">
+                  Your {queue.length === 1 ? "message is" : `${queue.length} messages are`} saved on
+                  your phone. We&apos;ll send {queue.length === 1 ? "it" : "them"} as soon as you
+                  have signal again. Please don&apos;t close this tab.
+                </p>
+              </>
+            ) : queue.some((q) => q.status === "fatal") ? (
+              <>
+                <p className="text-sm font-semibold text-red-800">
+                  Couldn&apos;t deliver your {queue.length === 1 ? "message" : "messages"}
+                </p>
+                <ul className="mt-2 space-y-2">
+                  {queue
+                    .filter((q) => q.status === "fatal")
+                    .map((q) => (
+                      <li
+                        key={q.id}
+                        className="flex items-start justify-between gap-3 text-xs text-red-700"
+                      >
+                        <span>
+                          {q.metadata.message_format === "photo"
+                            ? "Photo"
+                            : q.metadata.message_format === "video"
+                              ? "Video"
+                              : "Audio"}{" "}
+                          &mdash; {q.lastError || "Failed"}
+                        </span>
+                        <button
+                          onClick={() => discard(q.id)}
+                          className="shrink-0 rounded border border-red-300 bg-white px-2 py-0.5 text-red-700 hover:bg-red-100"
+                        >
+                          Discard
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-navy">
+                  {processing ? (
+                    <>
+                      <span className="mr-2 inline-block h-3 w-3 animate-spin rounded-full border-2 border-navy border-t-transparent align-[-1px]" />
+                      Sending {queue.length === 1 ? "your message" : `${queue.length} messages`}&hellip;
+                    </>
+                  ) : (
+                    <>Waiting to send {queue.length === 1 ? "1 message" : `${queue.length} messages`}</>
+                  )}
+                </p>
+                <p className="mt-1 text-xs text-warm-gray">
+                  Hang tight &mdash; please keep this tab open until it finishes.
+                </p>
+                {queue.some((q) => q.status === "failed" && q.attempts > 0) && (
+                  <p className="mt-1 text-xs text-warm-gray">
+                    Connection seems slow. We&apos;ll keep retrying automatically.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {/* Format tabs — only show if both recording and photo options exist */}
         {hasRecordingOptions && canUploadPhoto && (
           <div className="mb-6 flex rounded-lg border border-cream-dark bg-white p-1">
@@ -500,10 +573,16 @@ export default function RecordMemoryPage() {
                 )}
                 <button
                   onClick={handleSubmit}
-                  disabled={submitting}
+                  disabled={submitting || queue.length > 0}
                   className="w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Uploading... please wait" : "Submit Recording"}
+                  {submitting
+                    ? "Saving..."
+                    : queue.length > 0
+                      ? "Sending..."
+                      : online
+                        ? "Submit Recording"
+                        : "Save & Send When Online"}
                 </button>
               </div>
             )}
@@ -577,12 +656,16 @@ export default function RecordMemoryPage() {
                 )}
                 <button
                   onClick={handleSubmit}
-                  disabled={submitting}
+                  disabled={submitting || queue.length > 0}
                   className="w-full rounded-lg bg-navy px-6 py-3 text-base font-semibold text-cream shadow-md transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting
-                    ? `Uploading${selectedPhotos.length > 1 ? ` (${selectedPhotos.length} photos)` : ""}...`
-                    : `Upload ${selectedPhotos.length > 1 ? `${selectedPhotos.length} Photos` : "Photo"}`}
+                    ? "Saving..."
+                    : queue.length > 0
+                      ? "Sending..."
+                      : online
+                        ? `Upload ${selectedPhotos.length > 1 ? `${selectedPhotos.length} Photos` : "Photo"}`
+                        : `Save & Send When Online`}
                 </button>
               </div>
             )}
