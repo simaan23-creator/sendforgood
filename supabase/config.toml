@@ -14,6 +14,13 @@ enabled = true
 file_size_limit = "500MiB"
 
 [auth]
+site_url = "https://sendforgood.com"
+additional_redirect_urls = [
+  "https://sendforgood.com/**",
+  "https://www.sendforgood.com/**",
+  "http://localhost:3000/**",
+]
+
 # Restore the stricter pre-revert email-OTP rate limit and code length.
 [auth.email]
 max_frequency = "1m0s"
