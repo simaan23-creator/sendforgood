@@ -89,6 +89,10 @@ interface VoiceMessage {
   message_format: "audio" | "video";
   status: string;
   scheduled_date: string | null;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  milestone_label: string | null;
+  letter_type: string | null;
   created_at: string;
 }
 
@@ -1621,13 +1625,47 @@ export default function DashboardPage() {
                         {vm.title || "Untitled Message"}
                       </p>
                     )}
+                    {(vm.recipient_name ||
+                      vm.scheduled_date ||
+                      vm.milestone_label) && (
+                      <div className="mt-2 space-y-0.5 text-xs text-warm-gray">
+                        {vm.recipient_name && (
+                          <p>
+                            <span className="text-warm-gray-light">For:</span>{" "}
+                            <span className="font-medium text-navy">
+                              {vm.recipient_name}
+                            </span>
+                          </p>
+                        )}
+                        {vm.letter_type === "milestone" && vm.milestone_label ? (
+                          <p>
+                            <span className="text-warm-gray-light">
+                              Milestone:
+                            </span>{" "}
+                            <span className="font-medium text-navy">
+                              {vm.milestone_label}
+                            </span>
+                          </p>
+                        ) : vm.scheduled_date ? (
+                          <p>
+                            <span className="text-warm-gray-light">
+                              Sending:
+                            </span>{" "}
+                            <span className="font-medium text-navy">
+                              {new Date(
+                                vm.scheduled_date + "T00:00:00"
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
                     <p className="mt-1 text-xs text-warm-gray-light">
                       Purchase Date: {new Date(vm.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      {vm.scheduled_date && (
-                        <span>
-                          {" "}&middot; Scheduled Send Date: {new Date(vm.scheduled_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </span>
-                      )}
                     </p>
 
                     {/* Inline request status */}
