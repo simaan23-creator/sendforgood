@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { fixWebmDuration } from "@/lib/fix-webm-duration";
 
 interface Recording {
   id: string;
@@ -214,11 +215,18 @@ export default function VaultViewPage() {
                         controls
                         playsInline
                         preload="metadata"
+                        onLoadedMetadata={fixWebmDuration}
                         src={rec.audio_url}
                         className="w-full rounded-lg bg-black"
                       />
                     ) : (
-                      <audio controls src={rec.audio_url} className="w-full" />
+                      <audio
+                        controls
+                        preload="metadata"
+                        onLoadedMetadata={fixWebmDuration}
+                        src={rec.audio_url}
+                        className="w-full"
+                      />
                     )}
                   </div>
                 </div>

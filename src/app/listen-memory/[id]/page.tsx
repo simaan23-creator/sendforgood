@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { fixWebmDuration } from "@/lib/fix-webm-duration";
 
 interface MemoryRecording {
   id: string;
@@ -116,12 +117,15 @@ export default function ListenMemoryPage() {
                 controls
                 playsInline
                 preload="metadata"
+                onLoadedMetadata={fixWebmDuration}
                 src={recording.audio_url}
                 className="w-full rounded-lg bg-black"
               />
             ) : (
               <audio
                 controls
+                preload="metadata"
+                onLoadedMetadata={fixWebmDuration}
                 src={recording.audio_url}
                 className="w-full"
               />

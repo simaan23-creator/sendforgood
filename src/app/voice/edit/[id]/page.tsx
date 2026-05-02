@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { fixWebmDuration } from "@/lib/fix-webm-duration";
 
 const MILESTONE_OPTIONS = [
   "Wedding Day",
@@ -278,9 +279,22 @@ export default function EditVoiceMessagePage() {
                     Current recording:
                   </p>
                   {message.message_format === "video" ? (
-                    <video controls src={audioUrl} className="w-full rounded-lg" />
+                    <video
+                      controls
+                      playsInline
+                      preload="metadata"
+                      src={audioUrl}
+                      onLoadedMetadata={fixWebmDuration}
+                      className="w-full rounded-lg"
+                    />
                   ) : (
-                    <audio controls src={audioUrl} className="w-full" />
+                    <audio
+                      controls
+                      preload="metadata"
+                      src={audioUrl}
+                      onLoadedMetadata={fixWebmDuration}
+                      className="w-full"
+                    />
                   )}
                   {durationSeconds && (
                     <p className="mt-2 text-xs text-warm-gray">
