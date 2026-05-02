@@ -14,10 +14,14 @@ export async function GET(request: Request) {
   let sent = 0;
 
   try {
-    // Query all voice messages that are scheduled and due today or overdue
+    // Query all voice messages that are scheduled and due today or overdue.
+    // We don't join recipients/profiles here because (a) voice_messages stores
+    // recipient_name/recipient_email directly on the row and (b) there is no
+    // FK declared from voice_messages -> profiles, so the embedded join would
+    // 400 in PostgREST.
     const { data: messages, error: fetchError } = await supabaseAdmin
       .from("voice_messages")
-      .select("*, recipients(name), profiles(full_name, email)")
+      .select("*")
       .eq("status", "scheduled")
       .lte("scheduled_date", today)
       .not("audio_url", "is", null);
@@ -40,9 +44,16 @@ export async function GET(request: Request) {
         continue;
       }
 
+      // Look up the sender's profile for the email signature
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", message.user_id)
+        .maybeSingle();
+
       const senderName =
-        message.profiles?.full_name || message.profiles?.email || "Someone who cares";
-      const recipientName = message.recipients?.name || "Friend";
+        profile?.full_name || profile?.email || "Someone who cares";
+      const recipientName = message.recipient_name || "Friend";
 
       // Generate a signed URL for the audio file
       let audioListenUrl = message.audio_url;

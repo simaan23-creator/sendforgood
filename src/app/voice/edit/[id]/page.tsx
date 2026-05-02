@@ -169,6 +169,32 @@ export default function EditVoiceMessagePage() {
 
       const hasRecording = !!finalAudioUrl;
 
+      // Compute status. The auto-send cron only picks up rows with
+      // status='scheduled', so we MUST move recordings into that state when
+      // they are date-based and complete. Milestone messages stay in
+      // 'pending_release' until the user clicks "Send Now" from the dashboard.
+      let nextStatus: string;
+      if (!hasRecording) {
+        nextStatus = "draft";
+      } else if (
+        deliveryMode === "date" &&
+        scheduledDate &&
+        recipientEmail
+      ) {
+        nextStatus = "scheduled";
+      } else if (
+        deliveryMode === "milestone" &&
+        effectiveMilestone &&
+        recipientEmail
+      ) {
+        nextStatus = "pending_release";
+      } else {
+        // Recording exists but required fields are missing — mark recorded so
+        // it doesn't auto-send and the dashboard prompts the user to fill in
+        // the rest.
+        nextStatus = "recorded";
+      }
+
       const res = await fetch(`/api/voice-messages/${messageId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -182,7 +208,7 @@ export default function EditVoiceMessagePage() {
           letter_type: deliveryMode === "milestone" ? "milestone" : "annual",
           audio_url: finalAudioUrl,
           duration_seconds: durationSeconds,
-          status: hasRecording ? "recorded" : "draft",
+          status: nextStatus,
         }),
       });
 

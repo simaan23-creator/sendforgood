@@ -86,7 +86,7 @@ export async function PATCH(
   if (body.duration_seconds !== undefined)
     updates.duration_seconds = body.duration_seconds ?? null;
   if (body.status !== undefined) {
-    const allowed = ["draft", "recorded", "scheduled"];
+    const allowed = ["draft", "recorded", "scheduled", "pending_release"];
     if (allowed.includes(body.status)) {
       updates.status = body.status;
     }

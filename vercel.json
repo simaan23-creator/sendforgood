@@ -10,6 +10,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/send-voice-messages",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/cron/send-memory-recordings",
       "schedule": "0 9 * * *"
     },

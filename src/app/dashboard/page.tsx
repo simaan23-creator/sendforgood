@@ -88,6 +88,7 @@ interface VoiceMessage {
   title: string | null;
   message_format: "audio" | "video";
   status: string;
+  audio_url: string | null;
   scheduled_date: string | null;
   recipient_name: string | null;
   recipient_email: string | null;
@@ -1571,6 +1572,8 @@ export default function DashboardPage() {
                 const statusMap: Record<string, { label: string; classes: string }> = {
                   draft: { label: "Not recorded", classes: "bg-yellow-100 text-yellow-800" },
                   recorded: { label: "Recorded", classes: "bg-green-100 text-green-800" },
+                  scheduled: { label: "Scheduled", classes: "bg-blue-100 text-blue-800" },
+                  pending_release: { label: "Ready to send", classes: "bg-blue-100 text-blue-800" },
                   delivered: { label: "Delivered", classes: "bg-forest/10 text-forest" },
                 };
 
@@ -1758,13 +1761,71 @@ export default function DashboardPage() {
                     {/* Action buttons — only show if not gifted */}
                     {!isGifted && (
                       <>
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           <Link
                             href={`/voice/edit/${vm.id}`}
                             className="block flex-1 rounded-lg border-2 border-navy px-3 py-2 text-center text-xs font-semibold text-navy transition-colors hover:bg-navy hover:text-cream"
                           >
                             {vm.message_format === "video" ? "Record Video" : "Record Message"}
                           </Link>
+                          {/* Send button for milestone voice/video messages.
+                              Mirrors the letters Send Now flow: only shows for
+                              milestone delivery, when not yet delivered, and
+                              when there's a recording on file. If recipient
+                              or milestone are missing we redirect to the
+                              editor instead so we don't ship to nowhere. */}
+                          {vm.letter_type === "milestone" &&
+                            vm.audio_url &&
+                            vm.status !== "delivered" &&
+                            (() => {
+                              const missingRecipient =
+                                !vm.recipient_name || !vm.recipient_email;
+                              const missingMilestone = !vm.milestone_label;
+                              const blocked = missingRecipient || missingMilestone;
+                              if (blocked) {
+                                const missing = [
+                                  missingRecipient && "recipient",
+                                  missingMilestone && "milestone",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" and ");
+                                return (
+                                  <Link
+                                    href={`/voice/edit/${vm.id}`}
+                                    title={`Add ${missing} before sending`}
+                                    className="rounded-lg border-2 border-gold bg-gold/10 px-3 py-2 text-xs font-semibold text-gold-dark transition-colors hover:bg-gold/20"
+                                  >
+                                    Add {missing} to send
+                                  </Link>
+                                );
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (
+                                      !confirm(
+                                        `Send this ${vm.message_format === "video" ? "video" : "voice"} message to ${vm.recipient_name} now? This cannot be undone.`
+                                      )
+                                    )
+                                      return;
+                                    const res = await fetch(
+                                      `/api/voice-messages/${vm.id}/send`,
+                                      { method: "POST" }
+                                    );
+                                    if (!res.ok) {
+                                      const data = await res.json().catch(() => ({}));
+                                      alert(data.error || "Failed to send message");
+                                      return;
+                                    }
+                                    window.location.reload();
+                                  }}
+                                  className="rounded-lg bg-gold px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-gold-light"
+                                >
+                                  Send Now
+                                </button>
+                              );
+                            })()}
                           <button
                             onClick={() =>
                               setGiftingItem({
