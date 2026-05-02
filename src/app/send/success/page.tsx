@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TIERS } from "@/lib/constants";
+import PurchaseTracker from "@/components/PurchaseTracker";
 
 export const metadata: Metadata = {
   title: "Order Confirmed — SendForGood",
@@ -35,8 +36,20 @@ export default async function SuccessPage({
 
   const hasSummary = recipient || occasion || tier || years;
 
+  // Compute purchase value from tier price * years when available.
+  const valueUsd =
+    tierInfo && years && Number.isFinite(Number(years))
+      ? tierInfo.price * Number(years)
+      : 0;
+  const transactionId = `send_${recipient || "anon"}_${tier || "any"}_${years || "0"}`;
+
   return (
     <section className="bg-gradient-to-b from-cream to-cream-dark min-h-[80vh] py-16 sm:py-24">
+      <PurchaseTracker
+        transactionId={transactionId}
+        valueUsd={valueUsd}
+        itemCategory="gift_subscription"
+      />
       <div className="mx-auto max-w-2xl px-4 text-center">
         {/* Success icon */}
         <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-forest/10 ring-4 ring-forest/20">

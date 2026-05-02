@@ -1,8 +1,21 @@
 import Link from "next/link";
+import PurchaseTracker from "@/components/PurchaseTracker";
 
 export default function VoiceSuccessPage() {
+  // Synthetic transaction id (hour-bucketed) — voice success URL doesn't
+  // carry the Stripe session id today, so this approximates dedup. Add
+  // `?session_id={CHECKOUT_SESSION_ID}` to the voice checkout's
+  // success_url for proper deduplication.
+  const hourBucket = Math.floor(Date.now() / (60 * 60 * 1000));
+  const transactionId = `voice_${hourBucket}`;
+
   return (
     <div className="min-h-screen bg-cream">
+      <PurchaseTracker
+        transactionId={transactionId}
+        valueUsd={0}
+        itemCategory="voice_message"
+      />
       <div className="mx-auto max-w-lg px-4 py-24 sm:px-6 text-center">
         <div className="rounded-2xl border border-cream-dark bg-white p-10 shadow-sm">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-forest/10">

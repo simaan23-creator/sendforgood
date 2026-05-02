@@ -14,6 +14,7 @@ import {
   getGiftCreditCart,
   clearGiftCreditCart,
 } from "@/lib/cart";
+import { trackPurchase } from "@/lib/analytics";
 import { TIERS, OCCASION_TYPES } from "@/lib/constants";
 import type {
   CartItem,
@@ -76,6 +77,22 @@ export default function CartSuccessPage() {
     voiceItems.length > 0 ||
     vaultItems.length > 0 ||
     giftCreditItems.length > 0;
+
+  // Fire purchase conversion once items have been loaded from cart and
+  // total has been computed. Synthetic transaction id derived from the
+  // total + hour-bucketed timestamp so a refresh inside the same hour
+  // dedupes via sessionStorage; rare cross-hour double-counts are
+  // acceptable for the cart flow.
+  useEffect(() => {
+    if (!cleared || !hasAnyItems || total <= 0) return;
+    const hourBucket = Math.floor(Date.now() / (60 * 60 * 1000));
+    const transactionId = `cart_${total.toFixed(2)}_${hourBucket}`;
+    trackPurchase({
+      transactionId,
+      valueUsd: total,
+      itemCategory: "cart",
+    });
+  }, [cleared, hasAnyItems, total]);
 
   return (
     <section className="bg-gradient-to-b from-cream to-cream-dark min-h-[80vh] py-16 sm:py-24">

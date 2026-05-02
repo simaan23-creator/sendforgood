@@ -1,13 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { trackPurchase } from "@/lib/analytics";
 
 export default function LetterSuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const deliveryType = searchParams.get("delivery_type") || "physical";
   const quantity = parseInt(searchParams.get("quantity") || "1");
+
+  // Fire purchase conversion on mount. Stripe session id (if present) is the
+  // ideal transaction id; without it we fall back to a quantity+type+hour
+  // synthetic key. Value left at 0 because the page doesn't carry the cents
+  // amount; can be improved later by adding `&value=` to letter checkout
+  // success_url.
+  useEffect(() => {
+    const hourBucket = Math.floor(Date.now() / (60 * 60 * 1000));
+    const transactionId =
+      sessionId || `letter_${deliveryType}_${quantity}_${hourBucket}`;
+    trackPurchase({
+      transactionId,
+      valueUsd: 0,
+      itemCategory: "letter",
+    });
+  }, [sessionId, deliveryType, quantity]);
 
   const isDigital = deliveryType === "digital";
   const hasPhoto = deliveryType === "physical_photo";

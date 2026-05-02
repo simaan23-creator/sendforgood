@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PurchaseTracker from "@/components/PurchaseTracker";
 
 export const metadata: Metadata = {
   title: "Business Order Confirmed — SendForGood",
@@ -24,8 +25,15 @@ export default async function BusinessSuccessPage({
   const company = typeof params.company === "string" ? params.company : null;
   const count = typeof params.count === "string" ? params.count : null;
 
+  const transactionId = `business_${company || "anon"}_${count || "0"}`;
+
   return (
     <section className="bg-gradient-to-b from-cream to-cream-dark min-h-[80vh] py-16 sm:py-24">
+      <PurchaseTracker
+        transactionId={transactionId}
+        valueUsd={0}
+        itemCategory="business"
+      />
       <div className="mx-auto max-w-2xl px-4 text-center">
         {/* Success icon */}
         <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-forest/10 ring-4 ring-forest/20">

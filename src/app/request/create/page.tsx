@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { trackVaultCreated } from "@/lib/analytics";
 
 const OCCASIONS = [
   "My Birthday",
@@ -89,6 +90,14 @@ export default function CreateMemoryRequestPage() {
     }
     checkAuth();
   }, [supabase, router]);
+
+  // Fire vault_created conversion when the success view first appears.
+  // Dedupes via sessionStorage keyed on unique_code.
+  useEffect(() => {
+    if (createdRequest?.unique_code) {
+      trackVaultCreated(createdRequest.unique_code);
+    }
+  }, [createdRequest]);
 
   const availableAudio = credits
     ? credits.audioCredits - credits.audioUsed

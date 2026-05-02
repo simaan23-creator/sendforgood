@@ -7,8 +7,11 @@ import Link from "next/link";
 const CONSENT_KEY = "sfg_cookie_consent_v1";
 type Consent = "accepted" | "rejected";
 
-const GA_ID = "G-622H0QNK45";
-const ADS_ID = "AW-17462992858";
+// Default to the original hardcoded IDs so we don't lose the existing
+// GA4/Ads pixel if env vars aren't set. New deployments should override
+// via NEXT_PUBLIC_GA_ID / NEXT_PUBLIC_GOOGLE_ADS_ID in Vercel.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-622H0QNK45";
+const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "AW-17462992858";
 
 /**
  * Cookie consent banner.

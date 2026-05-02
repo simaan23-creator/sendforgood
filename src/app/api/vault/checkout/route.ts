@@ -109,7 +109,9 @@ export async function POST(request: Request) {
       ...(targetVault ? { targetVaultId: targetVault } : {}),
     },
     customer_email: user.email,
-    success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}`,
+    // session_id is replaced by Stripe at redirect time and used by the
+  // success page as transaction_id for analytics deduplication.
+  success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/vault/buy`,
   });
 

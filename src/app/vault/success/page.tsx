@@ -2,13 +2,44 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { trackPurchase } from "@/lib/analytics";
+
+// Per-credit prices in USD. Mirrors src/app/api/vault/checkout/route.ts —
+// keep these in sync if pricing changes.
+const PRICE_AUDIO_USD = 0.25;
+const PRICE_VIDEO_USD = 1.0;
+const PRICE_PHOTO_USD = 0.25;
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const audio = searchParams.get("audio") || "0";
   const video = searchParams.get("video") || "0";
   const photo = searchParams.get("photo") || "0";
+  const sessionId = searchParams.get("session_id") || "";
+
+  // Fire purchase conversion to GA4 + Google Ads on mount. trackPurchase
+  // dedupes via sessionStorage so a refresh won't double-count.
+  useEffect(() => {
+    const audioN = parseInt(audio, 10) || 0;
+    const videoN = parseInt(video, 10) || 0;
+    const photoN = parseInt(photo, 10) || 0;
+    const valueUsd =
+      audioN * PRICE_AUDIO_USD +
+      videoN * PRICE_VIDEO_USD +
+      photoN * PRICE_PHOTO_USD;
+    if (valueUsd <= 0) return;
+    // Fall back to a synthetic id if Stripe didn't supply session_id (legacy
+    // success URLs without the CHECKOUT_SESSION_ID template).
+    const transactionId =
+      sessionId ||
+      `vault_${audioN}a_${videoN}v_${photoN}p_${Math.floor(Date.now() / 1000)}`;
+    trackPurchase({
+      transactionId,
+      valueUsd,
+      itemCategory: "vault_credits",
+    });
+  }, [audio, video, photo, sessionId]);
 
   return (
     <main className="min-h-screen bg-cream">

@@ -2,6 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { trackSignup } from "@/lib/analytics";
+
+// Window after a user's auth.users.created_at within which we treat the
+// callback as a fresh sign-up (rather than a returning login). 10 minutes is
+// generous enough for slow OAuth round-trips without polluting the
+// conversion event with returning users.
+const FRESH_SIGNUP_WINDOW_MS = 10 * 60 * 1000;
+
+async function maybeFireSignup(supabase: ReturnType<typeof createClient>) {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user || !user.created_at) return;
+    const created = new Date(user.created_at).getTime();
+    if (Number.isNaN(created)) return;
+    if (Date.now() - created > FRESH_SIGNUP_WINDOW_MS) return;
+    trackSignup(user.id);
+  } catch {
+    // Tracking is best-effort — never block the redirect.
+  }
+}
 
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState("Processing...");
@@ -38,6 +60,7 @@ export default function AuthCallbackPage() {
             return;
           }
           setStatus("Success!");
+          await maybeFireSignup(supabase);
           window.location.href = "/dashboard";
           return;
         }
@@ -55,6 +78,7 @@ export default function AuthCallbackPage() {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error) {
             setStatus("Success!");
+            await maybeFireSignup(supabase);
             window.location.href = "/dashboard";
             return;
           }
@@ -68,6 +92,7 @@ export default function AuthCallbackPage() {
           });
           if (!error) {
             setStatus("Success!");
+            await maybeFireSignup(supabase);
             window.location.href = "/dashboard";
             return;
           }
