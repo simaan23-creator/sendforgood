@@ -1,0 +1,25 @@
+# Project config pushed to the linked Supabase project via `supabase config push`.
+#
+# IMPORTANT: any [auth] or [storage] field NOT listed here will silently
+# revert to CLI defaults on push. Always include explicit values for any
+# field you don't want to lose. The auth fields below are restored to the
+# values that were live in prod before an unintended revert.
+project_id = "wsjpurqemkpmssrqmndy"
+
+[storage]
+enabled = true
+# Project-wide cap. Per-bucket limits are enforced separately via the
+# storage-js client and cannot exceed this. 500 MiB comfortably fits a
+# 5-minute 1080p webm.
+file_size_limit = "500MiB"
+
+[auth]
+# Restore the stricter pre-revert email-OTP rate limit and code length.
+[auth.email]
+max_frequency = "1m0s"
+otp_length = 8
+
+# Restore TOTP MFA (was inadvertently disabled by an earlier `config push`).
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
