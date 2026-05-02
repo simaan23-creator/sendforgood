@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
+import { signWatchToken } from "@/lib/watch-token";
 
 // Manual send endpoint for milestone voice/video messages. Mirrors the
 // /api/letters/release flow: verify the user owns the row, generate a signed
@@ -67,21 +68,14 @@ export async function POST(
     profile?.full_name || profile?.email || user.email || "Someone who cares";
   const recipientName = message.recipient_name || "Friend";
 
-  // Generate a signed URL for the audio/video file. Storage paths in this
-  // table are stored as either a full public URL (older rows) or a
-  // bucket-relative path. Both work — we just sign the bucket-relative ones.
-  let audioListenUrl: string = message.audio_url;
-  if (message.audio_url.startsWith("voice-messages/")) {
-    const { data: signedUrlData } = await supabaseAdmin.storage
-      .from("voice-messages")
-      .createSignedUrl(
-        message.audio_url.replace("voice-messages/", ""),
-        60 * 60 * 24 * 30 // 30 days
-      );
-    if (signedUrlData?.signedUrl) {
-      audioListenUrl = signedUrlData.signedUrl;
-    }
-  }
+  // Route the recipient through our /watch/[id] page (rather than a raw
+  // Supabase signed URL) so we can apply the webm Infinity-duration fix on
+  // playback and expose a real download button. Token is HMAC-bound to the
+  // message id and expires in 30 days.
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://sendforgood.com";
+  const watchToken = signWatchToken(id);
+  const audioListenUrl = `${baseUrl}/watch/${id}?t=${watchToken}`;
 
   const formatLabel = message.message_format === "video" ? "video" : "voice";
   const ctaLabel =

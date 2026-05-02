@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
+import { signWatchToken } from "@/lib/watch-token";
 
 export async function GET(request: Request) {
   // Verify cron secret to prevent unauthorized access
@@ -55,17 +56,12 @@ export async function GET(request: Request) {
         profile?.full_name || profile?.email || "Someone who cares";
       const recipientName = message.recipient_name || "Friend";
 
-      // Generate a signed URL for the audio file
-      let audioListenUrl = message.audio_url;
-      if (message.audio_url && message.audio_url.startsWith("voice-messages/")) {
-        const { data: signedUrlData } = await supabaseAdmin.storage
-          .from("voice-messages")
-          .createSignedUrl(message.audio_url.replace("voice-messages/", ""), 60 * 60 * 24 * 30); // 30 days
-
-        if (signedUrlData?.signedUrl) {
-          audioListenUrl = signedUrlData.signedUrl;
-        }
-      }
+      // Route through our /watch/[id] page so the recipient gets the webm
+      // Infinity-duration fix and a real download button.
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "https://sendforgood.com";
+      const watchToken = signWatchToken(message.id);
+      const audioListenUrl = `${baseUrl}/watch/${message.id}?t=${watchToken}`;
 
       try {
         await resend.emails.send({
