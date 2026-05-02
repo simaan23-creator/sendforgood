@@ -5,7 +5,7 @@ const FOOTER_LINKS = {
     { href: "/gifts/buy", label: "Gifts" },
     { href: "/messages/buy", label: "Messages" },
     { href: "/vault", label: "Memory Vault" },
-    { href: "/weddings", label: "Weddings" },
+    { href: "/wedding", label: "Weddings" },
     { href: "/pricing", label: "Pricing" },
   ],
   Company: [
