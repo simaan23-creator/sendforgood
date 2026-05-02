@@ -54,6 +54,7 @@ export default function EditVoiceMessagePage() {
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function loadMessage() {
@@ -200,6 +201,44 @@ export default function EditVoiceMessagePage() {
     setSaving(false);
   }
 
+  async function handleDeleteRecording() {
+    if (
+      !confirm(
+        "Delete this recording? You'll need to record a new one before this message can be sent."
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/voice-messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audio_url: null,
+          duration_seconds: null,
+          status: "draft",
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to delete recording");
+      } else {
+        setAudioUrl(null);
+        setDurationSeconds(null);
+        setRecordingBlob(null);
+        setSaved(false);
+        setMessage((prev) =>
+          prev ? { ...prev, audio_url: null, duration_seconds: null, status: "draft" } : prev
+        );
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
+    setDeleting(false);
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream">
@@ -296,13 +335,31 @@ export default function EditVoiceMessagePage() {
                       className="w-full"
                     />
                   )}
-                  {durationSeconds && (
-                    <p className="mt-2 text-xs text-warm-gray">
-                      Duration: {Math.floor(durationSeconds / 60)}:
-                      {(durationSeconds % 60).toString().padStart(2, "0")}
-                    </p>
-                  )}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    {durationSeconds ? (
+                      <p className="text-xs text-warm-gray">
+                        Duration: {Math.floor(durationSeconds / 60)}:
+                        {(durationSeconds % 60).toString().padStart(2, "0")}
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleDeleteRecording}
+                      disabled={deleting || saving || uploading}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {deleting ? "Deleting..." : "Delete recording"}
+                    </button>
+                  </div>
                 </div>
+              )}
+
+              {audioUrl && !recordingBlob && (
+                <p className="mb-2 text-sm font-medium text-navy">
+                  Or record a new version to replace this:
+                </p>
               )}
 
               <VoiceRecorder
