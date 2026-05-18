@@ -72,7 +72,7 @@ export async function GET(request: Request) {
           : "";
 
       await resend.emails.send({
-        from: "SealTheDay <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sealtheday.com>",
         to: senderProfile.email,
         subject: "Your gift wasn't claimed in time",
         html: `

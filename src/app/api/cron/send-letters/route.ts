@@ -55,7 +55,7 @@ export async function GET(request: Request) {
 
       try {
         await resend.emails.send({
-          from: "SealTheDay <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sealtheday.com>",
           to: letter.recipient_email,
           subject: `A letter for you \u2014 from ${senderName}`,
           html: `

@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   if (recipientEmail) {
   try {
     await resend.emails.send({
-      from: "SealTheDay <hello@sendforgood.com>",
+      from: "SealTheDay <hello@sealtheday.com>",
       to: recipientEmail,
       subject: "You've been gifted a Memory Vault!",
       html: `

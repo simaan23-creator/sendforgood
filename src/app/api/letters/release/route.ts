@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       : "<em style='color:#b91c1c;'>No mailing address on file</em>";
 
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sealtheday.com>",
       to: "Simaan23@gmail.com",
       subject: `📬 Milestone Letter Released — ${recipientName} from ${senderName}`,
       html: `
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     // If digital, send email to recipient automatically
     if (letter.delivery_type === "digital" && letter.recipient_email) {
       await resend.emails.send({
-        from: "SealTheDay <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sealtheday.com>",
         to: letter.recipient_email,
         subject: `A letter for you — from ${senderName}`,
         html: `

@@ -53,7 +53,7 @@ const organizationJsonLd = {
     "The wedding memory vault. Guests record photos, videos, and voice messages from every angle of your day — automatically organized into one private vault.",
   contactPoint: {
     "@type": "ContactPoint",
-    email: "support@sendforgood.com",
+    email: "support@sealtheday.com",
     telephone: "+1-631-707-4968",
     contactType: "customer support",
     areaServed: "US",

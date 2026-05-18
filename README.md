@@ -1,4 +1,4 @@
-# SendForGood
+# SealTheDay
 
 **Legacy gift giving, made simple.**
 
@@ -28,7 +28,7 @@ A "set it and forget it" gift service. Prepay for gifts to be delivered to someo
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd sendforgood
+   cd sealtheday
    ```
 
 2. Install dependencies:
@@ -45,7 +45,7 @@ A "set it and forget it" gift service. Prepay for gifts to be delivered to someo
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
    STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
    RESEND_API_KEY=your_resend_api_key
-   NEXT_PUBLIC_APP_URL=https://sendforgood.com
+   NEXT_PUBLIC_APP_URL=https://sealtheday.com
    ```
 
 4. Run the database migration against your Supabase project:
@@ -61,10 +61,10 @@ A "set it and forget it" gift service. Prepay for gifts to be delivered to someo
    - Enable Google OAuth in Supabase Dashboard > Authentication > Providers
    - Enable Email Magic Links (enabled by default)
    - Set the Site URL to your domain
-   - Add redirect URLs: `https://sendforgood.com/auth/callback`
+   - Add redirect URLs: `https://sealtheday.com/auth/callback`
 
 6. Configure Stripe Webhook:
-   - Create a webhook endpoint in Stripe Dashboard pointing to `https://sendforgood.com/api/webhooks/stripe`
+   - Create a webhook endpoint in Stripe Dashboard pointing to `https://sealtheday.com/api/webhooks/stripe`
    - Listen for `checkout.session.completed` events
    - Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
 

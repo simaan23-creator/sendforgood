@@ -25,10 +25,10 @@ export default function TermsPage() {
               Terms. We&rsquo;ve written them to be as clear and fair as
               possible &mdash; if anything is unclear, please reach out to us at{" "}
               <a
-                href="mailto:support@sendforgood.com"
+                href="mailto:support@sealtheday.com"
                 className="font-medium text-navy underline decoration-gold underline-offset-4 hover:text-navy-light"
               >
-                support@sendforgood.com
+                support@sealtheday.com
               </a>
               .
             </p>
@@ -193,10 +193,10 @@ export default function TermsPage() {
             </p>
             <p className="mt-3 font-medium text-navy">
               <a
-                href="mailto:support@sendforgood.com"
+                href="mailto:support@sealtheday.com"
                 className="underline decoration-gold underline-offset-4 hover:text-navy-light"
               >
-                support@sendforgood.com
+                support@sealtheday.com
               </a>
             </p>
           </div>

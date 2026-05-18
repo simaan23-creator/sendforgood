@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   if (use_type === "request" && recipient_email) {
     try {
       await resend.emails.send({
-        from: "SealTheDay <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sealtheday.com>",
         to: recipient_email,
         subject: `${senderName} is requesting a message from you!`,
         html: `
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
   if (use_type === "gift" && recipient_email) {
     try {
       await resend.emails.send({
-        from: "SealTheDay <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sealtheday.com>",
         to: recipient_email,
         subject: `${senderName} sent you a gift from SealTheDay!`,
         html: `

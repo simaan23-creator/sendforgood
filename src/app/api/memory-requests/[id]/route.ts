@@ -145,7 +145,7 @@ export async function POST(
 
   try {
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sealtheday.com>",
       to: memoryRequest.requester_email,
       subject: "Someone recorded a message for you!",
       html: `

@@ -37,7 +37,7 @@ const FAQ = [
   {
     question: "What is your refund policy?",
     answer:
-      "We offer a full refund within 48 hours of purchase, as long as no gifts have been sent. Once a gift is sent, it is non-refundable. Contact us at support@sendforgood.com or text (631) 707-4968.",
+      "We offer a full refund within 48 hours of purchase, as long as no gifts have been sent. Once a gift is sent, it is non-refundable. Contact us at support@sealtheday.com or text (631) 707-4968.",
   },
   {
     question: "Will the recipient know it was automated?",

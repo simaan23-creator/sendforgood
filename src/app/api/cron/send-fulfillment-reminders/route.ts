@@ -91,7 +91,7 @@ export async function GET(request: Request) {
           .eq("id", a.id);
 
         await resend.emails.send({
-          from: "SealTheDay <notifications@sendforgood.com>",
+          from: "SealTheDay <notifications@sealtheday.com>",
           to: "Simaan23@gmail.com",
           subject: `Gift Due in 14 Days - ${recipientName} (${tier.charAt(0).toUpperCase() + tier.slice(1)})`,
           html: `

@@ -81,7 +81,7 @@ export async function POST(
 
     try {
       await resend.emails.send({
-        from: "SealTheDay <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sealtheday.com>",
         to: "Simaan23@gmail.com",
         subject: `Refund Request — ${recipientName} ${tierName} plan`,
         html: `

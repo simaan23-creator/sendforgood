@@ -74,10 +74,10 @@ export default function ContactPage() {
             You can also email us directly at
           </p>
           <a
-            href="mailto:support@sendforgood.com"
+            href="mailto:support@sealtheday.com"
             className="mt-1 inline-block text-lg font-semibold text-navy underline decoration-gold underline-offset-4 hover:text-navy-light"
           >
-            support@sendforgood.com
+            support@sealtheday.com
           </a>
         </div>
 

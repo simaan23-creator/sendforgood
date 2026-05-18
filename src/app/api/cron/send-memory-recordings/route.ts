@@ -100,7 +100,7 @@ export async function GET(request: Request) {
 
       try {
         await resend.emails.send({
-          from: "SealTheDay <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sealtheday.com>",
           to: req.requester_email,
           subject,
           html: `

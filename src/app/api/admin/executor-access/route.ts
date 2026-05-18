@@ -62,7 +62,7 @@ export async function PATCH(request: Request) {
     if (updated) {
       if (status === "approved") {
         await resend.emails.send({
-          from: "SealTheDay <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sealtheday.com>",
           to: updated.requester_email,
           subject: "Your executor access request has been approved",
           text: `Hello ${updated.requester_name},
@@ -77,7 +77,7 @@ If you have any questions, reply to this email or text us at (631) 707-4968.
         });
       } else {
         await resend.emails.send({
-          from: "SealTheDay <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sealtheday.com>",
           to: updated.requester_email,
           subject: "Your executor access request has been declined",
           text: `Hello ${updated.requester_name},

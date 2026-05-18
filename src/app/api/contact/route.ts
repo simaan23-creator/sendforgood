@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     }
 
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
-      to: "support@sendforgood.com",
+      from: "SealTheDay <noreply@sealtheday.com>",
+      to: "support@sealtheday.com",
       subject: `Contact form: ${name}`,
       replyTo: email,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,

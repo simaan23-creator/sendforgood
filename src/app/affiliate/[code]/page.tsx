@@ -193,7 +193,7 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Your referral link:</span>
               <code className="bg-white border border-gray-200 rounded-md px-3 py-1 text-sm font-mono text-[#1B2A4A]">
-                sendforgood.com?ref={code}
+                sealtheday.com?ref={code}
               </code>
               <button
                 onClick={copyReferralLink}
@@ -297,7 +297,7 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
           <h3 className="text-sm font-semibold text-[#1B2A4A] mb-2">Payouts</h3>
           <p className="text-sm text-gray-600 mb-1">
-            To request a payout, contact: <a href="mailto:support@sendforgood.com" className="text-[#C8A962] font-medium hover:underline">support@sendforgood.com</a>
+            To request a payout, contact: <a href="mailto:support@sealtheday.com" className="text-[#C8A962] font-medium hover:underline">support@sealtheday.com</a>
           </p>
           <p className="text-sm text-gray-500">Payouts are processed monthly.</p>
         </div>
@@ -309,7 +309,7 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
           <div className="space-y-3">
             {campaignLinks.map((c) => {
               const url = getCampaignUrl(c.path);
-              const display = `sendforgood.com${c.path}?ref=${code}`;
+              const display = `sealtheday.com${c.path}?ref=${code}`;
               return (
                 <div key={c.key} className="flex items-center gap-3">
                   <span className="text-sm font-medium text-[#1B2A4A] w-24 shrink-0">{c.label}</span>

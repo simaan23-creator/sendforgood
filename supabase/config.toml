@@ -14,10 +14,10 @@ enabled = true
 file_size_limit = "500MiB"
 
 [auth]
-site_url = "https://sendforgood.com"
+site_url = "https://sealtheday.com"
 additional_redirect_urls = [
-  "https://sendforgood.com/**",
-  "https://www.sendforgood.com/**",
+  "https://sealtheday.com/**",
+  "https://www.sealtheday.com/**",
   "http://localhost:3000/**",
 ]
 

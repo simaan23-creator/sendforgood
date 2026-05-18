@@ -152,10 +152,10 @@ export default async function SuccessPage({
           A confirmation email has been sent to your inbox. If you have any
           questions, reach out to us at{" "}
           <a
-            href="mailto:support@sendforgood.com"
+            href="mailto:support@sealtheday.com"
             className="text-gold hover:text-gold-dark underline underline-offset-2"
           >
-            support@sendforgood.com
+            support@sealtheday.com
           </a>
         </p>
       </div>

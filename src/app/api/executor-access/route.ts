@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
     // 1. Email admin
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sealtheday.com>",
       to: "Simaan23@gmail.com",
       subject: `New Executor Access Request — ${accountHolderName}`,
       replyTo: requesterEmail,
@@ -90,7 +90,7 @@ https://sealtheday.com/admin`,
 
     // 2. Email account holder (notification)
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sealtheday.com>",
       to: accountHolderEmail,
       subject: "Someone has requested executor access to your SealTheDay account",
       text: `Hello ${accountHolderName},
@@ -99,7 +99,7 @@ ${requesterName} (${requesterEmail}) has submitted a request to access your Seal
 
 If you authorized this person as your executor, no action is needed.
 
-If you did NOT authorize this request, please contact us immediately at support@sendforgood.com or text (631) 707-4968.
+If you did NOT authorize this request, please contact us immediately at support@sealtheday.com or text (631) 707-4968.
 
 We will not grant access until we have verified the requester's identity and given you a chance to respond.
 
@@ -108,7 +108,7 @@ We will not grant access until we have verified the requester's identity and giv
 
     // 3. Confirmation to requester
     await resend.emails.send({
-      from: "SealTheDay <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sealtheday.com>",
       to: requesterEmail,
       subject: "We received your executor access request",
       text: `Hello ${requesterName},

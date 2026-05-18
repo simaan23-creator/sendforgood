@@ -173,7 +173,7 @@ export default function BusinessPage() {
           <p className="text-sm text-warm-gray-light mb-3">
             Volume discounts available for 20+ recipients —{" "}
             <a
-              href="mailto:support@sendforgood.com"
+              href="mailto:support@sealtheday.com"
               className="text-gold hover:text-gold-dark underline underline-offset-2"
             >
               contact us
