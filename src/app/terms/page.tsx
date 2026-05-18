@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — SendForGood",
+  title: "Terms of Service — SealTheDay",
   description:
-    "Read the Terms of Service for SendForGood, the gift credit and delivery platform.",
+    "Read the Terms of Service for SealTheDay, the gift credit and delivery platform.",
 };
 
 export default function TermsPage() {
@@ -19,7 +19,7 @@ export default function TermsPage() {
           {/* Welcome */}
           <div>
             <p>
-              Welcome to SendForGood! These Terms of Service
+              Welcome to SealTheDay! These Terms of Service
               (&ldquo;Terms&rdquo;) govern your use of our website and services.
               By creating an account or placing an order, you agree to these
               Terms. We&rsquo;ve written them to be as clear and fair as
@@ -37,10 +37,10 @@ export default function TermsPage() {
           {/* Service Description */}
           <div>
             <h2 className="text-xl font-semibold text-navy">
-              What SendForGood Does
+              What SealTheDay Does
             </h2>
             <p className="mt-3">
-              SendForGood is a gift credit and delivery platform. You purchase
+              SealTheDay is a gift credit and delivery platform. You purchase
               gift credits by tier, then assign recipients, occasions, and dates
               from your dashboard whenever you are ready. We then curate and ship
               a thoughtful gift to your recipient on each scheduled occasion
@@ -105,7 +105,7 @@ export default function TermsPage() {
               Legacy Gifting &mdash; What Happens to Your Orders
             </h2>
             <p className="mt-3">
-              One of the things that makes SendForGood special is that your love
+              One of the things that makes SealTheDay special is that your love
               keeps arriving even if you&rsquo;re no longer here. Here&rsquo;s
               how we handle that:
             </p>
@@ -153,13 +153,13 @@ export default function TermsPage() {
               Limitation of Liability
             </h2>
             <p className="mt-3">
-              SendForGood provides its services &ldquo;as is.&rdquo; While we
+              SealTheDay provides its services &ldquo;as is.&rdquo; While we
               strive to deliver a wonderful experience with every gift, we
               cannot guarantee that specific items will be available or that
               deliveries will be uninterrupted.
             </p>
             <p className="mt-3">
-              To the fullest extent permitted by law, SendForGood&rsquo;s total
+              To the fullest extent permitted by law, SealTheDay&rsquo;s total
               liability for any claim arising from your use of our services
               shall not exceed the amount you paid for the specific order in
               question.

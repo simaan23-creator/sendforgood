@@ -1452,7 +1452,7 @@ function AffiliatesTab() {
   }
 
   function copyLink(code: string) {
-    navigator.clipboard.writeText(`https://sendforgood.com?ref=${code}`);
+    navigator.clipboard.writeText(`https://sealtheday.com?ref=${code}`);
   }
 
   if (loading) {
@@ -1562,7 +1562,7 @@ function AffiliatesTab() {
                           Copy Link
                         </button>
                         <button
-                          onClick={() => navigator.clipboard.writeText(`https://sendforgood.com/affiliate/${a.code}`)}
+                          onClick={() => navigator.clipboard.writeText(`https://sealtheday.com/affiliate/${a.code}`)}
                           className="rounded bg-purple-50 border border-purple-200 text-purple-600 px-2.5 py-1 text-xs font-medium hover:bg-purple-100 transition mr-1"
                         >
                           Copy Portal
@@ -2770,7 +2770,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
-              SendForGood Admin
+              SealTheDay Admin
             </h1>
             <p className="text-xs text-gray-400">
               Fulfillment Dashboard

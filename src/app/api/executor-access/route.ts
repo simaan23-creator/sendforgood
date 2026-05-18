@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
     // 1. Email admin
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `New Executor Access Request — ${accountHolderName}`,
       replyTo: requesterEmail,
@@ -85,17 +85,17 @@ Submitted: ${submittedAt}
 Request ID: ${inserted.id}
 
 Go to the admin dashboard to review, approve, or deny this request:
-https://sendforgood.com/admin`,
+https://sealtheday.com/admin`,
     });
 
     // 2. Email account holder (notification)
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: accountHolderEmail,
-      subject: "Someone has requested executor access to your SendForGood account",
+      subject: "Someone has requested executor access to your SealTheDay account",
       text: `Hello ${accountHolderName},
 
-${requesterName} (${requesterEmail}) has submitted a request to access your SendForGood account as your executor. Their stated relationship: ${requesterRelationship}.
+${requesterName} (${requesterEmail}) has submitted a request to access your SealTheDay account as your executor. Their stated relationship: ${requesterRelationship}.
 
 If you authorized this person as your executor, no action is needed.
 
@@ -103,17 +103,17 @@ If you did NOT authorize this request, please contact us immediately at support@
 
 We will not grant access until we have verified the requester's identity and given you a chance to respond.
 
-— The SendForGood Team`,
+— The SealTheDay Team`,
     });
 
     // 3. Confirmation to requester
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: requesterEmail,
       subject: "We received your executor access request",
       text: `Hello ${requesterName},
 
-Thank you for reaching out. We have received your request to access the SendForGood account belonging to ${accountHolderName}.
+Thank you for reaching out. We have received your request to access the SealTheDay account belonging to ${accountHolderName}.
 
 WHAT HAPPENS NEXT:
 1. We have immediately notified the account holder of your request. If they respond within 7 days to deny it, your request will be declined.
@@ -123,7 +123,7 @@ WHAT HAPPENS NEXT:
 
 If you have any questions in the meantime, reply to this email or text us at (631) 707-4968.
 
-— The SendForGood Team`,
+— The SealTheDay Team`,
     });
 
     return NextResponse.json({ success: true });

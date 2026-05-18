@@ -256,13 +256,13 @@ async function handleIndividualOrder(
   // Send confirmation email to customer
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: "Your Gift Plan is Confirmed! \u{1F381}",
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
           <h1 style="color: #1a2744;">Your gift plan is all set! \u{1F389}</h1>
-          <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful.</p>
+          <p>Thank you for choosing SealTheDay. We're honored to help you send something meaningful.</p>
           <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
             <p><strong>Recipient:</strong> ${metadata.recipientName}</p>
@@ -273,7 +273,7 @@ async function handleIndividualOrder(
           </div>
           <p>We'll take care of everything from here. Your first gift will be on its way before the occasion date.</p>
           <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -284,7 +284,7 @@ async function handleIndividualOrder(
   // Send owner notification email to Simaan
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\u{1F381} New Order! ${metadata.tier} tier \u2014 ${metadata.recipientName} (${years} yr${years > 1 ? "s" : ""}) \u2014 ${amountFormatted}`,
       html: `
@@ -315,7 +315,7 @@ async function handleIndividualOrder(
             <p><strong>Card Message:</strong> ${metadata.cardMessage || "Not provided"}</p>
             <p><strong>Gift Notes:</strong> ${metadata.giftNotes || "Not provided"}</p>
           </div>
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -780,13 +780,13 @@ async function handleCartOrder(
         // Send claim email to recipient
         try {
           await resend.emails.send({
-            from: "SendForGood <noreply@sendforgood.com>",
+            from: "SealTheDay <noreply@sendforgood.com>",
             to: gc.giftRecipientEmail,
-            subject: `${senderFirst} sent you a SendForGood gift!`,
+            subject: `${senderFirst} sent you a SealTheDay gift!`,
             html: `
               <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
                 <h1 style="color: #1a2744;">You\u2019ve received a gift! \uD83C\uDF81</h1>
-                <p>${senderFirst} has given you a <strong>${tierName}</strong> gift credit on SendForGood.</p>
+                <p>${senderFirst} has given you a <strong>${tierName}</strong> gift credit on SealTheDay.</p>
                 <p>This means a thoughtful, curated gift will be delivered to your door every year \u2014 and you get to set up the details.</p>
                 ${gc.giftMessage ? `
                 <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #C8A962;">
@@ -797,7 +797,7 @@ async function handleCartOrder(
                   <a href="${claimUrl}" style="background: #2D5016; color: #fdf8f0; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Claim Your Gift</a>
                 </p>
                 <p style="margin-top: 24px; font-size: 14px; color: #666;">After claiming, you\u2019ll set up your preferences (interests, address, occasion date) and we\u2019ll handle the rest.</p>
-                <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+                <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
               </div>
             `,
           });
@@ -810,7 +810,7 @@ async function handleCartOrder(
         if (senderEmail) {
           try {
             await resend.emails.send({
-              from: "SendForGood <noreply@sendforgood.com>",
+              from: "SealTheDay <noreply@sendforgood.com>",
               to: senderEmail,
               subject: `Your gift credit claim link for ${gc.giftRecipientName}`,
               html: `
@@ -822,7 +822,7 @@ async function handleCartOrder(
                     <a href="${claimUrl}" style="color: #2D5016; font-weight: 600; word-break: break-all;">${claimUrl}</a>
                   </div>
                   <p style="font-size: 14px; color: #666;">They\u2019ll create an account (or sign in), claim the credit, and set up their gift preferences.</p>
-                  <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+                  <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
                 </div>
               `,
             });
@@ -899,13 +899,13 @@ async function handleCartOrder(
     if (voiceAudioCount + voiceVideoCount > 0) subjectParts.push(`${voiceAudioCount + voiceVideoCount} voice/video message${(voiceAudioCount + voiceVideoCount) > 1 ? "s" : ""}`);
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: `Your Order is Confirmed! \u{1F381} ${subjectParts.join(" + ")} set up`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
           <h1 style="color: #1a2744;">Your order is all set! \u{1F389}</h1>
-          <p>Thank you for choosing SendForGood. We're honored to help you send something meaningful.</p>
+          <p>Thank you for choosing SealTheDay. We're honored to help you send something meaningful.</p>
           <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
             ${cartItems.length > 0 ? `<p><strong>Gifts:</strong> ${cartItems.length}</p>` : ""}
@@ -954,7 +954,7 @@ async function handleCartOrder(
           </div>` : ""}
           <p>We'll take care of everything from here. Each recipient will receive their gift, letter, or voice message on time.</p>
           <p>Questions? Reply to this email or contact us at <a href="mailto:support@sendforgood.com">support@sendforgood.com</a></p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -1006,7 +1006,7 @@ async function handleCartOrder(
     if (voiceAudioCount + voiceVideoCount > 0) ownerSubjectParts.push(`${voiceAudioCount + voiceVideoCount} voice/video`);
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\u{1F6D2} New Cart Order! ${ownerSubjectParts.join(" + ")} \u2014 ${amountFormatted}`,
       html: `
@@ -1062,7 +1062,7 @@ async function handleCartOrder(
               ${ownerVoiceRows}
             </table>
           </div>` : ""}
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -1289,13 +1289,13 @@ async function handleBusinessOrder(
       .join("");
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: `Your Business Gift Plan is Confirmed! \u{1F381} ${recipients.length} recipient${recipients.length > 1 ? "s" : ""} set up`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
           <h1 style="color: #1a2744;">Your business gift plan is all set! \u{1F389}</h1>
-          <p>Thank you for choosing SendForGood for <strong>${metadata.companyName}</strong>. We're honored to help you build stronger relationships through thoughtful gifting.</p>
+          <p>Thank you for choosing SealTheDay for <strong>${metadata.companyName}</strong>. We're honored to help you build stronger relationships through thoughtful gifting.</p>
           <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin-top: 0; font-size: 18px;">Order Summary</h2>
             <p><strong>Company:</strong> ${metadata.companyName}</p>
@@ -1315,8 +1315,8 @@ async function handleBusinessOrder(
             </table>
           </div>
           <p>We'll take care of everything from here. Each recipient will receive their gift on time, every year.</p>
-          <p><a href="https://sendforgood.com/business/dashboard" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 16px;">View Your Dashboard</a></p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p><a href="https://sealtheday.com/business/dashboard" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 16px;">View Your Dashboard</a></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -1341,7 +1341,7 @@ async function handleBusinessOrder(
       .join("");
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\u{1F3E2} New Business Order! ${metadata.companyName} \u2014 ${recipients.length} recipients \u2014 ${amountFormatted}`,
       html: `
@@ -1370,7 +1370,7 @@ async function handleBusinessOrder(
               ${recipientDetails}
             </table>
           </div>
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -1533,7 +1533,7 @@ async function handleLetterOrder(
   // Send confirmation email to customer
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: "Your Legacy Letter Is Scheduled! \u{2709}\u{FE0F}",
       html: `
@@ -1547,9 +1547,9 @@ async function handleLetterOrder(
             <p><strong>Title:</strong> ${metadata.title}</p>
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
-          <p>You can edit your letter anytime from your <a href="https://sendforgood.com/dashboard" style="color: #C8A962;">dashboard</a> before it goes to print.</p>
+          <p>You can edit your letter anytime from your <a href="https://sealtheday.com/dashboard" style="color: #C8A962;">dashboard</a> before it goes to print.</p>
           <p>About 2 weeks before each letter is scheduled, we'll send you a preview to confirm the final version.</p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -1560,7 +1560,7 @@ async function handleLetterOrder(
   // Send owner notification email
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\u{2709}\u{FE0F} New Legacy Letter! ${metadata.recipientName} \u2014 ${letterType} \u2014 ${amountFormatted}`,
       html: `
@@ -1581,7 +1581,7 @@ async function handleLetterOrder(
             ${metadata.addressLine1}${metadata.addressLine2 ? "<br/>" + metadata.addressLine2 : ""}<br/>
             ${metadata.city}, ${metadata.state} ${metadata.postalCode}</p>
           </div>
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -1721,7 +1721,7 @@ async function handleVoiceMessageOrder(
   // Send confirmation email to customer
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: "Your Voice Message Is Scheduled! \uD83C\uDFA4",
       html: `
@@ -1735,9 +1735,9 @@ async function handleVoiceMessageOrder(
             <p><strong>Title:</strong> ${metadata.title || "N/A"}</p>
             <p><strong>Total paid:</strong> ${amountFormatted}</p>
           </div>
-          <p>You can re-record your message anytime from your <a href="https://sendforgood.com/dashboard" style="color: #C8A962;">dashboard</a> before it's delivered.</p>
+          <p>You can re-record your message anytime from your <a href="https://sealtheday.com/dashboard" style="color: #C8A962;">dashboard</a> before it's delivered.</p>
           <p>About 2 weeks before each message is scheduled, we'll send you a reminder to confirm the final version.</p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -1748,7 +1748,7 @@ async function handleVoiceMessageOrder(
   // Send owner notification email
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\uD83C\uDFA4 New Voice Message! ${metadata.recipientName} \u2014 ${messageType} \u2014 ${amountFormatted}`,
       html: `
@@ -1763,7 +1763,7 @@ async function handleVoiceMessageOrder(
             <p><strong>Amount:</strong> ${amountFormatted}</p>
             <p><strong>Recipient Email:</strong> ${metadata.recipientEmail || "N/A"}</p>
           </div>
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -1876,7 +1876,7 @@ async function handleVaultCreditOrder(
     if (photoCredits > 0) creditParts.push(`${photoCredits} photo credit${photoCredits > 1 ? "s" : ""}`);
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: customerEmail,
       subject: "Your Memory Vault credits are ready! \uD83D\uDD13",
       html: `
@@ -1892,9 +1892,9 @@ async function handleVaultCreditOrder(
           </div>
           <p>Credits are consumed only when someone records a message. Unused credits never expire.</p>
           <p style="margin-top: 24px;">
-            <a href="https://sendforgood.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
+            <a href="https://sealtheday.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
           </p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
         </div>
       `,
     });
@@ -1905,7 +1905,7 @@ async function handleVaultCreditOrder(
   // Send owner notification
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `\uD83D\uDD12 New Vault Credits! ${audioCredits} audio + ${videoCredits} video + ${photoCredits} photo \u2014 ${amountFormatted}`,
       html: `
@@ -1918,7 +1918,7 @@ async function handleVaultCreditOrder(
             <p><strong>Photo Credits:</strong> ${photoCredits}</p>
             <p><strong>Amount:</strong> ${amountFormatted}</p>
           </div>
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
         </div>
       `,
     });
@@ -1950,7 +1950,7 @@ async function handleVaultFeeOrder(
   if (customerEmail) {
     try {
       await resend.emails.send({
-        from: "SendForGood <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sendforgood.com>",
         to: customerEmail,
         subject: "Your vault creation fee is confirmed!",
         html: `
@@ -1958,9 +1958,9 @@ async function handleVaultFeeOrder(
             <h1 style="color: #1a2744;">Vault fee confirmed!</h1>
             <p>Your $10 vault creation fee has been processed. You can now create a new Memory Vault.</p>
             <p style="margin-top: 24px;">
-              <a href="https://sendforgood.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
+              <a href="https://sealtheday.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
             </p>
-            <p style="margin-top: 40px;">With love,<br/><strong>The SendForGood Team</strong></p>
+            <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
           </div>
         `,
       });
@@ -2040,7 +2040,7 @@ async function processAffiliateReferral(
 
     try {
       await resend.emails.send({
-        from: "SendForGood <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sendforgood.com>",
         to: "Simaan23@gmail.com",
         subject: `\uD83E\uDD1D New Affiliate Referral! ${affiliate.name} \u2014 ${commissionFormatted} commission`,
         html: `
@@ -2055,7 +2055,7 @@ async function processAffiliateReferral(
               <p><strong>Commission Rate:</strong> ${commissionRate}%</p>
               <p><strong>Commission:</strong> ${commissionFormatted}</p>
             </div>
-            <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+            <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
           </div>
         `,
       });

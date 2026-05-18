@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Legacy Letters — SendForGood",
+  title: "Legacy Letters — SealTheDay",
   description:
     "Write letters today that arrive in the future. Birthday letters, wedding day letters, graduation letters — delivered on the exact day, every time.",
 };

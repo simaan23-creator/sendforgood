@@ -25,4 +25,4 @@ Disallow: /business/success
 Disallow: /business/dashboard
 Disallow: /business/signup
 
-Sitemap: https://sendforgood.com/sitemap.xml
+Sitemap: https://sealtheday.com/sitemap.xml

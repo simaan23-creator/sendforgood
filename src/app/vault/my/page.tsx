@@ -86,7 +86,7 @@ export default function MyVaultsPage() {
   }, [supabase, router]);
 
   function copyLink(uniqueCode: string, vaultId: string) {
-    const url = `https://sendforgood.com/record/${uniqueCode}`;
+    const url = `https://sealtheday.com/record/${uniqueCode}`;
     navigator.clipboard.writeText(url);
     setCopiedId(vaultId);
     setTimeout(() => setCopiedId(null), 2000);

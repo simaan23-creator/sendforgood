@@ -36,7 +36,7 @@ export default function DeleteAccountPage() {
     <div className="max-w-2xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-serif text-gray-900 mb-2">Delete account</h1>
       <p className="text-gray-600 mb-8">
-        This permanently removes your SendForGood account, including all
+        This permanently removes your SealTheDay account, including all
         gifts, letters, voice messages, vaults, and credits. This cannot be
         undone.
       </p>

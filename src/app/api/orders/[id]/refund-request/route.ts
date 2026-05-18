@@ -81,7 +81,7 @@ export async function POST(
 
     try {
       await resend.emails.send({
-        from: "SendForGood <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sendforgood.com>",
         to: "Simaan23@gmail.com",
         subject: `Refund Request — ${recipientName} ${tierName} plan`,
         html: `
@@ -97,7 +97,7 @@ export async function POST(
               <p><strong>Details:</strong> ${details || "None provided"}</p>
               <p><strong>Estimated refund:</strong> ${refundFormatted}</p>
             </div>
-            <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
+            <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin Dashboard</a></p>
           </div>
         `,
       });

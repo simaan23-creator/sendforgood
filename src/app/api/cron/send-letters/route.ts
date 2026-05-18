@@ -55,7 +55,7 @@ export async function GET(request: Request) {
 
       try {
         await resend.emails.send({
-          from: "SendForGood <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sendforgood.com>",
           to: letter.recipient_email,
           subject: `A letter for you \u2014 from ${senderName}`,
           html: `
@@ -91,7 +91,7 @@ export async function GET(request: Request) {
         Delivered with care by
       </p>
       <p style="color: #1B2A4A; font-size: 14px; font-weight: bold; margin: 0; font-family: -apple-system, sans-serif;">
-        SendForGood
+        SealTheDay
       </p>
       <p style="color: #9a9489; font-size: 11px; margin: 8px 0 0 0; font-family: -apple-system, sans-serif;">
         This letter was written in advance and scheduled for delivery today.

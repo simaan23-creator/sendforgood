@@ -77,7 +77,7 @@ export async function POST(request: Request) {
   }
 
   // Send email
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
   const claimUrl = `${baseUrl}/claim/vault/${claimCode}`;
 
   const creditParts = [];
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   if (recipientEmail) {
   try {
     await resend.emails.send({
-      from: "SendForGood <hello@sendforgood.com>",
+      from: "SealTheDay <hello@sendforgood.com>",
       to: recipientEmail,
       subject: "You've been gifted a Memory Vault!",
       html: `
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
             You've been gifted a Memory Vault!
           </h1>
           <p style="color: #6B7280; text-align: center; font-size: 16px; margin-bottom: 24px;">
-            Hi <strong style="color: #1B2A4A;">${recipientName}</strong>, someone special has gifted you a Memory Vault on SendForGood &mdash; a place to collect audio, video, and photo messages from your loved ones.
+            Hi <strong style="color: #1B2A4A;">${recipientName}</strong>, someone special has gifted you a Memory Vault on SealTheDay &mdash; a place to collect audio, video, and photo messages from your loved ones.
           </p>
           <div style="background: rgba(200, 169, 98, 0.08); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
             <p style="color: #1B2A4A; font-weight: bold; margin: 0 0 8px 0;">Your package includes:</p>
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
             </a>
           </div>
           <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-            SendForGood &mdash; Gifts that keep on giving
+            SealTheDay &mdash; Gifts that keep on giving
           </p>
         </div>
       `,

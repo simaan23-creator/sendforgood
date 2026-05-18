@@ -12,7 +12,7 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",

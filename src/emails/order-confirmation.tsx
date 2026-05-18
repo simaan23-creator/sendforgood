@@ -28,14 +28,14 @@ export default function OrderConfirmationEmail({
   return (
     <Html>
       <Head />
-      <Preview>Your SendForGood gift plan is confirmed!</Preview>
+      <Preview>Your SealTheDay gift plan is confirmed!</Preview>
       <Body style={{ backgroundColor: "#FDF8F0", fontFamily: "Inter, sans-serif", margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: "560px", margin: "0 auto", padding: "40px 20px" }}>
           <Heading style={{ color: "#1B2A4A", fontSize: "28px", textAlign: "center" as const, marginBottom: "8px" }}>
             Your Gift Plan is Set! 🎁
           </Heading>
           <Text style={{ color: "#6B5E50", fontSize: "16px", textAlign: "center" as const, marginBottom: "32px" }}>
-            Thank you for choosing SendForGood. Your love will keep arriving, year after year.
+            Thank you for choosing SealTheDay. Your love will keep arriving, year after year.
           </Text>
           <Section style={{ backgroundColor: "#ffffff", borderRadius: "12px", padding: "24px", border: "1px solid #F5EDE0" }}>
             <Text style={{ color: "#1B2A4A", fontSize: "18px", fontWeight: "600", marginBottom: "16px" }}>
@@ -63,7 +63,7 @@ export default function OrderConfirmationEmail({
           </Text>
           <Hr style={{ borderColor: "#F5EDE0", margin: "32px 0" }} />
           <Text style={{ color: "#9B8E80", fontSize: "12px", textAlign: "center" as const }}>
-            SendForGood — Legacy giving, made simple.
+            SealTheDay — Legacy giving, made simple.
           </Text>
         </Container>
       </Body>

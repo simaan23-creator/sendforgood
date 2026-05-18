@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog — SendForGood",
+  title: "Blog — SealTheDay",
   description:
     "Stories, guides, and insights about legacy gifting, gifts, and making every occasion meaningful.",
 };
@@ -14,7 +14,7 @@ const TEASER_ARTICLES = [
     tag: "Legacy",
   },
   {
-    title: "Why SendForGood Changes Everything",
+    title: "Why SealTheDay Changes Everything",
     excerpt:
       "In a world of subscriptions and auto-renewals, there's something beautifully intentional about sending gifts you control. No rush, no pressure \u2014 assign recipients from your dashboard whenever you are ready.",
     tag: "Gifting",
@@ -22,7 +22,7 @@ const TEASER_ARTICLES = [
   {
     title: "How to Choose the Perfect Gift Tier",
     excerpt:
-      "From a heartfelt greeting card to a luxury curated experience — how to pick the right SendForGood tier for every recipient and occasion.",
+      "From a heartfelt greeting card to a luxury curated experience — how to pick the right SealTheDay tier for every recipient and occasion.",
     tag: "Guide",
   },
 ];

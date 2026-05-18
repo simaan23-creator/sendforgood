@@ -134,7 +134,7 @@ export default function ListenMemoryPage() {
 
           <p className="mt-6 text-sm text-warm-gray">
             Delivered with care by{" "}
-            <span className="font-semibold text-navy">SendForGood</span>
+            <span className="font-semibold text-navy">SealTheDay</span>
           </p>
         </div>
       </div>

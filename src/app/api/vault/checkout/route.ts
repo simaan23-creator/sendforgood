@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",

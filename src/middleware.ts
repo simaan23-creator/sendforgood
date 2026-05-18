@@ -39,7 +39,23 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+// Requests for the root path are internally rewritten to /wedding so the
+// wedding vault is the homepage. Applies to every hostname the app is
+// served from. All other paths pass through unchanged.
+function rewriteRootToWedding(request: NextRequest): NextResponse | null {
+  if (request.nextUrl.pathname !== "/") return null;
+  const url = request.nextUrl.clone();
+  url.pathname = "/wedding";
+  return NextResponse.rewrite(url);
+}
+
 export async function middleware(request: NextRequest) {
+  // Wedding-vault homepage routing: rewrite root to /wedding
+  const rewritten = rewriteRootToWedding(request);
+  if (rewritten) {
+    return applySecurityHeaders(rewritten);
+  }
+
   // Affiliate tracking: if ?ref= query param exists, set a 30-day cookie
   const refCode = request.nextUrl.searchParams.get("ref");
   if (refCode && /^[a-z0-9_-]+$/.test(refCode)) {

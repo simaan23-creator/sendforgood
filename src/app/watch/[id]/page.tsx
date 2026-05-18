@@ -1,4 +1,4 @@
-// Public watch page for voice/video messages sent via SendForGood. Linked
+// Public watch page for voice/video messages sent via SealTheDay. Linked
 // to from recipient emails. Validates an HMAC token bound to the message
 // id, then renders a player wrapper that applies the webm Infinity-
 // duration workaround (browser-recorded webm files don't have duration in
@@ -154,7 +154,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
 
           <p className="mt-10 text-sm text-warm-gray">
             Delivered with care by{" "}
-            <span className="font-semibold text-navy">SendForGood</span>
+            <span className="font-semibold text-navy">SealTheDay</span>
           </p>
         </div>
       </div>

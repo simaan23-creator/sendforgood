@@ -3,9 +3,9 @@ import Link from "next/link";
 import { TIERS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Pricing — SendForGood",
+  title: "Pricing — SealTheDay",
   description:
-    "Explore SendForGood gift tiers from $20 to $200. Buy gifts, assign recipients from your dashboard — every tier includes gift curation, wrapping, and delivery.",
+    "Explore SealTheDay gift tiers from $20 to $200. Buy gifts, assign recipients from your dashboard — every tier includes gift curation, wrapping, and delivery.",
 };
 
 const FAQ = [
@@ -42,7 +42,7 @@ const FAQ = [
   {
     question: "Will the recipient know it was automated?",
     answer:
-      "No. There is no SendForGood branding on anything we deliver. Gifts ship from our fulfillment partners with a card featuring your name and personal message. Letters and recordings arrive from you \u2014 not from us.",
+      "No. There is no SealTheDay branding on anything we deliver. Gifts ship from our fulfillment partners with a card featuring your name and personal message. Letters and recordings arrive from you \u2014 not from us.",
   },
   {
     question: "Can I send gifts to pets?",

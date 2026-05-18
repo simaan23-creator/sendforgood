@@ -10,7 +10,7 @@ export default function WeddingKitPage() {
   const router = useRouter();
   const supabase = createClient();
   const code = searchParams.get("code") || "";
-  const vaultLink = `https://sendforgood.com/record/${code}`;
+  const vaultLink = `https://sealtheday.com/record/${code}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(vaultLink)}`;
 
   const [coupleNames, setCoupleNames] = useState("");

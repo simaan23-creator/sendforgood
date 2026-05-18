@@ -158,7 +158,7 @@ export default function ClaimGiftPage() {
           </h1>
 
           <p className="mt-3 text-warm-gray">
-            <span className="font-semibold text-navy">{gift.sender_first_name}</span> sent you a gift credit on SendForGood.
+            <span className="font-semibold text-navy">{gift.sender_first_name}</span> sent you a gift credit on SealTheDay.
           </p>
 
           {/* Tier info */}

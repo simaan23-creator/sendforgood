@@ -290,7 +290,7 @@ export async function POST(
       else if (item.item_type === "gift_credit") itemLabel = "gift credit";
 
       await resend.emails.send({
-        from: "SendForGood <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sendforgood.com>",
         to: senderProfile.email,
         subject: `${claimerName} claimed your gift!`,
         html: `
@@ -307,7 +307,7 @@ export async function POST(
               <strong style="color: #1B2A4A;">${claimerName}</strong> claimed the ${itemLabel} you sent.
             </p>
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-              SendForGood — Gifts that keep on giving
+              SealTheDay — Gifts that keep on giving
             </p>
           </div>
         `,

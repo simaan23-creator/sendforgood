@@ -145,7 +145,7 @@ export async function POST(
 
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: memoryRequest.requester_email,
       subject: "Someone recorded a message for you!",
       html: `
@@ -169,7 +169,7 @@ export async function POST(
       </div>
     </div>
     <div style="text-align:center;margin-top:24px;">
-      <p style="color:#9a9489;font-size:12px;margin:0;">Delivered with care by <strong>SendForGood</strong></p>
+      <p style="color:#9a9489;font-size:12px;margin:0;">Delivered with care by <strong>SealTheDay</strong></p>
     </div>
   </div>
 </body>

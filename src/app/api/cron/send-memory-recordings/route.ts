@@ -60,7 +60,7 @@ export async function GET(request: Request) {
       const isVaultOpening = req.sealed_until === today;
 
       // Build recording list HTML
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
       const recordingListHtml = recordings
         .map((rec) => {
           const name = rec.recorder_name || "Anonymous";
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
 
       try {
         await resend.emails.send({
-          from: "SendForGood <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sendforgood.com>",
           to: req.requester_email,
           subject,
           html: `
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
       ${recordingListHtml}
     </div>
     <div style="text-align:center;margin-top:24px;">
-      <p style="color:#9a9489;font-size:12px;margin:0;">Delivered with care by <strong>SendForGood</strong></p>
+      <p style="color:#9a9489;font-size:12px;margin:0;">Delivered with care by <strong>SealTheDay</strong></p>
     </div>
   </div>
 </body>

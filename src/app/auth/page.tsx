@@ -113,7 +113,7 @@ function AuthForm() {
               />
             </svg>
             <span className="text-2xl font-bold tracking-tight text-navy">
-              SendForGood
+              SealTheDay
             </span>
           </Link>
 

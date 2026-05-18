@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       : "<em style='color:#b91c1c;'>No mailing address on file</em>";
 
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: "Simaan23@gmail.com",
       subject: `📬 Milestone Letter Released — ${recipientName} from ${senderName}`,
       html: `
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
             ? `<p><strong>Recipient email:</strong> ${letter.recipient_email}</p>`
             : `<p><strong>Mailing address:</strong> ${mailingAddressHtml}</p>`
           }
-          <p><a href="https://sendforgood.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin</a></p>
+          <p><a href="https://sealtheday.com/admin" style="background: #1a2744; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View in Admin</a></p>
         </div>
       `,
     });
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     // If digital, send email to recipient automatically
     if (letter.delivery_type === "digital" && letter.recipient_email) {
       await resend.emails.send({
-        from: "SendForGood <noreply@sendforgood.com>",
+        from: "SealTheDay <noreply@sendforgood.com>",
         to: letter.recipient_email,
         subject: `A letter for you — from ${senderName}`,
         html: `
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
             <div style="border-left: 3px solid #C9A84C; padding-left: 24px; margin: 32px 0;">
               <p style="white-space: pre-wrap; font-size: 16px; line-height: 1.8;">${letter.content}</p>
             </div>
-            <p style="margin-top: 40px; font-size: 13px; color: #888;">Delivered with love by <a href="https://sendforgood.com" style="color: #C9A84C;">SendForGood</a></p>
+            <p style="margin-top: 40px; font-size: 13px; color: #888;">Delivered with love by <a href="https://sealtheday.com" style="color: #C9A84C;">SealTheDay</a></p>
           </div>
         `,
       });

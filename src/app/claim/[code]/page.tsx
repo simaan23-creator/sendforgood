@@ -102,7 +102,7 @@ function GiftInstructions({ gift }: { gift: GiftedItem }) {
         </h3>
         <div className="mt-3 flex flex-col gap-3">
           <NumberedStep number={1}>
-            After claiming, your letter will appear in your SendForGood
+            After claiming, your letter will appear in your SealTheDay
             dashboard under <span className="font-semibold">My Messages</span>.
           </NumberedStep>
           <NumberedStep number={2}>
@@ -451,7 +451,7 @@ export default function ClaimPage() {
             <span className="font-semibold text-navy">
               {gift.sender_first_name}
             </span>{" "}
-            sent you a gift on SendForGood.
+            sent you a gift on SealTheDay.
           </p>
 
           {/* Item info */}

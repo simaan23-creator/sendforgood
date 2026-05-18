@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Wedding Memory Vault — SendForGood",
+  title: "Wedding Memory Vault — SealTheDay",
   description:
     "Turn 150 wedding guests into 150 second-shooters. Capture every moment your photographer will never reach. You decide when to relive it — the next morning, your 10th anniversary, or any day in between.",
 };
@@ -190,7 +190,7 @@ export default function WeddingPage() {
             Turn 150 phones into 150 second-shooters.
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-cream/80">
-            SendForGood replaces &ldquo;the photographer&rdquo; with a
+            SealTheDay replaces &ldquo;the photographer&rdquo; with a
             decentralized swarm of recorders &mdash; every guest, in every
             room, capturing the moments your hired vendors will never reach.
           </p>
@@ -297,7 +297,7 @@ export default function WeddingPage() {
               when no one was looking.
             </p>
             <p className="text-xl font-semibold text-navy">
-              That is the gift only your guests can give you. SendForGood is
+              That is the gift only your guests can give you. SealTheDay is
               how you ask them for it.
             </p>
           </div>

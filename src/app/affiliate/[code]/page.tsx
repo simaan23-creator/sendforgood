@@ -108,11 +108,11 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
   ];
 
   function getCampaignUrl(path: string) {
-    return `https://sendforgood.com${path}?ref=${code}`;
+    return `https://sealtheday.com${path}?ref=${code}`;
   }
 
   function copyReferralLink() {
-    navigator.clipboard.writeText(`https://sendforgood.com?ref=${code}`);
+    navigator.clipboard.writeText(`https://sealtheday.com?ref=${code}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -385,7 +385,7 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
 
 Hi [Client Name],
 
-I wanted to share something I recently discovered that I think is perfect for homeowners and families — SendForGood.
+I wanted to share something I recently discovered that I think is perfect for homeowners and families — SealTheDay.
 
 It is a service that lets you send gifts and meaningful messages to the people you love, automatically, every year. Birthdays, anniversaries, holidays — they handle everything.
 
@@ -402,7 +402,7 @@ Let me know if you have any questions!
               {
                 key: "social",
                 title: "Social Media Post",
-                content: `I just discovered something amazing — @SendForGood lets you set up gifts and personal messages for the people you love, delivered automatically every year. 🎁
+                content: `I just discovered something amazing — @SealTheDay lets you set up gifts and personal messages for the people you love, delivered automatically every year. 🎁
 
 Birthdays. Anniversaries. Your kids growing up. Even voice and video messages they will receive years from now.
 
@@ -410,14 +410,14 @@ It is the most meaningful thing I have seen in a long time. I am already using i
 
 Check it out: ${getCampaignUrl("")}
 
-#SendForGood #MeaningfulGifts #LegacyGiving`,
+#SealTheDay #MeaningfulGifts #LegacyGiving`,
               },
               {
                 key: "wedding",
                 title: "Wedding Pitch",
                 content: `Did you know you can collect video messages from all your wedding guests and seal them until your 10th anniversary?
 
-SendForGood lets you share a link at your reception. Every guest records a video. You seal it for a decade. On your anniversary, you open it together.
+SealTheDay lets you share a link at your reception. Every guest records a video. You seal it for a decade. On your anniversary, you open it together.
 
 It is one of the most unique wedding gifts I have ever seen.
 
@@ -428,7 +428,7 @@ Start at: ${getCampaignUrl("/wedding")}`,
                 title: "Talking Points",
                 content: `PROBLEM: Most people forget birthdays, anniversaries, or just do not have time to shop for meaningful gifts.
 
-SOLUTION: SendForGood lets you set up gifts once and they deliver every year automatically.
+SOLUTION: SealTheDay lets you set up gifts once and they deliver every year automatically.
 
 KEY POINTS:
 • Gifts from $20/year, messages from $1/year

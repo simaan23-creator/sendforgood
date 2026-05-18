@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Memory Vault — SendForGood",
+  title: "Memory Vault — SealTheDay",
   description:
     "Create a Memory Vault. Share a link, collect voice and video messages from the people you love, and seal them until the perfect moment.",
 };

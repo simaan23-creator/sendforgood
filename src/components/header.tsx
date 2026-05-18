@@ -7,11 +7,7 @@ import { getCombinedCartCount } from "@/lib/cart";
 import type { User } from "@supabase/supabase-js";
 
 const NAV_LINKS = [
-  { href: "/gifts/buy", label: "Gifts" },
-  { href: "/messages/buy", label: "Messages" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/wedding", label: "Weddings" },
-  { href: "/business", label: "For Business" },
   { href: "/about", label: "About" },
 ] as const;
 
@@ -66,7 +62,7 @@ export function Header() {
           <Link href="/" className="flex items-center group">
             <img
               src="/logo.jpg"
-              alt="SendForGood"
+              alt="SealTheDay"
               className="h-9 w-auto transition-transform duration-200 group-hover:scale-105"
             />
           </Link>

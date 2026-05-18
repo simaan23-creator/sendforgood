@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — SendForGood",
+  title: "Privacy Policy — SealTheDay",
   description:
-    "Learn how SendForGood collects, uses, and protects your personal information. Your privacy matters to us.",
+    "Learn how SealTheDay collects, uses, and protects your personal information. Your privacy matters to us.",
 };
 
 export default function PrivacyPage() {
@@ -19,11 +19,11 @@ export default function PrivacyPage() {
           {/* Introduction */}
           <div>
             <p>
-              SendForGood (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or
+              SealTheDay (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or
               &ldquo;our&rdquo;) is committed to protecting your privacy. This
               Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use our website and services at
-              sendforgood.com.
+              sealtheday.com.
             </p>
           </div>
 
@@ -171,10 +171,10 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-3 font-medium text-navy">
               <a
-                href="mailto:support@sendforgood.com"
+                href="mailto:support@sealtheday.com"
                 className="underline decoration-gold underline-offset-4 hover:text-navy-light"
               >
-                support@sendforgood.com
+                support@sealtheday.com
               </a>
             </p>
           </div>

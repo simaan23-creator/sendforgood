@@ -140,7 +140,7 @@ export default function BusinessPage() {
             Built for your industry
           </h2>
           <p className="text-warm-gray text-center mb-12 max-w-xl mx-auto">
-            No matter your field, SendForGood helps you build stronger
+            No matter your field, SealTheDay helps you build stronger
             relationships through consistent, thoughtful gifting.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

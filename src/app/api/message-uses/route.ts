@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   // For requests, encode the source item_id into the claim code so we can link back
   const randomPart = generateCode();
   const claimCode = (use_type === "request" && item_id) ? `${randomPart}_${item_id}` : randomPart;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
   let link = "";
 
   if (use_type === "vault") {
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   if (use_type === "request" && recipient_email) {
     try {
       await resend.emails.send({
-        from: "SendForGood <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sendforgood.com>",
         to: recipient_email,
         subject: `${senderName} is requesting a message from you!`,
         html: `
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
               </a>
             </div>
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-              SendForGood — Gifts that keep on giving
+              SealTheDay — Gifts that keep on giving
             </p>
           </div>
         `,
@@ -135,9 +135,9 @@ export async function POST(request: Request) {
   if (use_type === "gift" && recipient_email) {
     try {
       await resend.emails.send({
-        from: "SendForGood <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sendforgood.com>",
         to: recipient_email,
-        subject: `${senderName} sent you a gift from SendForGood!`,
+        subject: `${senderName} sent you a gift from SealTheDay!`,
         html: `
           <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 32px; background-color: #FDF8F0; border-radius: 16px;">
             <div style="text-align: center; margin-bottom: 24px;">
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
               You've received a gift!
             </h1>
             <p style="color: #6B7280; text-align: center; font-size: 16px; margin-bottom: 24px;">
-              <strong style="color: #1B2A4A;">${senderName}</strong> sent you a gift on SendForGood.
+              <strong style="color: #1B2A4A;">${senderName}</strong> sent you a gift on SealTheDay.
             </p>
             ${content_text ? `<div style="background: rgba(200,169,98,0.08); border-left: 4px solid #C8A962; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
               <p style="color: #1B2A4A; font-style: italic; margin: 0;">"${content_text}"</p>
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
               </a>
             </div>
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-              SendForGood — Gifts that keep on giving
+              SealTheDay — Gifts that keep on giving
             </p>
           </div>
         `,

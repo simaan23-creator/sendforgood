@@ -142,7 +142,7 @@ export async function POST(request: Request) {
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://sendforgood.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
   const claimUrl = `${baseUrl}/claim/${claimCode}`;
 
   // Get sender name
@@ -168,9 +168,9 @@ export async function POST(request: Request) {
   if (recipientEmail) {
     try {
       await resend.emails.send({
-        from: "SendForGood <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sendforgood.com>",
         to: recipientEmail,
-        subject: `${senderName} sent you a gift from SendForGood!`,
+        subject: `${senderName} sent you a gift from SealTheDay!`,
         html: `
           <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 32px; background-color: #FDF8F0; border-radius: 16px;">
             <div style="text-align: center; margin-bottom: 24px;">
@@ -182,7 +182,7 @@ export async function POST(request: Request) {
               You've received a gift!
             </h1>
             <p style="color: #6B7280; text-align: center; font-size: 16px; margin-bottom: 24px;">
-              <strong style="color: #1B2A4A;">${senderName}</strong> sent you ${itemDescription} on SendForGood.
+              <strong style="color: #1B2A4A;">${senderName}</strong> sent you ${itemDescription} on SealTheDay.
             </p>
             ${
               message
@@ -198,7 +198,7 @@ export async function POST(request: Request) {
               </a>
             </div>
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-              SendForGood — Gifts that keep on giving
+              SealTheDay — Gifts that keep on giving
             </p>
           </div>
         `,

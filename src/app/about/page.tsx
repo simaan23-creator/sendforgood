@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — SendForGood, Legacy Letters & the Memory Vault",
+  title: "About — SealTheDay, Legacy Letters & the Memory Vault",
 };
 
 /* ───────────────── Use-case data ───────────────── */
@@ -60,7 +60,7 @@ const useCases = [
     emoji: "\u{1F4BC}",
     title: "Client retention, automated",
     description:
-      "Businesses use SendForGood to send gifts to clients on birthdays, work anniversaries, and milestones. Send gifts once, assign clients as you go.",
+      "Businesses use SealTheDay to send gifts to clients on birthdays, work anniversaries, and milestones. Send gifts once, assign clients as you go.",
   },
   {
     emoji: "\u{1F56F}\uFE0F",
@@ -97,11 +97,11 @@ const products = [
 export default function AboutPage() {
   return (
     <>
-      {/* ───────────────────────── Founder Story: SendForGood ───────────────────────── */}
+      {/* ───────────────────────── Founder Story: SealTheDay ───────────────────────── */}
       <section className="bg-white px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Why I Built SendForGood
+            Why I Built SealTheDay
           </h2>
 
           <div className="mx-auto mt-12 max-w-2xl">
@@ -137,7 +137,7 @@ export default function AboutPage() {
                 uncle&nbsp;&mdash; or worse, the &ldquo;cash cow
                 uncle.&rdquo; Although, honestly, that is not a bad name. But
                 you see where I am coming from. I needed this service for
-                myself. That was my entire motivation for creating SendForGood.
+                myself. That was my entire motivation for creating SealTheDay.
                 Now I get to offer it to everyone else.
               </p>
 
@@ -182,7 +182,7 @@ export default function AboutPage() {
               </p>
 
               <p className="font-semibold text-navy">
-                That is why I built SendForGood.
+                That is why I built SealTheDay.
               </p>
 
               <p className="mt-4 text-right italic text-navy text-lg">
@@ -362,11 +362,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ──────────────── What can you do with SendForGood? ──────────────── */}
+      {/* ──────────────── What can you do with SealTheDay? ──────────────── */}
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            What can you do with SendForGood?
+            What can you do with SealTheDay?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-warm-gray">
             Here are just a few of the ways people are using the platform.

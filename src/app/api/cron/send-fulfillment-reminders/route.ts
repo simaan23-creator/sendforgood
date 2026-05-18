@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ sent: 0, message: "No assignments due in 14 days" });
     }
 
-    const adminUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://sendforgood.com"}/admin`;
+    const adminUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://sealtheday.com"}/admin`;
 
     for (const a of assignments) {
       try {
@@ -91,7 +91,7 @@ export async function GET(request: Request) {
           .eq("id", a.id);
 
         await resend.emails.send({
-          from: "SendForGood <notifications@sendforgood.com>",
+          from: "SealTheDay <notifications@sendforgood.com>",
           to: "Simaan23@gmail.com",
           subject: `Gift Due in 14 Days - ${recipientName} (${tier.charAt(0).toUpperCase() + tier.slice(1)})`,
           html: `

@@ -2,10 +2,7 @@ import Link from "next/link";
 
 const FOOTER_LINKS = {
   Product: [
-    { href: "/gifts/buy", label: "Gifts" },
-    { href: "/messages/buy", label: "Messages" },
     { href: "/vault", label: "Memory Vault" },
-    { href: "/wedding", label: "Weddings" },
     { href: "/pricing", label: "Pricing" },
   ],
   Company: [
@@ -16,7 +13,6 @@ const FOOTER_LINKS = {
   Legal: [
     { href: "/privacy", label: "Privacy" },
     { href: "/terms", label: "Terms" },
-    { href: "/executor-access", label: "Executor Access" },
   ],
 } as const;
 
@@ -43,11 +39,11 @@ export function Footer() {
                 />
               </svg>
               <span className="text-lg font-bold text-navy tracking-tight">
-                SendForGood
+                SealTheDay
               </span>
             </Link>
             <p className="mt-3 text-sm text-warm-gray leading-relaxed max-w-xs">
-              Legacy giving, made simple.
+              Every moment of your wedding, from every angle.
             </p>
             <a
               href="sms:+16317074968"
@@ -82,7 +78,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-navy/10">
           <p className="text-sm text-warm-gray text-center">
-            &copy; 2026 SendForGood. All rights reserved. Made with love.
+            &copy; 2026 SealTheDay. All rights reserved. Made with love.
           </p>
         </div>
       </div>

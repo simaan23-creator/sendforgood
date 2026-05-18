@@ -108,7 +108,7 @@ export default function ExecutorAccessPage() {
             Request Executor Access
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-warm-gray">
-            If you are a designated executor for a SendForGood account holder,
+            If you are a designated executor for a SealTheDay account holder,
             you can request access here. We will contact both you and the
             account holder before granting access.
           </p>

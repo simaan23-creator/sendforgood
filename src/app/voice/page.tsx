@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Voice & Video Messages — SendForGood",
+  title: "Voice & Video Messages — SealTheDay",
   description:
     "Record a voice or video message today that arrives by email on a future date. Birthday messages, milestone messages, and more. Your voice keeps arriving — even after you're gone.",
 };

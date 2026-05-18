@@ -156,7 +156,7 @@ export default function ContributePage() {
             Your {isRecordingFormat ? "recording" : "message"} has been delivered to <span className="font-semibold text-navy">{request.requester_name}</span>. Thank you for contributing!
           </p>
           <Link href="/" className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-semibold text-cream transition hover:bg-forest-light">
-            Visit SendForGood
+            Visit SealTheDay
           </Link>
         </div>
       </main>
@@ -256,7 +256,7 @@ export default function ContributePage() {
           </button>
 
           <p className="mt-4 text-center text-xs text-warm-gray">
-            Powered by <Link href="/" className="font-medium text-navy underline hover:text-gold">SendForGood</Link>
+            Powered by <Link href="/" className="font-medium text-navy underline hover:text-gold">SealTheDay</Link>
           </p>
         </div>
       </div>

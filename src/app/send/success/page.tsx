@@ -4,15 +4,15 @@ import { TIERS } from "@/lib/constants";
 import PurchaseTracker from "@/components/PurchaseTracker";
 
 export const metadata: Metadata = {
-  title: "Order Confirmed — SendForGood",
+  title: "Order Confirmed — SealTheDay",
   description:
-    "Your gift order has been confirmed. SendForGood will take care of everything from here.",
+    "Your gift order has been confirmed. SealTheDay will take care of everything from here.",
   openGraph: {
-    title: "Order Confirmed — SendForGood",
+    title: "Order Confirmed — SealTheDay",
     description:
-      "Your gift order has been confirmed. SendForGood will take care of everything from here.",
-    url: "https://sendforgood.com/send/success",
-    siteName: "SendForGood",
+      "Your gift order has been confirmed. SealTheDay will take care of everything from here.",
+    url: "https://sealtheday.com/send/success",
+    siteName: "SealTheDay",
     type: "website",
   },
 };
@@ -74,7 +74,7 @@ export default async function SuccessPage({
         </h1>
 
         <p className="mt-4 text-lg text-warm-gray max-w-lg mx-auto leading-relaxed">
-          Thank you for choosing SendForGood. We have received your order and
+          Thank you for choosing SealTheDay. We have received your order and
           will take care of everything from here.
         </p>
 

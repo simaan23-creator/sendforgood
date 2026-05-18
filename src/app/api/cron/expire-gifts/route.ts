@@ -72,7 +72,7 @@ export async function GET(request: Request) {
           : "";
 
       await resend.emails.send({
-        from: "SendForGood <hello@sendforgood.com>",
+        from: "SealTheDay <hello@sendforgood.com>",
         to: senderProfile.email,
         subject: "Your gift wasn't claimed in time",
         html: `
@@ -82,12 +82,12 @@ export async function GET(request: Request) {
               The ${itemLabel} you sent${recipientText} was not claimed before the deadline you set. We&rsquo;ve returned it to your dashboard so you can re-send it whenever you&rsquo;re ready.
             </p>
             <div style="text-align: center; margin-top: 24px;">
-              <a href="https://sendforgood.com/dashboard" style="display: inline-block; background-color: #1B2A4A; color: #FDF8F0; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">
+              <a href="https://sealtheday.com/dashboard" style="display: inline-block; background-color: #1B2A4A; color: #FDF8F0; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">
                 Open Dashboard
               </a>
             </div>
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 24px;">
-              SendForGood
+              SealTheDay
             </p>
           </div>
         `,

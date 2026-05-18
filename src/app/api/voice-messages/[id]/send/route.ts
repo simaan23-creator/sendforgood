@@ -73,7 +73,7 @@ export async function POST(
   // playback and expose a real download button. Token is HMAC-bound to the
   // message id and expires in 30 days.
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://sendforgood.com";
+    process.env.NEXT_PUBLIC_APP_URL || "https://sealtheday.com";
   const watchToken = signWatchToken(id);
   const audioListenUrl = `${baseUrl}/watch/${id}?t=${watchToken}`;
 
@@ -85,7 +85,7 @@ export async function POST(
 
   try {
     await resend.emails.send({
-      from: "SendForGood <noreply@sendforgood.com>",
+      from: "SealTheDay <noreply@sendforgood.com>",
       to: message.recipient_email,
       subject: `A ${formatLabel} message for you \u2014 from ${senderName}`,
       html: `
@@ -124,7 +124,7 @@ export async function POST(
 
     <div style="text-align: center; margin-top: 32px; padding: 0 20px;">
       <p style="color: #9a9489; font-size: 12px; margin: 0 0 4px 0; font-family: -apple-system, sans-serif;">Delivered with care by</p>
-      <p style="color: #1B2A4A; font-size: 14px; font-weight: bold; margin: 0; font-family: -apple-system, sans-serif;">SendForGood</p>
+      <p style="color: #1B2A4A; font-size: 14px; font-weight: bold; margin: 0; font-family: -apple-system, sans-serif;">SealTheDay</p>
     </div>
   </div>
 </body>

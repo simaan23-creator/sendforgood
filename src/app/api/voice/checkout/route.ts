@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const priceInfo = VOICE_MESSAGE_PRICES[fmt];
     const totalCents = priceInfo.price * qty;
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://sendforgood.com";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://sealtheday.com";
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

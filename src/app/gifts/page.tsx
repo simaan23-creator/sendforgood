@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { TIERS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Our Gifts | SendForGood",
+  title: "Our Gifts | SealTheDay",
   description:
     "AI-curated gifts shipped directly to your loved ones — every year, automatically. Five tiers from $20 to $200. You tell us about them, we handle the rest.",
 };
@@ -62,7 +62,7 @@ export default function OurGiftsPage() {
       <section className="bg-gradient-to-b from-cream to-cream-dark px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gold">
-            SendForGood Gifts
+            SealTheDay Gifts
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-navy sm:text-5xl">
             A gift that arrives every year.{" "}

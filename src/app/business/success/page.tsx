@@ -3,15 +3,15 @@ import Link from "next/link";
 import PurchaseTracker from "@/components/PurchaseTracker";
 
 export const metadata: Metadata = {
-  title: "Business Order Confirmed — SendForGood",
+  title: "Business Order Confirmed — SealTheDay",
   description:
-    "Your business gift plan has been confirmed. SendForGood will take care of everything from here.",
+    "Your business gift plan has been confirmed. SealTheDay will take care of everything from here.",
   openGraph: {
-    title: "Business Order Confirmed — SendForGood",
+    title: "Business Order Confirmed — SealTheDay",
     description:
-      "Your business gift plan has been confirmed. SendForGood will take care of everything from here.",
-    url: "https://sendforgood.com/business/success",
-    siteName: "SendForGood",
+      "Your business gift plan has been confirmed. SealTheDay will take care of everything from here.",
+    url: "https://sealtheday.com/business/success",
+    siteName: "SealTheDay",
     type: "website",
   },
 };
@@ -58,7 +58,7 @@ export default async function BusinessSuccessPage({
         </h1>
 
         <p className="mt-4 text-lg text-warm-gray max-w-lg mx-auto leading-relaxed">
-          Thank you for choosing SendForGood for{" "}
+          Thank you for choosing SealTheDay for{" "}
           {company && (
             <span className="font-semibold text-navy">{company}</span>
           )}

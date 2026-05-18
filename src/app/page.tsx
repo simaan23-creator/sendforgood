@@ -49,7 +49,7 @@ const USE_CASES = [
     description:
       "Birthdays, work anniversaries, holidays \u2014 keep your best clients feeling valued all year long.",
     quote:
-      "Our client churn dropped 30% after we started SendForGood. People don\u2019t leave companies that remember them.",
+      "Our client churn dropped 30% after we started SealTheDay. People don\u2019t leave companies that remember them.",
   },
   {
     emoji: "👨‍👩‍👧",
@@ -58,7 +58,7 @@ const USE_CASES = [
     description:
       "Send gifts to your kids and assign their birthdays from your dashboard. We handle everything, every year.",
     quote:
-      "I still buy my kids gifts myself \u2014 but SendForGood delivers something extra every year without me lifting a finger. My kids think I\u2019m the most thoughtful parent alive. They\u2019re not wrong.",
+      "I still buy my kids gifts myself \u2014 but SealTheDay delivers something extra every year without me lifting a finger. My kids think I\u2019m the most thoughtful parent alive. They\u2019re not wrong.",
   },
   {
     emoji: "🕯️",
@@ -313,7 +313,7 @@ export default function HomePage() {
             One platform, every reason to gift
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-warm-gray">
-            See how people just like you use SendForGood.
+            See how people just like you use SealTheDay.
           </p>
 
           {/* Carousel */}
@@ -507,7 +507,7 @@ export default function HomePage() {
             Your name. Their smile. Delivered.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-warm-gray">
-            Every gift arrives with no SendForGood branding. The recipient just
+            Every gift arrives with no SealTheDay branding. The recipient just
             knows someone who loves them sent something wonderful.
           </p>
 
@@ -546,7 +546,7 @@ export default function HomePage() {
             Built for businesses that care about relationships
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-cream/70">
-            From realtors to HR teams to small businesses &mdash; SendForGood
+            From realtors to HR teams to small businesses &mdash; SealTheDay
             is your always-on gifting department.
           </p>
 

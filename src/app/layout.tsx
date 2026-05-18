@@ -14,31 +14,31 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sendforgood.com"),
+  metadataBase: new URL("https://sealtheday.com"),
   title: {
-    default: "SendForGood — Legacy Gift Giving, Made Simple",
-    template: "%s | SendForGood",
+    default: "SealTheDay — Your Wedding Memory Vault",
+    template: "%s | SealTheDay",
   },
   description:
-    "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
+    "Capture every moment of your wedding from every guest's perspective. Photos, videos, and voice messages — all in one private vault you'll have forever.",
   icons: {
     icon: "/logo-icon.jpg",
     apple: "/logo-icon.jpg",
   },
   openGraph: {
-    title: "SendForGood — Legacy Gift Giving, Made Simple",
+    title: "SealTheDay — Your Wedding Memory Vault",
     description:
-      "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
-    url: "https://sendforgood.com",
-    siteName: "SendForGood",
+      "Capture every moment of your wedding from every guest's perspective. Photos, videos, and voice messages — all in one private vault you'll have forever.",
+    url: "https://sealtheday.com",
+    siteName: "SealTheDay",
     type: "website",
     images: [{ url: "/og-image.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SendForGood — Legacy Gift Giving, Made Simple",
+    title: "SealTheDay — Your Wedding Memory Vault",
     description:
-      "Buy gift credits, write legacy letters, record voice and video messages. Assign recipients when you are ready — we deliver forever.",
+      "Capture every moment of your wedding from every guest's perspective. Photos, videos, and voice messages — all in one private vault you'll have forever.",
     images: ["/og-image.jpg"],
   },
 };
@@ -46,11 +46,11 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "SendForGood",
-  url: "https://sendforgood.com",
-  logo: "https://sendforgood.com/logo-icon.jpg",
+  name: "SealTheDay",
+  url: "https://sealtheday.com",
+  logo: "https://sealtheday.com/logo-icon.jpg",
   description:
-    "Legacy gift giving made simple. Buy gift credits, write legacy letters, record voice and video messages.",
+    "The wedding memory vault. Guests record photos, videos, and voice messages from every angle of your day — automatically organized into one private vault.",
   contactPoint: {
     "@type": "ContactPoint",
     email: "support@sendforgood.com",

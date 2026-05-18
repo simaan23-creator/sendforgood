@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Start Sending - SendForGood",
+  title: "Start Sending - SealTheDay",
   description:
     "Choose how you want to show love — send gifts, write heartfelt letters, record voice or video messages. Assign recipients from your dashboard whenever you are ready.",
 };

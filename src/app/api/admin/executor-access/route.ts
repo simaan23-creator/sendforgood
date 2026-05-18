@@ -62,33 +62,33 @@ export async function PATCH(request: Request) {
     if (updated) {
       if (status === "approved") {
         await resend.emails.send({
-          from: "SendForGood <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sendforgood.com>",
           to: updated.requester_email,
           subject: "Your executor access request has been approved",
           text: `Hello ${updated.requester_name},
 
-Good news — your request to access the SendForGood account belonging to ${updated.account_holder_name} has been approved.
+Good news — your request to access the SealTheDay account belonging to ${updated.account_holder_name} has been approved.
 
 A member of our team will be in touch shortly with the next steps for accessing the account.
 
 If you have any questions, reply to this email or text us at (631) 707-4968.
 
-— The SendForGood Team`,
+— The SealTheDay Team`,
         });
       } else {
         await resend.emails.send({
-          from: "SendForGood <noreply@sendforgood.com>",
+          from: "SealTheDay <noreply@sendforgood.com>",
           to: updated.requester_email,
           subject: "Your executor access request has been declined",
           text: `Hello ${updated.requester_name},
 
-Your request to access the SendForGood account belonging to ${updated.account_holder_name} has been declined.
+Your request to access the SealTheDay account belonging to ${updated.account_holder_name} has been declined.
 
 This decision may be based on a response from the account holder, an inability to verify your identity, or other factors at our discretion.
 
 If you believe this was a mistake, or you have additional information you would like us to consider, please reply to this email or text us at (631) 707-4968.
 
-— The SendForGood Team`,
+— The SealTheDay Team`,
         });
       }
     }
