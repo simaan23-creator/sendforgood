@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — SealTheDay",
+  title: "Terms of Service \u2014 SealTheDay",
   description:
-    "Read the Terms of Service for SealTheDay, the gift credit and delivery platform.",
+    "Terms of Service for the SealTheDay wedding memory vault.",
 };
 
 export default function TermsPage() {
@@ -11,19 +11,15 @@ export default function TermsPage() {
     <section className="px-6 py-16 sm:py-24">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-3xl font-bold sm:text-4xl">Terms of Service</h1>
-        <p className="mt-3 text-sm text-warm-gray">
-          Last updated: March 25, 2026
-        </p>
+        <p className="mt-3 text-sm text-warm-gray">Last updated: May 13, 2026</p>
 
         <div className="mt-10 space-y-10 text-warm-gray leading-relaxed">
-          {/* Welcome */}
           <div>
             <p>
-              Welcome to SealTheDay! These Terms of Service
-              (&ldquo;Terms&rdquo;) govern your use of our website and services.
-              By creating an account or placing an order, you agree to these
-              Terms. We&rsquo;ve written them to be as clear and fair as
-              possible &mdash; if anything is unclear, please reach out to us at{" "}
+              These Terms govern your use of SealTheDay at sealtheday.com. By
+              creating an account, purchasing a vault, or submitting a
+              recording to someone&rsquo;s vault, you agree to these Terms.
+              Questions:{" "}
               <a
                 href="mailto:support@sealtheday.com"
                 className="font-medium text-navy underline decoration-gold underline-offset-4 hover:text-navy-light"
@@ -34,163 +30,146 @@ export default function TermsPage() {
             </p>
           </div>
 
-          {/* Service Description */}
           <div>
             <h2 className="text-xl font-semibold text-navy">
               What SealTheDay Does
             </h2>
             <p className="mt-3">
-              SealTheDay is a gift credit and delivery platform. You purchase
-              gift credits by tier, then assign recipients, occasions, and dates
-              from your dashboard whenever you are ready. We then curate and ship
-              a thoughtful gift to your recipient on each scheduled occasion
-              &mdash; birthdays, holidays, anniversaries, or any date you choose.
-            </p>
-            <p className="mt-3">
-              We carefully select each gift based on the tier you&rsquo;ve
-              chosen. While specific items may vary to ensure freshness and
-              quality, every gift will meet or exceed the value and standards of
-              your selected tier.
+              SealTheDay is a digital memory vault. As a vault owner, you pay a
+              one-time vault fee and purchase recording slots. You share a link
+              with your guests, who record video, audio, or upload photos that
+              get stored in your vault. You choose a seal date; on that date the
+              vault unlocks and you can view everything inside.
             </p>
           </div>
 
-          {/* Payment Terms */}
           <div>
-            <h2 className="text-xl font-semibold text-navy">Payment Terms</h2>
+            <h2 className="text-xl font-semibold text-navy">
+              Pricing &amp; Payment
+            </h2>
+            <ul className="mt-4 list-disc space-y-2 pl-6">
+              <li>$10 one-time vault fee per new vault.</li>
+              <li>
+                $1 per video slot, $0.25 per audio slot, $0.25 per photo slot.
+              </li>
+              <li>All charges are processed up front via Stripe.</li>
+              <li>Slots never expire. There is no subscription.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold text-navy">Refund Policy</h2>
             <ul className="mt-4 list-disc space-y-2 pl-6">
               <li>
-                All gift credits are <strong className="text-navy">purchased upfront</strong>.{" "}
-                The total amount covers the selected tier price multiplied by
-                the number of credits chosen.
+                The $10 vault fee is refundable within 48 hours of purchase, as
+                long as no guest has submitted to the vault.
               </li>
               <li>
-                Payments are processed securely through Stripe. We accept all
-                major credit and debit cards.
+                Unused recording slots are refundable at any time before the
+                vault is sealed.
               </li>
               <li>
-                <strong className="text-navy">Refund policy:</strong> You may
-                request a full refund within 48 hours of purchase, provided no
-                gifts have been shipped. Once a gift has been dispatched, the
-                order (or that year&rsquo;s portion) is non-refundable.
-              </li>
-              <li>
-                For multi-year plans where some gifts have already been
-                delivered, refunds for remaining unshipped years may be
-                considered on a case-by-case basis.
+                Used recording slots (a slot is &ldquo;used&rdquo; the moment a
+                guest successfully uploads to it) are non-refundable.
               </li>
             </ul>
           </div>
 
-          {/* Gift Delivery SLA */}
           <div>
-            <h2 className="text-xl font-semibold text-navy">
-              Gift Delivery
-            </h2>
+            <h2 className="text-xl font-semibold text-navy">Guest Content</h2>
             <p className="mt-3">
-              We aim to deliver every gift within 5 business days of the
-              scheduled occasion date. For first-year gifts, please allow up to
-              10 business days for initial processing.
+              Guests retain ownership of the recordings they upload but grant
+              you (the vault owner) a perpetual, worldwide license to store,
+              view, download, and share that content. Guests grant SealTheDay a
+              limited license to host, transmit, and transcode that content as
+              needed to operate the service.
             </p>
             <p className="mt-3">
-              If a delivery fails due to an incorrect or unreachable address, we
-              will make reasonable efforts to contact you and reattempt delivery.
-              We are not responsible for delays caused by shipping carriers,
-              natural disasters, or other events beyond our control.
+              We do not pre-screen submissions. Guests are responsible for what
+              they upload. If a submission is illegal, infringes copyright, or
+              violates these Terms, we may remove it.
             </p>
           </div>
 
-          {/* Legacy Gifting */}
           <div>
-            <h2 className="text-xl font-semibold text-navy">
-              Legacy Gifting &mdash; What Happens to Your Orders
-            </h2>
-            <p className="mt-3">
-              One of the things that makes SealTheDay special is that your love
-              keeps arriving even if you&rsquo;re no longer here. Here&rsquo;s
-              how we handle that:
-            </p>
+            <h2 className="text-xl font-semibold text-navy">Acceptable Use</h2>
+            <p className="mt-3">You agree not to use SealTheDay to:</p>
             <ul className="mt-4 list-disc space-y-2 pl-6">
               <li>
-                All purchased gift credits will be fulfilled in their entirety,
-                regardless of your account status.
+                Upload anything illegal, harassing, hateful, sexually explicit,
+                or that infringes someone else&rsquo;s rights.
               </li>
+              <li>Impersonate another person without consent.</li>
               <li>
-                If your account becomes inactive (no login for 12 consecutive
-                months), we will attempt to reach you via email. If
-                unresponsive, your existing plans will continue to deliver as
-                scheduled until all purchased credits are fulfilled.
-              </li>
-              <li>
-                A designated emergency contact or legal representative may
-                contact us to manage, update, or cancel remaining deliveries.
-              </li>
-              <li>
-                We will never cancel purchased credits due to account inactivity
-                alone. Your gifts will arrive as promised.
+                Disrupt, probe, or attempt to circumvent our security.
               </li>
             </ul>
+            <p className="mt-3">
+              We may suspend or terminate accounts that violate this section
+              without refund for already-used slots.
+            </p>
           </div>
 
-          {/* Account */}
+          <div>
+            <h2 className="text-xl font-semibold text-navy">The Seal</h2>
+            <p className="mt-3">
+              You select a seal date when creating your vault. Until that date,
+              the contents are locked even to you. We use commercially
+              reasonable measures to enforce the seal but cannot guarantee that
+              human error, legal compulsion, or technical failure will never
+              cause early access. The seal is a feature of the product, not a
+              cryptographic guarantee.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold text-navy">
+              Storage &amp; Availability
+            </h2>
+            <p className="mt-3">
+              We aim for 99.9% uptime but do not guarantee uninterrupted
+              service. We retain your vault and its contents until you delete
+              it or close your account. We recommend downloading a backup copy
+              once your vault unlocks.
+            </p>
+          </div>
+
           <div>
             <h2 className="text-xl font-semibold text-navy">Your Account</h2>
             <p className="mt-3">
-              You are responsible for maintaining the security of your account
-              credentials. You must provide accurate and up-to-date recipient
-              information, including shipping addresses, to ensure successful
-              deliveries.
-            </p>
-            <p className="mt-3">
-              You may update recipient addresses or cancel future deliveries
-              through your dashboard at any time (subject to the refund policy
-              above).
+              You are responsible for safeguarding your account credentials and
+              for all activity that occurs under your account. Notify us
+              immediately of any unauthorized access.
             </p>
           </div>
 
-          {/* Limitation of Liability */}
           <div>
             <h2 className="text-xl font-semibold text-navy">
               Limitation of Liability
             </h2>
             <p className="mt-3">
-              SealTheDay provides its services &ldquo;as is.&rdquo; While we
-              strive to deliver a wonderful experience with every gift, we
-              cannot guarantee that specific items will be available or that
-              deliveries will be uninterrupted.
-            </p>
-            <p className="mt-3">
-              To the fullest extent permitted by law, SealTheDay&rsquo;s total
-              liability for any claim arising from your use of our services
-              shall not exceed the amount you paid for the specific order in
-              question.
-            </p>
-            <p className="mt-3">
-              We are not liable for indirect, incidental, special, or
-              consequential damages, including but not limited to emotional
-              distress, lost profits, or missed occasions arising from delivery
-              delays or failures.
+              SealTheDay is provided &ldquo;as is.&rdquo; To the fullest extent
+              permitted by law, our total liability for any claim arising from
+              your use of the service shall not exceed the amount you paid for
+              the vault and slots in question. We are not liable for indirect,
+              incidental, special, or consequential damages &mdash; including
+              lost data, lost content, or missed unlock dates.
             </p>
           </div>
 
-          {/* Changes */}
           <div>
             <h2 className="text-xl font-semibold text-navy">
               Changes to These Terms
             </h2>
             <p className="mt-3">
-              We may update these Terms from time to time. When we make material
-              changes, we&rsquo;ll notify you by email or by posting a notice on
-              our website. Continued use of our services after changes take
-              effect constitutes your acceptance of the updated Terms.
+              We may update these Terms. Material changes will be announced by
+              email or by notice on the site. Continued use after changes take
+              effect constitutes acceptance.
             </p>
           </div>
 
-          {/* Contact */}
           <div>
             <h2 className="text-xl font-semibold text-navy">Contact Us</h2>
-            <p className="mt-3">
-              Questions about these Terms? We&rsquo;re here to help:
-            </p>
             <p className="mt-3 font-medium text-navy">
               <a
                 href="mailto:support@sealtheday.com"
