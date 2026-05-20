@@ -1,29 +1,29 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog — SealTheDay",
+  title: "Blog \u2014 SealTheDay",
   description:
-    "Stories, guides, and insights about legacy gifting, gifts, and making every occasion meaningful.",
+    "Stories, guides, and ideas for sealing your wedding day in a way you can open years from now.",
 };
 
 const TEASER_ARTICLES = [
   {
-    title: "The Art of Legacy Gifting",
+    title: "What Is a Wedding Vault?",
     excerpt:
-      "What does it mean to give a gift that outlasts you? We explore the emotional power of gifts and why more families are sending them they can assign whenever they are ready.",
-    tag: "Legacy",
+      "Your photographer captures what the day looked like. Your videographer captures how it moved. A wedding vault captures what your guests actually felt \u2014 sealed until the date you choose to open it.",
+    tag: "Vault 101",
   },
   {
-    title: "Why SealTheDay Changes Everything",
+    title: "How to Use Your Wedding Vault at the Reception",
     excerpt:
-      "In a world of subscriptions and auto-renewals, there's something beautifully intentional about sending gifts you control. No rush, no pressure \u2014 assign recipients from your dashboard whenever you are ready.",
-    tag: "Gifting",
-  },
-  {
-    title: "How to Choose the Perfect Gift Tier",
-    excerpt:
-      "From a heartfelt greeting card to a luxury curated experience — how to pick the right SealTheDay tier for every recipient and occasion.",
+      "A QR code on the welcome sign. A note in the program. A toast cue from the MC. Five painless ways to invite every guest to contribute to your vault without disrupting the night.",
     tag: "Guide",
+  },
+  {
+    title: "Choosing Your Open Date",
+    excerpt:
+      "First anniversary, fifth, tenth, twenty-fifth. The day you have your first child. Every open date tells a different story \u2014 here is how couples are choosing theirs.",
+    tag: "Ideas",
   },
 ];
 
@@ -35,15 +35,15 @@ export default function BlogPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold sm:text-4xl">Blog</h1>
           <p className="mt-3 text-lg text-warm-gray">
-            Stories and guides about gifting with heart. Coming soon.
+            Stories, guides, and ideas for the wedding vault. Coming soon.
           </p>
         </div>
 
         {/* Coming Soon Banner */}
         <div className="mt-12 rounded-xl border border-gold/30 bg-gold/5 p-6 text-center">
           <p className="text-sm font-medium text-gold-dark">
-            We&rsquo;re crafting our first articles with the same care we put
-            into every gift. Check back soon!
+            We&rsquo;re writing our first articles with the same care we put
+            into every vault. Check back soon.
           </p>
         </div>
 

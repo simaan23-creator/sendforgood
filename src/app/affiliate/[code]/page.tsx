@@ -102,9 +102,8 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
   const campaignLinks = [
     { key: "general", label: "General", path: "" },
     { key: "weddings", label: "Weddings", path: "/wedding" },
-    { key: "gifts", label: "Gifts", path: "/gifts/buy" },
+    { key: "vault", label: "Wedding Vault", path: "/vault/buy" },
     { key: "messages", label: "Messages", path: "/messages/buy" },
-    { key: "business", label: "Business", path: "/business" },
   ];
 
   function getCampaignUrl(path: string) {
@@ -379,68 +378,71 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
           <div className="space-y-3">
             {[
               {
-                key: "realestate",
-                title: "Email to Past Clients",
-                content: `Subject: A gift I thought you might love
+                key: "couples",
+                title: "Email to Engaged Couples",
+                content: `Subject: A wedding gift idea I had to share
 
-Hi [Client Name],
+Hi [Name],
 
-I wanted to share something I recently discovered that I think is perfect for homeowners and families — SealTheDay.
+Congrats on the engagement! I wanted to send you something I recently came across — SealTheDay.
 
-It is a service that lets you send gifts and meaningful messages to the people you love, automatically, every year. Birthdays, anniversaries, holidays — they handle everything.
+It is a wedding vault. You share a single link with your guests at the reception, and they each record a video message, leave a written note, or upload a photo. Everything gets sealed until a date you choose — your first anniversary, your tenth, your twenty-fifth.
 
-What I love most: you set it up once and they take care of the rest. No more forgetting. No more last-minute scrambles.
+On that date, you open it together. Years later, you get to hear from everyone who was in the room with you on your wedding day.
 
-I have been recommending it to my clients because it is the kind of thoughtful gesture that people remember.
+It is the kind of thing you cannot put a price on, and it costs less than a centerpiece.
 
-Use my link to get started: ${getCampaignUrl("")}
+Use my link to start: ${getCampaignUrl("/wedding")}
 
-Let me know if you have any questions!
+Congrats again!
 
 [Your name]`,
               },
               {
                 key: "social",
                 title: "Social Media Post",
-                content: `I just discovered something amazing — @SealTheDay lets you set up gifts and personal messages for the people you love, delivered automatically every year. 🎁
+                content: `Just found the most beautiful wedding idea — @SealTheDay 💌
 
-Birthdays. Anniversaries. Your kids growing up. Even voice and video messages they will receive years from now.
+You share one link with your guests. They each record a video, leave a note, or upload a photo. Everything gets sealed until your anniversary — 1 year, 5 years, 10 years, whatever you choose.
 
-It is the most meaningful thing I have seen in a long time. I am already using it for my clients.
+On that date, you open it together. You get to hear from everyone who was at your wedding, in their own words, exactly how they felt that day.
 
-Check it out: ${getCampaignUrl("")}
+Wish I had this at mine.
 
-#SealTheDay #MeaningfulGifts #LegacyGiving`,
+${getCampaignUrl("/wedding")}
+
+#SealTheDay #WeddingIdeas #WeddingVault`,
               },
               {
-                key: "wedding",
-                title: "Wedding Pitch",
-                content: `Did you know you can collect video messages from all your wedding guests and seal them until your 10th anniversary?
+                key: "vendor",
+                title: "Wedding Vendor Pitch",
+                content: `For wedding planners, photographers, and videographers:
 
-SealTheDay lets you share a link at your reception. Every guest records a video. You seal it for a decade. On your anniversary, you open it together.
+SealTheDay is a wedding vault your couples will thank you for recommending. They share one link at the reception. Every guest records a video, writes a note, or uploads a photo. Everything seals until the couple's anniversary.
 
-It is one of the most unique wedding gifts I have ever seen.
+It pairs perfectly with what you already deliver — your photos and video are the polished record of the day. The vault is the unfiltered one, in your couple's guests' own voices.
 
-Start at: ${getCampaignUrl("/wedding")}`,
+I have a partner link so you can add it to your welcome packets:
+${getCampaignUrl("/wedding")}`,
               },
               {
                 key: "conversation",
                 title: "Talking Points",
-                content: `PROBLEM: Most people forget birthdays, anniversaries, or just do not have time to shop for meaningful gifts.
+                content: `PROBLEM: Wedding photos and videos capture what the day looked like. They do not capture what the guests actually felt or wanted to say.
 
-SOLUTION: SealTheDay lets you set up gifts once and they deliver every year automatically.
+SOLUTION: SealTheDay is a wedding vault. Guests record video messages, leave notes, and upload photos at the reception. Everything seals until the couple's anniversary.
 
 KEY POINTS:
-• Gifts from $20/year, messages from $1/year
-• Set up once — they handle everything
-• Assign to multiple people at once
-• Never miss a birthday again
-• Letters and voice messages for people you love
-• Memory Vault for weddings and special events
+• One vault, $10. Add unlimited slots à la carte.
+• $1 per video slot, $0.25 per audio or photo slot.
+• Guest contributions stay sealed until the date the couple sets.
+• Works with a QR code at the reception. No app required.
+• Sealed forever after the open date — guests cannot edit, no platform tampering.
+• Built for one day. Opens on the date that matters.
 
-CLOSE: Would you like me to send you the link? Takes 5 minutes to set up.
+CLOSE: Want me to send you the link? Setup takes under 10 minutes.
 
-Link: ${getCampaignUrl("")}`,
+Link: ${getCampaignUrl("/wedding")}`,
               },
             ].map((panel) => (
               <div key={panel.key} className="border border-gray-200 rounded-lg overflow-hidden">

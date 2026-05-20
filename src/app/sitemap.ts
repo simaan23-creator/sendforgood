@@ -26,7 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/vault",
     "/vault/wedding-kit",
     "/wedding",
-    "/business",
     "/request",
     "/request/create",
   ];

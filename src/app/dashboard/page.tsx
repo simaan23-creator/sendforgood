@@ -688,10 +688,10 @@ export default function DashboardPage() {
 
             </p>
             <Link
-              href="/gifts/buy"
+              href="/vault/buy"
               className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Send Gifts
+              Create a Wedding Vault
             </Link>
           </div>
         </div>
@@ -760,7 +760,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Gifts</h2>
             <Link
-              href="/gifts/buy"
+              href="/vault/buy"
               className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
               Buy More
@@ -771,8 +771,8 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
               <p className="text-warm-gray">
                 No gift credits yet. Buy some to get started.{" "}
-                <Link href="/gifts/buy" className="font-medium text-navy underline hover:text-gold">
-                  Buy Gift Credits
+                <Link href="/vault/buy" className="font-medium text-navy underline hover:text-gold">
+                  Create a Wedding Vault
                 </Link>
               </p>
             </div>

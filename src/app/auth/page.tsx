@@ -157,8 +157,8 @@ function AuthForm() {
           </h1>
           <p className="mt-2 text-center text-sm text-warm-gray">
             {tab === "sign-in"
-              ? "Sign in to manage your gifts and recipients."
-              : "Start sending gifts that last a lifetime."}
+              ? "Sign in to manage your wedding vault."
+              : "Seal your wedding day forever."}
           </p>
 
           {/* Error State */}
