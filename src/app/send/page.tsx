@@ -5,6 +5,6 @@ import { useRouter } from 'next/navigation';
 
 export default function SendPage() {
   const router = useRouter();
-  useEffect(() => { router.replace('/gifts/buy'); }, [router]);
+  useEffect(() => { router.replace('/vault/buy'); }, [router]);
   return null;
 }

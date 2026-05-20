@@ -5,7 +5,11 @@ const SITE = "https://sealtheday.com";
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  // Public, indexable marketing + content pages.
+  // Public, indexable marketing + content pages. Wedding vault is the
+  // primary product; digital messages + audio + video remain available
+  // via /messages/buy. Physical gifts and physical letters are
+  // discontinued and intentionally excluded from the sitemap so they
+  // are not surfaced to search traffic.
   const routes = [
     "",
     "/about",
@@ -16,12 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/privacy",
     "/start",
     "/send",
-    "/gifts",
-    "/gifts/buy",
-    "/gifts/give",
-    "/gifts/assign",
-    "/letters",
-    "/letters/write",
     "/voice",
     "/voice/record",
     "/messages/buy",

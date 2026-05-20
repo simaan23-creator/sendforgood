@@ -20,18 +20,6 @@ const CREDIT_TYPES = [
         price: DELIVERY_TYPE_PRICES.digital.price,
         description: "Delivered by email",
       },
-      {
-        id: "physical" as DeliveryType,
-        name: "Physical Letter",
-        price: DELIVERY_TYPE_PRICES.physical.price,
-        description: "Printed and mailed",
-      },
-      {
-        id: "physical_photo" as DeliveryType,
-        name: "Physical + Photo",
-        price: DELIVERY_TYPE_PRICES.physical_photo.price,
-        description: "Letter + wallet photo mailed together",
-      },
     ],
   },
   {
