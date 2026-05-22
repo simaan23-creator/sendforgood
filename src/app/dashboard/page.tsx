@@ -642,7 +642,7 @@ export default function DashboardPage() {
           {/* Header */}
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
+              <h1 className="text-3xl font-bold text-navy">Your Dashboard</h1>
               {userEmail && (
                 <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
               )}
@@ -655,10 +655,10 @@ export default function DashboardPage() {
                 Sign Out
               </button>
               <Link
-                href="/messages/buy"
+                href="/vault/buy"
                 className="rounded-lg border border-forest px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
               >
-                Send Messages
+                Create Vault
               </Link>
             </div>
           </div>
@@ -681,11 +681,10 @@ export default function DashboardPage() {
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-navy">
-              No gifts yet
+              Nothing here yet
             </h2>
             <p className="mt-2 max-w-sm text-warm-gray">
-              Buy gifts and assign them to the people you love.
-
+              Start your wedding vault and invite guests to record memories.
             </p>
             <Link
               href="/vault/buy"
@@ -708,7 +707,7 @@ export default function DashboardPage() {
         {/* Page header */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-navy">Your Gifts</h1>
+            <h1 className="text-3xl font-bold text-navy">Your Dashboard</h1>
             {userEmail && (
               <p className="mt-1 text-sm text-warm-gray">{userEmail}</p>
             )}
