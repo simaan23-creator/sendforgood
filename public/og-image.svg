@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff7f1"/>
+      <stop offset="100%" stop-color="#fbe9e2"/>
+    </linearGradient>
+    <radialGradient id="sealFillOg" cx="40%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#8a3a44"/>
+      <stop offset="55%" stop-color="#722F37"/>
+      <stop offset="100%" stop-color="#4d1f25"/>
+    </radialGradient>
+    <radialGradient id="sealHiOg" cx="35%" cy="28%" r="40%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative thin gold border -->
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#C9A961" stroke-width="1.5" opacity="0.6"/>
+  <rect x="50" y="50" width="1100" height="530" fill="none" stroke="#C9A961" stroke-width="0.6" opacity="0.5"/>
+
+  <!-- Seal Icon (centered, top) -->
+  <g transform="translate(600 215)">
+    <g fill="url(#sealFillOg)" stroke="#3d181d" stroke-width="1">
+      <circle cx="0" cy="-115" r="11"/>
+      <circle cx="29.8" cy="-110.9" r="11"/>
+      <circle cx="57.5" cy="-99.6" r="11"/>
+      <circle cx="81.3" cy="-81.3" r="11"/>
+      <circle cx="99.6" cy="-57.5" r="11"/>
+      <circle cx="110.9" cy="-29.8" r="11"/>
+      <circle cx="115" cy="0" r="11"/>
+      <circle cx="110.9" cy="29.8" r="11"/>
+      <circle cx="99.6" cy="57.5" r="11"/>
+      <circle cx="81.3" cy="81.3" r="11"/>
+      <circle cx="57.5" cy="99.6" r="11"/>
+      <circle cx="29.8" cy="110.9" r="11"/>
+      <circle cx="0" cy="115" r="11"/>
+      <circle cx="-29.8" cy="110.9" r="11"/>
+      <circle cx="-57.5" cy="99.6" r="11"/>
+      <circle cx="-81.3" cy="81.3" r="11"/>
+      <circle cx="-99.6" cy="57.5" r="11"/>
+      <circle cx="-110.9" cy="29.8" r="11"/>
+      <circle cx="-115" cy="0" r="11"/>
+      <circle cx="-110.9" cy="-29.8" r="11"/>
+      <circle cx="-99.6" cy="-57.5" r="11"/>
+      <circle cx="-81.3" cy="-81.3" r="11"/>
+      <circle cx="-57.5" cy="-99.6" r="11"/>
+      <circle cx="-29.8" cy="-110.9" r="11"/>
+    </g>
+    <circle r="109" fill="url(#sealFillOg)" stroke="#3d181d" stroke-width="2"/>
+    <circle r="92" fill="none" stroke="#C9A961" stroke-width="2.8" opacity="0.9"/>
+    <circle r="87" fill="none" stroke="#C9A961" stroke-width="0.8" opacity="0.6"/>
+    <text x="0" y="34"
+          text-anchor="middle"
+          font-family="Georgia, 'Cormorant Garamond', serif"
+          font-size="170"
+          font-weight="500"
+          font-style="italic"
+          fill="#C9A961">S</text>
+    <circle r="109" fill="url(#sealHiOg)" pointer-events="none"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="600" y="450"
+        text-anchor="middle"
+        font-family="Georgia, 'Playfair Display', serif"
+        font-size="92"
+        font-weight="700"
+        letter-spacing="-2"
+        fill="#2a1418">SealTheDay</text>
+
+  <!-- Tagline -->
+  <text x="600" y="510"
+        text-anchor="middle"
+        font-family="Georgia, serif"
+        font-size="28"
+        font-style="italic"
+        fill="#722F37">Capture every vow. Every toast. Every tear.</text>
+
+  <!-- Bottom URL -->
+  <text x="600" y="565"
+        text-anchor="middle"
+        font-family="Arial, system-ui, sans-serif"
+        font-size="16"
+        letter-spacing="6"
+        fill="#722F37"
+        opacity="0.75">SEALTHEDAY.COM</text>
+</svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="sealFill" cx="40%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#8a3a44"/>
+      <stop offset="55%" stop-color="#722F37"/>
+      <stop offset="100%" stop-color="#4d1f25"/>
+    </radialGradient>
+    <radialGradient id="sealHi" cx="35%" cy="28%" r="40%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- background transparent; the seal sits centered -->
+  <g transform="translate(128 128)">
+    <!-- outer scalloped edge of wax seal -->
+    <g fill="url(#sealFill)" stroke="#3d181d" stroke-width="1">
+      <!-- 24 small scallops around -->
+      <g id="scallops">
+        <circle cx="0" cy="-110" r="10"/>
+        <circle cx="28.5" cy="-106.2" r="10" transform="rotate(15)"/>
+        <circle cx="55" cy="-95.3" r="10" transform="rotate(30)"/>
+        <circle cx="77.8" cy="-77.8" r="10" transform="rotate(45)"/>
+        <circle cx="95.3" cy="-55" r="10" transform="rotate(60)"/>
+        <circle cx="106.2" cy="-28.5" r="10" transform="rotate(75)"/>
+        <circle cx="110" cy="0" r="10" transform="rotate(90)"/>
+        <circle cx="106.2" cy="28.5" r="10" transform="rotate(105)"/>
+        <circle cx="95.3" cy="55" r="10" transform="rotate(120)"/>
+        <circle cx="77.8" cy="77.8" r="10" transform="rotate(135)"/>
+        <circle cx="55" cy="95.3" r="10" transform="rotate(150)"/>
+        <circle cx="28.5" cy="106.2" r="10" transform="rotate(165)"/>
+        <circle cx="0" cy="110" r="10"/>
+        <circle cx="-28.5" cy="106.2" r="10"/>
+        <circle cx="-55" cy="95.3" r="10"/>
+        <circle cx="-77.8" cy="77.8" r="10"/>
+        <circle cx="-95.3" cy="55" r="10"/>
+        <circle cx="-106.2" cy="28.5" r="10"/>
+        <circle cx="-110" cy="0" r="10"/>
+        <circle cx="-106.2" cy="-28.5" r="10"/>
+        <circle cx="-95.3" cy="-55" r="10"/>
+        <circle cx="-77.8" cy="-77.8" r="10"/>
+        <circle cx="-55" cy="-95.3" r="10"/>
+        <circle cx="-28.5" cy="-106.2" r="10"/>
+      </g>
+    </g>
+
+    <!-- main seal body -->
+    <circle r="104" fill="url(#sealFill)" stroke="#3d181d" stroke-width="2"/>
+
+    <!-- inner gold border ring -->
+    <circle r="88" fill="none" stroke="#C9A961" stroke-width="2.5" opacity="0.85"/>
+    <circle r="83" fill="none" stroke="#C9A961" stroke-width="0.8" opacity="0.6"/>
+
+    <!-- monogram S -->
+    <text x="0" y="32"
+          text-anchor="middle"
+          font-family="'Cormorant Garamond', 'Playfair Display', Georgia, serif"
+          font-size="160"
+          font-weight="500"
+          font-style="italic"
+          fill="#C9A961">S</text>
+
+    <!-- highlight overlay for wax sheen -->
+    <circle r="104" fill="url(#sealHi)" pointer-events="none"/>
+  </g>
+</svg>

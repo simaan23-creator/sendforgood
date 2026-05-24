@@ -263,14 +263,22 @@ export default function DashboardPage() {
     router.replace(`/dashboard${qs ? `?${qs}` : ""}`, { scroll: false });
   }
 
-  const showGifts = activeTab === "all" || activeTab === "gifts";
+  // Legacy SendForGood gift-credit data; only legacy customers should see these
+  // sections/tab. New SealTheDay-only users get a clean wedding-vault dashboard.
+  const hasLegacyGifts =
+    giftCredits.length > 0 || giftsGiven.length > 0 || orders.length > 0;
+
+  const showGifts =
+    hasLegacyGifts && (activeTab === "all" || activeTab === "gifts");
   const showLetters = activeTab === "all" || activeTab === "letters";
   const showMessages = activeTab === "all" || activeTab === "messages";
   const showVaults = activeTab === "all" || activeTab === "vaults";
 
   const TABS: Array<{ id: typeof activeTab; label: string }> = [
     { id: "all", label: "All" },
-    { id: "gifts", label: "Gifts" },
+    ...(hasLegacyGifts
+      ? [{ id: "gifts" as const, label: "Gift Credits" }]
+      : []),
     { id: "letters", label: "Letters" },
     { id: "messages", label: "Messages" },
     { id: "vaults", label: "Vaults" },
@@ -753,30 +761,16 @@ export default function DashboardPage() {
           </nav>
         </div>
 
-        {/* My Gift Credits */}
-        {showGifts && (
+        {/* Legacy SendForGood gift credits — only rendered for customers with
+            historical gift-credit purchases. Hidden entirely otherwise. */}
+        {showGifts && giftCredits.length > 0 && (
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-navy">My Gifts</h2>
-            <Link
-              href="/vault/buy"
-              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
-            >
-              Buy More
-            </Link>
+            <h2 className="text-xl font-bold text-navy">Gift Credits</h2>
+            <span className="text-xs text-warm-gray-light">Legacy product</span>
           </div>
 
-          {giftCredits.length === 0 ? (
-            <div className="rounded-xl border border-cream-dark bg-white p-8 text-center">
-              <p className="text-warm-gray">
-                No gift credits yet. Buy some to get started.{" "}
-                <Link href="/vault/buy" className="font-medium text-navy underline hover:text-gold">
-                  Create a Wedding Vault
-                </Link>
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {giftCredits.map((gc) => {
                 const available = gc.quantity - gc.quantity_used;
                 const assigned = gc.assignments || [];
@@ -862,8 +856,7 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
         )}
 
