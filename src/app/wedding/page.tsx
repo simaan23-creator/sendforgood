@@ -1,38 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import StickyCTA from "@/components/wedding/sticky-cta";
 
 export const metadata: Metadata = {
   title: "Wedding Memory Vault — SealTheDay",
   description:
     "Turn 150 wedding guests into 150 second-shooters. Capture every moment your photographer will never reach. You decide when to relive it — the next morning, your 10th anniversary, or any day in between.",
 };
-
-const STEPS = [
-  {
-    emoji: "\u{1F6D2}",
-    title: "Buy recording slots",
-    description:
-      "$1 per video, $0.25 per audio, $0.25 per photo + a $10 vault fee. Buy as many as you have guests. Unused slots never expire.",
-  },
-  {
-    emoji: "\u{1F517}",
-    title: "Create your vault",
-    description:
-      "Pick when it opens \u2014 the next morning, your first anniversary, your tenth, or no lock at all. It is your timeline.",
-  },
-  {
-    emoji: "\u{1F4F1}",
-    title: "Share the link",
-    description:
-      "QR codes on the tables. A 30-second prompt from your MC. Guests record from any phone in seconds \u2014 no app, no account.",
-  },
-  {
-    emoji: "\u{1F510}",
-    title: "Open it together",
-    description:
-      "On the date you chose, your vault opens. Every video, voice note, and photo your guests captured \u2014 waiting for you.",
-  },
-];
 
 const SWARM_MOMENTS = [
   "The groomsmen smoking cigars and roasting each other behind the venue",
@@ -106,6 +80,19 @@ const FAQS = [
     q: "What if a guest does not have the link?",
     a: "You can share the link anytime before the vault seals \u2014 before, during, or after the event.",
   },
+  {
+    q: "What if I change my mind after I buy?",
+    a: "Full refund within 48 hours of purchase, no questions asked. After that, your slots simply never expire \u2014 use them for any future milestone.",
+  },
+];
+
+const COMPARISON_ROWS: Array<{ feature: string; std: string; hash: string; group: string; vault: string; vaultStrong?: boolean }> = [
+  { feature: "Captures back-hallway / pre-ceremony / afterparty moments", std: "No", hash: "Maybe", group: "Sometimes", vault: "Yes", vaultStrong: true },
+  { feature: "Works without an app or guest login", std: "N/A", hash: "No", group: "Yes", vault: "Yes", vaultStrong: true },
+  { feature: "Survives if guests delete the photo from their phone", std: "Yes", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
+  { feature: "Voice messages from guests who can\u2019t make a speech", std: "No", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
+  { feature: "Sealed until the date YOU choose (time capsule)", std: "No", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
+  { feature: "All-in cost for a 150-person wedding", std: "$1,500\u2013$3,500", hash: "Free", group: "Free", vault: "$60\u2013$200" },
 ];
 
 export default function WeddingPage() {
@@ -136,20 +123,89 @@ export default function WeddingPage() {
               Create Your Wedding Vault
             </Link>
             <a
-              href="#how-it-works"
+              href="#starter"
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-navy px-8 py-4 text-lg font-semibold text-navy transition hover:bg-navy hover:text-cream sm:w-auto"
             >
-              See How It Works
+              See Starter Package &mdash; $99.95
             </a>
           </div>
-          <p className="mt-5 text-sm text-warm-gray">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-warm-gray">
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+              Starts at $10
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+              Set up in 5 minutes
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+              No guest app required
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+              48-hour refund
+            </span>
+          </div>
+          <p className="mt-4 text-sm text-warm-gray">
             After purchase, get your printable Wedding Kit &mdash; table cards, MC script, and guest invitations all ready to go.
           </p>
         </div>
       </section>
 
-      {/* ── The Pitch: Swarm of Photographers ── */}
+      {/* ── Founder Story ── */}
       <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-3xl">
+          <p className="text-center text-sm font-semibold uppercase tracking-widest text-gold">
+            Why this exists
+          </p>
+          <h2 className="mt-3 text-center text-3xl font-bold text-navy sm:text-4xl">
+            My photographer never showed up.
+          </h2>
+          <div className="mx-auto mt-8 max-w-2xl space-y-5 text-lg leading-relaxed text-warm-gray">
+            <p>
+              On my wedding day, the photographer we hired didn&rsquo;t show up.
+              Not late. Not stuck in traffic. <em>Gone.</em>
+            </p>
+            <p>
+              I spent the morning of what was supposed to be the best day of my
+              life on the phone, watching the clock, hoping. By the time I
+              accepted she wasn&rsquo;t coming, the ceremony had already
+              started.
+            </p>
+            <p>
+              Here&rsquo;s the part nobody tells you: the only reason I have
+              <em> any</em> record of my own wedding is because 150 of our
+              guests had phones in their pockets and instinctively started
+              filming. My cousin caught my dad crying. My college roommate got
+              the first kiss. A groomsman somehow filmed the entire toast from
+              the back of the room.
+            </p>
+            <p className="font-semibold text-navy">
+              When I stitched it all together weeks later, I realized something
+              uncomfortable: even if the photographer <em>had</em> shown up,
+              what my guests captured was better.
+            </p>
+            <p>
+              It was rawer. It was wider. It was the day from the inside, not
+              the day from a tripod in the corner. That&rsquo;s when I built
+              SealTheDay &mdash; not as a backup for when your vendor flakes,
+              but as the thing every wedding should have had from the start.
+            </p>
+            <p className="border-l-4 border-gold pl-5 text-base italic text-navy">
+              I never want another couple to have to choose between
+              &ldquo;hope my photographer shows up&rdquo; and &ldquo;lose the
+              day forever.&rdquo; That&rsquo;s the promise of this product.
+              <span className="mt-2 block text-sm not-italic text-warm-gray">
+                &mdash; Simaan, founder
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── The Pitch: Swarm of Photographers ── */}
+      <section className="bg-cream px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
             One photographer can&rsquo;t be a swarm.
@@ -304,30 +360,325 @@ export default function WeddingPage() {
         </div>
       </section>
 
-      {/* ── How It Works ── */}
+      {/* ── How It Works (mock phone screens) ── */}
       <section
         id="how-it-works"
         className="bg-cream-dark px-6 py-20 sm:py-28"
       >
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
             How it works
           </h2>
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step, i) => (
-              <div
-                key={i}
-                className="rounded-2xl bg-white p-8 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+          <p className="mx-auto mt-3 max-w-xl text-center text-warm-gray">
+            From purchase to the morning-after rewatch in four steps.
+          </p>
+
+          <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Step 1 — Buy slots */}
+            <div className="flex flex-col items-center text-center">
+              <PhoneFrame>
+                <div className="flex h-full flex-col justify-between p-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    SealTheDay
+                  </div>
+                  <div className="space-y-2">
+                    <div className="rounded-lg border border-cream-dark bg-cream/60 p-2 text-left">
+                      <div className="text-[9px] text-warm-gray">Video slots</div>
+                      <div className="text-base font-bold text-navy">50 &times; $1</div>
+                    </div>
+                    <div className="rounded-lg border border-cream-dark bg-cream/60 p-2 text-left">
+                      <div className="text-[9px] text-warm-gray">Photo slots</div>
+                      <div className="text-base font-bold text-navy">200 &times; $0.25</div>
+                    </div>
+                    <div className="rounded-lg border border-cream-dark bg-cream/60 p-2 text-left">
+                      <div className="text-[9px] text-warm-gray">Vault</div>
+                      <div className="text-base font-bold text-navy">1 &times; $10</div>
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-gold py-1.5 text-center text-[10px] font-bold text-navy">
+                    Checkout &mdash; $99.95
+                  </div>
+                </div>
+              </PhoneFrame>
+              <span className="mt-5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">1</span>
+              <h3 className="mt-3 text-lg font-semibold text-navy">Buy recording slots</h3>
+              <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                Pick a Starter Package or build your own. Unused slots never expire.
+              </p>
+            </div>
+
+            {/* Step 2 — Create vault */}
+            <div className="flex flex-col items-center text-center">
+              <PhoneFrame>
+                <div className="flex h-full flex-col gap-2 p-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    Create Vault
+                  </div>
+                  <div className="rounded-md bg-cream/60 p-2 text-left">
+                    <div className="text-[9px] text-warm-gray">Vault title</div>
+                    <div className="truncate text-xs font-bold text-navy">Alex &amp; Jamie&rsquo;s Wedding</div>
+                  </div>
+                  <div className="rounded-md bg-cream/60 p-2 text-left">
+                    <div className="text-[9px] text-warm-gray">Seal date</div>
+                    <div className="text-xs font-bold text-navy">June 15, 2027</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 pt-1">
+                    <div className="rounded bg-gold/20 py-1 text-center text-[8px] font-bold text-navy">Next AM</div>
+                    <div className="rounded bg-gold py-1 text-center text-[8px] font-bold text-navy">1 yr</div>
+                    <div className="rounded bg-gold/20 py-1 text-center text-[8px] font-bold text-navy">10 yr</div>
+                  </div>
+                  <div className="mt-auto rounded-md bg-navy py-1.5 text-center text-[10px] font-bold text-cream">
+                    Lock &amp; Activate
+                  </div>
+                </div>
+              </PhoneFrame>
+              <span className="mt-5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">2</span>
+              <h3 className="mt-3 text-lg font-semibold text-navy">Create your vault</h3>
+              <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                Name it. Set the seal date. Server-locked until the date arrives.
+              </p>
+            </div>
+
+            {/* Step 3 — Share the link */}
+            <div className="flex flex-col items-center text-center">
+              <PhoneFrame>
+                <div className="flex h-full flex-col items-center justify-between p-3 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    Scan to record
+                  </div>
+                  <div className="my-1 grid h-20 w-20 grid-cols-7 grid-rows-7 gap-px rounded border border-navy/30 bg-white p-1">
+                    {/* fake QR pattern */}
+                    {Array.from({ length: 49 }).map((_, i) => {
+                      const filled = [0,2,3,5,6,8,12,14,16,18,20,21,23,25,27,29,30,32,34,36,38,40,41,43,46,48].includes(i);
+                      return (
+                        <span
+                          key={i}
+                          className={filled ? "bg-navy" : "bg-transparent"}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="text-[10px] font-semibold text-navy">
+                    Alex &amp; Jamie&rsquo;s Wedding
+                  </div>
+                  <div className="text-[8px] text-warm-gray">
+                    Open your camera. Point. Record.
+                  </div>
+                  <div className="mt-1 rounded-md bg-gold py-1.5 text-center text-[10px] font-bold text-navy w-full">
+                    Share Link
+                  </div>
+                </div>
+              </PhoneFrame>
+              <span className="mt-5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">3</span>
+              <h3 className="mt-3 text-lg font-semibold text-navy">Share the link</h3>
+              <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                QR cards on every table. Guests record from any phone &mdash; no app, no login.
+              </p>
+            </div>
+
+            {/* Step 4 — Open it */}
+            <div className="flex flex-col items-center text-center">
+              <PhoneFrame>
+                <div className="flex h-full flex-col gap-2 p-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    Vault unlocked
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {Array.from({ length: 9 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="aspect-square rounded bg-gradient-to-br from-navy/70 via-navy/50 to-gold/40"
+                      >
+                        <div className="flex h-full items-center justify-center">
+                          <span className="text-[10px] text-cream">{i % 3 === 0 ? "\u25B6" : ""}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-1 text-[9px] text-warm-gray">
+                    47 videos &middot; 12 voice &middot; 184 photos
+                  </div>
+                  <div className="mt-auto rounded-md bg-navy py-1.5 text-center text-[10px] font-bold text-cream">
+                    Watch the day
+                  </div>
+                </div>
+              </PhoneFrame>
+              <span className="mt-5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">4</span>
+              <h3 className="mt-3 text-lg font-semibold text-navy">Open it together</h3>
+              <p className="mt-2 text-sm leading-relaxed text-warm-gray">
+                On the date you chose, your vault unlocks. Every angle, all at once.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Comparison Table ── */}
+      <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            How it compares
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-warm-gray">
+            Most couples already do <em>something</em> to crowdsource photos.
+            Here is how the usual options stack up.
+          </p>
+          <div className="mt-10 overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b-2 border-navy/15">
+                  <th className="py-3 pr-4 font-semibold text-navy">Capability</th>
+                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
+                    Pro Photographer<br />
+                    <span className="text-[10px] font-normal">(alone)</span>
+                  </th>
+                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
+                    Wedding Hashtag<br />
+                    <span className="text-[10px] font-normal">(Instagram)</span>
+                  </th>
+                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
+                    Group Text<br />
+                    <span className="text-[10px] font-normal">(iMessage)</span>
+                  </th>
+                  <th className="rounded-t-lg bg-gold/15 px-3 py-3 text-center font-bold text-navy">
+                    SealTheDay
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_ROWS.map((row, i) => (
+                  <tr key={i} className="border-b border-cream-dark/60">
+                    <td className="py-4 pr-4 text-navy">{row.feature}</td>
+                    <td className="px-3 py-4 text-center text-warm-gray">{row.std}</td>
+                    <td className="px-3 py-4 text-center text-warm-gray">{row.hash}</td>
+                    <td className="px-3 py-4 text-center text-warm-gray">{row.group}</td>
+                    <td className={`bg-gold/10 px-3 py-4 text-center ${row.vaultStrong ? "font-bold text-navy" : "text-navy"}`}>
+                      {row.vault}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm italic text-warm-gray">
+            SealTheDay isn&rsquo;t a replacement for your photographer.
+            It&rsquo;s the layer that captures everything they can&rsquo;t.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Starter Package ── */}
+      <section id="starter" className="bg-cream px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+              Most popular
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-navy sm:text-4xl">
+              The Starter Package
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-warm-gray">
+              Everything a typical 100&ndash;150 person wedding needs &mdash; in one bundle, under $100.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-12 grid max-w-4xl gap-8 lg:grid-cols-[1.1fr_1fr]">
+            {/* Bundle card */}
+            <div className="rounded-3xl border-2 border-gold bg-white p-8 shadow-xl">
+              <div className="flex items-baseline justify-between">
+                <span className="rounded-full bg-gold/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-dark">
+                  Bundle
+                </span>
+                <div className="text-right">
+                  <div className="text-sm text-warm-gray line-through">$110 a la carte</div>
+                  <div className="text-4xl font-extrabold tracking-tight text-navy">
+                    $99<span className="text-2xl">.95</span>
+                  </div>
+                  <div className="text-xs font-semibold text-forest">Vault on us</div>
+                </div>
+              </div>
+
+              <ul className="mt-6 space-y-3 text-sm text-navy">
+                <li className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                  <span>
+                    <strong>1 Memory Vault</strong>
+                    <span className="text-warm-gray"> &mdash; created the moment you check out ($10 value)</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                  <span>
+                    <strong>50 video recording slots</strong>
+                    <span className="text-warm-gray"> &mdash; 2-minute HD clips ($50 value)</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                  <span>
+                    <strong>200 photo upload slots</strong>
+                    <span className="text-warm-gray"> &mdash; straight from any guest&rsquo;s camera roll ($50 value)</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                  <span>
+                    <strong>Printable Wedding Kit</strong>
+                    <span className="text-warm-gray"> &mdash; QR table cards, MC script, guest invitations</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                  <span>
+                    <strong>Unused slots never expire</strong>
+                    <span className="text-warm-gray"> &mdash; save them for an anniversary or baby shower</span>
+                  </span>
+                </li>
+              </ul>
+
+              <Link
+                href="/vault/buy?bundle=starter"
+                className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
-                <span className="text-4xl">{step.emoji}</span>
-                <h3 className="mt-4 text-xl font-semibold text-navy">
-                  {step.title}
-                </h3>
+                Get the Starter Package &mdash; $99.95
+              </Link>
+              <p className="mt-3 text-center text-xs text-warm-gray">
+                Secure payment via Stripe &middot; 48-hour refund &middot; No subscription
+              </p>
+            </div>
+
+            {/* Math sidebar */}
+            <div className="flex flex-col justify-center space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-navy">Why the Starter is the right size</h3>
                 <p className="mt-2 text-sm leading-relaxed text-warm-gray">
-                  {step.description}
+                  Most couples don&rsquo;t need a slot for every guest &mdash;
+                  they need enough slots for the guests who <em>will</em>
+                  actually record. The math we&rsquo;ve seen: roughly 1 in 3
+                  guests records a video, and 2 in 3 upload at least one photo.
                 </p>
               </div>
-            ))}
+              <div className="rounded-2xl bg-cream-dark/70 p-5 text-sm">
+                <div className="font-semibold text-navy">For a 150-guest wedding:</div>
+                <ul className="mt-2 space-y-1 text-warm-gray">
+                  <li>&bull; 50 video slots covers ~33% of guests recording</li>
+                  <li>&bull; 200 photo slots covers ~1.3 photos per guest</li>
+                  <li>&bull; Plenty left over for the morning-after brunch</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-gold/40 bg-gold/5 p-5 text-sm">
+                <div className="font-semibold text-navy">Need more or less?</div>
+                <p className="mt-1 text-warm-gray">
+                  Buy any combination a la carte &mdash; vault for $10, video for $1, audio &amp; photos $0.25 each.
+                </p>
+                <Link
+                  href="/vault/buy"
+                  className="mt-2 inline-block text-sm font-semibold text-navy underline hover:text-gold"
+                >
+                  Build my own &rarr;
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -364,8 +715,11 @@ export default function WeddingPage() {
       <section className="bg-cream-dark px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold text-navy sm:text-4xl">
-            Simple pricing
+            Simple a la carte pricing
           </h2>
+          <p className="mx-auto mt-3 max-w-xl text-warm-gray">
+            Prefer to build it yourself? Pay only for what you&rsquo;ll use.
+          </p>
           <div className="mx-auto mt-10 max-w-md rounded-2xl bg-white p-8 shadow-lg">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
@@ -408,13 +762,19 @@ export default function WeddingPage() {
                   </svg>
                   Unused slots never expire
                 </li>
+                <li className="flex items-center gap-2">
+                  <svg className="h-4 w-4 shrink-0 text-forest" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                  </svg>
+                  Full refund within 48 hours of purchase
+                </li>
               </ul>
             </div>
             <Link
               href="/vault/buy"
               className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
             >
-              Create Your Wedding Vault
+              Build Your Own Vault
             </Link>
           </div>
         </div>
@@ -448,16 +808,37 @@ export default function WeddingPage() {
           <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-cream/70">
             Start your Wedding Memory Vault today. It takes two minutes.
           </p>
-          <div className="mt-10">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/vault/buy?bundle=starter"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-gold px-10 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:w-auto"
+            >
+              Starter Package &mdash; $99.95
+            </Link>
             <Link
               href="/vault/buy"
-              className="inline-flex items-center justify-center rounded-lg bg-gold px-12 py-5 text-lg font-bold text-navy shadow-lg transition hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-cream/30 px-8 py-4 text-lg font-semibold text-cream transition hover:bg-cream hover:text-navy sm:w-auto"
             >
-              Create Your Wedding Vault
+              Build Your Own
             </Link>
           </div>
         </div>
       </section>
+
+      <StickyCTA />
     </main>
+  );
+}
+
+/* ───────────────────────── helpers ───────────────────────── */
+
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mx-auto h-[260px] w-[140px] rounded-[2rem] border-[6px] border-navy bg-cream shadow-lg">
+      <div className="absolute left-1/2 top-1 h-1 w-12 -translate-x-1/2 rounded-full bg-navy/60" />
+      <div className="h-full overflow-hidden rounded-[1.4rem] bg-cream">
+        {children}
+      </div>
+    </div>
   );
 }

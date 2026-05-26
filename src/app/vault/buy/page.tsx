@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,14 +11,26 @@ type ExistingVault = {
   occasion: string | null;
 };
 
+const STARTER_BUNDLE = {
+  vaultFees: 1,
+  videoQty: 50,
+  photoQty: 200,
+  audioQty: 0,
+  priceCents: 9995,
+  label: "Starter Package",
+};
+
 export default function VaultBuyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const bundleParam = searchParams.get("bundle");
+  const isStarter = bundleParam === "starter";
   const supabase = createClient();
 
-  const [vaultFeeQty, setVaultFeeQty] = useState(1);
-  const [audioQty, setAudioQty] = useState(0);
-  const [videoQty, setVideoQty] = useState(10);
-  const [photoQty, setPhotoQty] = useState(0);
+  const [vaultFeeQty, setVaultFeeQty] = useState(isStarter ? STARTER_BUNDLE.vaultFees : 1);
+  const [audioQty, setAudioQty] = useState(isStarter ? STARTER_BUNDLE.audioQty : 0);
+  const [videoQty, setVideoQty] = useState(isStarter ? STARTER_BUNDLE.videoQty : 10);
+  const [photoQty, setPhotoQty] = useState(isStarter ? STARTER_BUNDLE.photoQty : 0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,37 +47,41 @@ export default function VaultBuyPage() {
         return;
       }
       // Fetch existing vaults so user can top up credits on one they already own
-      try {
-        const res = await fetch("/api/memory-requests");
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const mapped: ExistingVault[] = data.map((v: { id: string; title: string; occasion: string | null }) => ({
-              id: v.id,
-              title: v.title,
-              occasion: v.occasion,
-            }));
-            setExistingVaults(mapped);
-            // Default to most recently created vault (API returns newest first)
-            setTargetVaultId(mapped[0].id);
-            setVaultFeeQty(0);
+      // (skipped entirely for bundle mode — the bundle always creates a fresh vault).
+      if (!isStarter) {
+        try {
+          const res = await fetch("/api/memory-requests");
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const mapped: ExistingVault[] = data.map((v: { id: string; title: string; occasion: string | null }) => ({
+                id: v.id,
+                title: v.title,
+                occasion: v.occasion,
+              }));
+              setExistingVaults(mapped);
+              // Default to most recently created vault (API returns newest first)
+              setTargetVaultId(mapped[0].id);
+              setVaultFeeQty(0);
+            }
           }
+        } catch {
+          // Non-fatal — picker just won't appear
         }
-      } catch {
-        // Non-fatal — picker just won't appear
       }
       setLoading(false);
     }
     init();
-  }, [supabase, router]);
+  }, [supabase, router, isStarter]);
 
-  const targetingExisting = targetVaultId !== "NEW";
+  const targetingExisting = !isStarter && targetVaultId !== "NEW";
 
   // When targeting an existing vault, no vault fee is charged
   const effectiveVaultFeeQty = targetingExisting ? 0 : vaultFeeQty;
   const slotTotal = audioQty * 25 + videoQty * 100 + photoQty * 25;
   const feeTotal = effectiveVaultFeeQty * 1000;
-  const total = feeTotal + slotTotal;
+  const alaCarteTotal = feeTotal + slotTotal;
+  const total = isStarter ? STARTER_BUNDLE.priceCents : alaCarteTotal;
   const hasItems = audioQty > 0 || videoQty > 0 || photoQty > 0;
   const targetVaultName = targetingExisting
     ? existingVaults.find((v) => v.id === targetVaultId)?.title ?? "your vault"
@@ -90,13 +106,17 @@ export default function VaultBuyPage() {
       const res = await fetch("/api/vault/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audioCredits: audioQty,
-          videoCredits: videoQty,
-          photoCredits: photoQty,
-          vaultFeeQty: effectiveVaultFeeQty,
-          targetVaultId: targetingExisting ? targetVaultId : null,
-        }),
+        body: JSON.stringify(
+          isStarter
+            ? { bundle: "starter" }
+            : {
+                audioCredits: audioQty,
+                videoCredits: videoQty,
+                photoCredits: photoQty,
+                vaultFeeQty: effectiveVaultFeeQty,
+                targetVaultId: targetingExisting ? targetVaultId : null,
+              }
+        ),
       });
 
       if (!res.ok) {
@@ -135,16 +155,58 @@ export default function VaultBuyPage() {
             Memory Vault
           </p>
           <h1 className="mt-3 text-3xl font-bold text-navy sm:text-4xl">
-            Buy vault credits
+            {isStarter ? "Starter Package" : "Buy vault credits"}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-warm-gray">
-            Each credit lets one person record a message or upload a photo to
-            your vault. Unused credits never expire.
+            {isStarter
+              ? "Everything a typical 100–150 person wedding needs, bundled at $99.95."
+              : "Each credit lets one person record a message or upload a photo to your vault. Unused credits never expire."}
           </p>
         </div>
 
+        {/* Starter bundle summary card (read-only) */}
+        {isStarter && (
+          <div className="mb-6 rounded-2xl border-2 border-gold bg-white p-6 shadow-md">
+            <div className="flex items-baseline justify-between">
+              <span className="rounded-full bg-gold/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-dark">
+                Bundle
+              </span>
+              <div className="text-right">
+                <div className="text-xs text-warm-gray line-through">$110 a la carte</div>
+                <div className="text-3xl font-extrabold tracking-tight text-navy">
+                  $99<span className="text-xl">.95</span>
+                </div>
+              </div>
+            </div>
+            <ul className="mt-5 space-y-2 text-sm text-navy">
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>1 Memory Vault</strong> ($10 value)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>50 video recording slots</strong> ($50 value)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>200 photo upload slots</strong> ($50 value)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span>Printable Wedding Kit + unused slots never expire</span>
+              </li>
+            </ul>
+            <p className="mt-4 text-xs text-warm-gray">
+              Want different quantities?{" "}
+              <Link href="/vault/buy" className="font-semibold text-navy underline hover:text-gold">
+                Build your own &rarr;
+              </Link>
+            </p>
+          </div>
+        )}
+
         {/* Vault picker — only when user already has at least one vault */}
-        {existingVaults.length > 0 && (
+        {!isStarter && existingVaults.length > 0 && (
           <div className="mb-4 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
             <label htmlFor="targetVault" className="block text-sm font-semibold text-navy">
               Adding credits to
@@ -171,7 +233,8 @@ export default function VaultBuyPage() {
           </div>
         )}
 
-        {/* Credit selectors */}
+        {/* Credit selectors (hidden in bundle mode) */}
+        {!isStarter && (
         <div className="space-y-4">
           {/* Vault fee — hidden when topping up an existing vault */}
           {!targetingExisting && (
@@ -372,28 +435,43 @@ export default function VaultBuyPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Suggestion */}
-        <p className="mt-4 text-center text-xs text-warm-gray italic">
-          Most couples buy 30-50 video slots for their wedding.
-        </p>
+        {!isStarter && (
+          <p className="mt-4 text-center text-xs text-warm-gray italic">
+            Most couples buy 30-50 video slots for their wedding.
+          </p>
+        )}
 
         {/* Total & checkout */}
         <div className="mt-8 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
           <div className="space-y-2 text-sm text-warm-gray">
-            {!targetingExisting && (
+            {!isStarter && !targetingExisting && (
               <div className="flex justify-between">
                 <span>Vault credit{vaultFeeQty > 1 ? `s (x${vaultFeeQty})` : ""}</span>
                 <span className="font-medium text-navy">{formatPrice(feeTotal)}</span>
               </div>
             )}
-            {hasItems && (
+            {!isStarter && hasItems && (
               <div className="flex justify-between">
                 <span>Recording slots</span>
                 <span className="font-medium text-navy">
                   {formatPrice(slotTotal)}
                 </span>
               </div>
+            )}
+            {isStarter && (
+              <>
+                <div className="flex justify-between">
+                  <span>{STARTER_BUNDLE.label}</span>
+                  <span className="font-medium text-navy line-through">$110.00</span>
+                </div>
+                <div className="flex justify-between text-forest">
+                  <span>Bundle discount</span>
+                  <span className="font-medium">-$10.05</span>
+                </div>
+              </>
             )}
             <div className="border-t border-cream-dark pt-2">
               <div className="flex items-center justify-between">
@@ -416,7 +494,11 @@ export default function VaultBuyPage() {
             disabled={!hasItems || submitting}
             className="mt-4 w-full rounded-lg bg-gold px-6 py-4 text-lg font-bold text-navy shadow-md transition hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? "Redirecting to checkout..." : "Checkout"}
+            {submitting
+              ? "Redirecting to checkout..."
+              : isStarter
+                ? "Checkout — Starter Package $99.95"
+                : "Checkout"}
           </button>
 
           <p className="mt-3 text-center text-xs text-warm-gray">

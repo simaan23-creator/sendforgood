@@ -13,13 +13,32 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId } = body;
+  const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId, bundle } = body;
 
-  const audio = Math.max(0, Math.floor(audioCredits || 0));
-  const video = Math.max(0, Math.floor(videoCredits || 0));
-  const photo = Math.max(0, Math.floor(photoCredits || 0));
-  const vaultFees = Math.max(0, Math.floor(vaultFeeQty || 0));
-  const targetVault = typeof targetVaultId === "string" && targetVaultId.length > 0 ? targetVaultId : null;
+  // ── Bundle presets ──
+  // When a recognized bundle is requested, credit quantities and price are
+  // server-controlled (so a client can't tamper with the discount).
+  const BUNDLES: Record<string, { audio: number; video: number; photo: number; vaultFees: number; priceCents: number; label: string }> = {
+    starter: {
+      audio: 0,
+      video: 50,
+      photo: 200,
+      vaultFees: 1,
+      priceCents: 9995,
+      label: "Starter Package",
+    },
+  };
+  const bundleKey = typeof bundle === "string" && bundle in BUNDLES ? bundle : null;
+  const bundleSpec = bundleKey ? BUNDLES[bundleKey] : null;
+
+  const audio = bundleSpec ? bundleSpec.audio : Math.max(0, Math.floor(audioCredits || 0));
+  const video = bundleSpec ? bundleSpec.video : Math.max(0, Math.floor(videoCredits || 0));
+  const photo = bundleSpec ? bundleSpec.photo : Math.max(0, Math.floor(photoCredits || 0));
+  const vaultFees = bundleSpec ? bundleSpec.vaultFees : Math.max(0, Math.floor(vaultFeeQty || 0));
+  const targetVault =
+    !bundleSpec && typeof targetVaultId === "string" && targetVaultId.length > 0
+      ? targetVaultId
+      : null;
 
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
@@ -37,61 +56,79 @@ export async function POST(request: Request) {
     quantity: number;
   }> = [];
 
-  // Vault fee — $10 each (skipped when adding credits to an existing vault)
-  if (vaultFees > 0) {
+  if (bundleSpec) {
+    // Single bundled line item at the discounted price. The webhook reads
+    // credit counts from metadata (not line items), so a single line item is
+    // safe and gives the cleanest Stripe receipt.
     lineItems.push({
       price_data: {
         currency: "usd",
         product_data: {
-          name: "Memory Vault Fee",
-          description: "One-time vault creation fee ($10 per vault)",
+          name: `SealTheDay ${bundleSpec.label}`,
+          description: `1 Memory Vault + ${bundleSpec.video} video slots + ${bundleSpec.photo} photo slots`,
         },
-        unit_amount: 1000,
+        unit_amount: bundleSpec.priceCents,
       },
-      quantity: vaultFees,
+      quantity: 1,
     });
-  }
+  } else {
+    // À la carte — separate line items per credit type.
+    // Vault fee — $10 each (skipped when adding credits to an existing vault)
+    if (vaultFees > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Memory Vault Fee",
+            description: "One-time vault creation fee ($10 per vault)",
+          },
+          unit_amount: 1000,
+        },
+        quantity: vaultFees,
+      });
+    }
 
-  if (audio > 0) {
-    lineItems.push({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Audio Memory Credit",
-          description: "One person can record a voice message for your vault",
+    if (audio > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Audio Memory Credit",
+            description: "One person can record a voice message for your vault",
+          },
+          unit_amount: 25, // $0.25
         },
-        unit_amount: 25, // $0.25
-      },
-      quantity: audio,
-    });
-  }
+        quantity: audio,
+      });
+    }
 
-  if (video > 0) {
-    lineItems.push({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Video Memory Credit",
-          description: "One person can record a video message for your vault",
+    if (video > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Video Memory Credit",
+            description: "One person can record a video message for your vault",
+          },
+          unit_amount: 100, // $1
         },
-        unit_amount: 100, // $1
-      },
-      quantity: video,
-    });
-  }
+        quantity: video,
+      });
+    }
 
-  if (photo > 0) {
-    lineItems.push({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Photo Memory Credit",
-          description: "One person can upload a photo to your vault",
+    if (photo > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Photo Memory Credit",
+            description: "One person can upload a photo to your vault",
+          },
+          unit_amount: 25, // $0.25
         },
-        unit_amount: 25, // $0.25
-      },
-      quantity: photo,
-    });
+        quantity: photo,
+      });
+    }
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
@@ -107,6 +144,7 @@ export async function POST(request: Request) {
       photoCredits: String(photo),
       vaultFeeQty: String(vaultFees),
       ...(targetVault ? { targetVaultId: targetVault } : {}),
+      ...(bundleKey ? { bundle: bundleKey } : {}),
     },
     customer_email: user.email,
     // session_id is replaced by Stripe at redirect time and used by the
