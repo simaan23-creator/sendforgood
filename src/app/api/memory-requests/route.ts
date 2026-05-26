@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { resend } from "@/lib/resend";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -188,6 +189,62 @@ export async function POST(request: Request) {
         }
       }
     }
+  }
+
+  // Vault creation confirmation email — fire and forget so the API stays fast.
+  // Buyer keeps a permanent record of the share link and the wedding-kit link
+  // (without this email the share link only lived on the client page).
+  if (data?.unique_code && user.email) {
+    const shareUrl = `https://sealtheday.com/record/${data.unique_code}`;
+    const kitUrl = `https://sealtheday.com/vault/wedding-kit?code=${data.unique_code}`;
+    const sealLine = sealed_until
+      ? `Sealed until <strong>${new Date(sealed_until).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong> &mdash; not even you can peek before then.`
+      : `No seal date set &mdash; recordings will be visible to you as they come in.`;
+
+    resend.emails.send({
+      from: "SealTheDay <noreply@sealtheday.com>",
+      to: user.email,
+      subject: `Your vault "${title}" is live \u2014 here's the share link`,
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
+          <h1 style="color: #1a2744; margin-top: 0;">Your vault is live \uD83C\uDF89</h1>
+          <p style="font-size: 16px; line-height: 1.6;">
+            <strong>${title}</strong> is ready to receive memories from your guests. ${sealLine}
+          </p>
+
+          <div style="background: #ffffff; border: 2px solid #C9A961; border-radius: 12px; padding: 24px; margin: 28px 0;">
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 12px;">Your guest share link</div>
+            <div style="font-family: 'Courier New', monospace; background: #fdf8f0; padding: 14px; border-radius: 8px; word-break: break-all; font-size: 14px; color: #1a2744;">
+              ${shareUrl}
+            </div>
+            <p style="margin: 12px 0 0; font-size: 13px; color: #6c6357;">
+              Anyone with this link can record. No app or login required for them.
+            </p>
+          </div>
+
+          <h2 style="font-size: 18px; margin: 32px 0 12px; color: #1a2744;">Next: grab your Wedding Kit</h2>
+          <p style="line-height: 1.6;">
+            Printable QR table cards (one for every dinner table), an MC script for your DJ, and pre-written invitations \u2014 all populated with your link above, ready to print.
+          </p>
+
+          <p style="margin-top: 24px; text-align: center;">
+            <a href="${kitUrl}" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Open my Wedding Kit &rarr;</a>
+          </p>
+
+          <p style="margin-top: 32px; font-size: 13px; color: #6c6357; text-align: center;">
+            <a href="https://sealtheday.com/vault/my" style="color: #722F37;">Back to my dashboard</a>
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
+          <p style="font-size: 12px; color: #8a8275; text-align: center; line-height: 1.5;">
+            Save this email \u2014 it\u2019s the easiest way to find your share link later.<br/>
+            Questions? Reply to this email or write to support@sealtheday.com
+          </p>
+        </div>
+      `,
+    }).catch((emailError) => {
+      console.error("Failed to send vault creation confirmation email:", emailError);
+    });
   }
 
   return NextResponse.json(data);

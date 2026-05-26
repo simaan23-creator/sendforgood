@@ -62,10 +62,10 @@ function SuccessContent() {
           </div>
 
           <h1 className="mt-5 text-2xl font-bold text-navy">
-            Your credits are ready!
+            You&rsquo;re in. Let&rsquo;s build your vault.
           </h1>
           <p className="mt-3 text-warm-gray">
-            Your Memory Vault credits have been added to your account.
+            Your credits are live. Three quick steps and your guests can start recording.
           </p>
 
           <div className="mt-6 rounded-lg bg-cream p-4">
@@ -91,18 +91,55 @@ function SuccessContent() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          {/* What's next checklist */}
+          <ol className="mt-8 space-y-3 text-left text-sm">
+            <li className="flex items-start gap-3 rounded-lg border-2 border-gold bg-gold/5 p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy">
+                1
+              </span>
+              <div>
+                <div className="font-semibold text-navy">Name your vault &amp; pick your seal date</div>
+                <div className="mt-0.5 text-xs text-warm-gray">
+                  Takes 60 seconds. Seal it for the morning after, your 1st anniversary, or your 10th.
+                </div>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 rounded-lg border border-cream-dark p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cream-dark text-xs font-bold text-navy">
+                2
+              </span>
+              <div>
+                <div className="font-semibold text-navy">Grab your Wedding Kit</div>
+                <div className="mt-0.5 text-xs text-warm-gray">
+                  Printable QR table cards, MC script, and guest invitations &mdash; ready to print.
+                </div>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 rounded-lg border border-cream-dark p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cream-dark text-xs font-bold text-navy">
+                3
+              </span>
+              <div>
+                <div className="font-semibold text-navy">Share with your guests</div>
+                <div className="mt-0.5 text-xs text-warm-gray">
+                  Drop the link in your wedding website, text it, or just leave the QR cards on every table.
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          <div className="mt-8 flex flex-col gap-3">
             <Link
               href="/request/create"
-              className="rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-navy-light"
+              className="rounded-lg bg-gold px-6 py-4 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
             >
-              Create your first vault
+              Create my vault now &rarr;
             </Link>
             <Link
               href="/vault/my"
-              className="rounded-lg border border-cream-dark px-6 py-3 text-sm font-medium text-warm-gray transition hover:bg-cream-dark"
+              className="text-sm font-medium text-warm-gray underline hover:text-navy"
             >
-              View your vault
+              I&rsquo;ll do it later &mdash; take me to my dashboard
             </Link>
           </div>
         </div>

@@ -1870,31 +1870,54 @@ async function handleVaultCreditOrder(
 
   // Send confirmation email to customer
   try {
-    const creditParts = [];
-    if (audioCredits > 0) creditParts.push(`${audioCredits} audio credit${audioCredits > 1 ? "s" : ""}`);
-    if (videoCredits > 0) creditParts.push(`${videoCredits} video credit${videoCredits > 1 ? "s" : ""}`);
-    if (photoCredits > 0) creditParts.push(`${photoCredits} photo credit${photoCredits > 1 ? "s" : ""}`);
+    const isStarter = metadata.bundle === "starter";
+    const headline = isStarter
+      ? "Your Starter Package is live \uD83C\uDF89"
+      : "Your credits are ready \uD83C\uDF89";
+    const intro = isStarter
+      ? "You\u2019ve got everything a typical 100\u2013150 person wedding needs: a vault, 50 video slots, 200 photo slots, and the full printable Wedding Kit. Three quick steps and your guests can start recording."
+      : "Your Memory Vault credits are live. Three quick steps and your guests can start recording.";
 
     await resend.emails.send({
       from: "SealTheDay <noreply@sealtheday.com>",
       to: customerEmail,
-      subject: "Your Memory Vault credits are ready! \uD83D\uDD13",
+      subject: isStarter
+        ? "Welcome to SealTheDay \u2014 your Starter Package is live"
+        : "Your Memory Vault credits are ready",
       html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744;">
-          <h1 style="color: #1a2744;">Your credits are ready! \uD83C\uDF89</h1>
-          <p>Thank you for purchasing Memory Vault credits. You can now create a vault and share the link with your loved ones.</p>
-          <div style="background: #fdf8f0; border-radius: 12px; padding: 24px; margin: 24px 0;">
-            <h2 style="margin-top: 0; font-size: 18px;">Credit Summary</h2>
-            ${audioCredits > 0 ? `<p><strong>Audio Credits:</strong> ${audioCredits} ($0.25 each)</p>` : ""}
-            ${videoCredits > 0 ? `<p><strong>Video Credits:</strong> ${videoCredits} ($1 each)</p>` : ""}
-            ${photoCredits > 0 ? `<p><strong>Photo Credits:</strong> ${photoCredits} ($0.25 each)</p>` : ""}
-            <p><strong>Total paid:</strong> ${amountFormatted}</p>
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
+          <h1 style="color: #1a2744; margin-top: 0;">${headline}</h1>
+          <p style="font-size: 16px; line-height: 1.6;">${intro}</p>
+
+          <div style="background: #ffffff; border: 1px solid #f1e8db; border-radius: 12px; padding: 20px; margin: 24px 0;">
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 8px;">${isStarter ? "Starter Package" : "Credits added"}</div>
+            ${vaultFeeQty > 0 ? `<p style="margin: 6px 0;"><strong>${vaultFeeQty}</strong> Memory Vault ${vaultFeeQty > 1 ? "credits" : "credit"}</p>` : ""}
+            ${videoCredits > 0 ? `<p style="margin: 6px 0;"><strong>${videoCredits}</strong> video slot${videoCredits > 1 ? "s" : ""}</p>` : ""}
+            ${photoCredits > 0 ? `<p style="margin: 6px 0;"><strong>${photoCredits}</strong> photo slot${photoCredits > 1 ? "s" : ""}</p>` : ""}
+            ${audioCredits > 0 ? `<p style="margin: 6px 0;"><strong>${audioCredits}</strong> audio slot${audioCredits > 1 ? "s" : ""}</p>` : ""}
+            <p style="margin: 12px 0 0; font-size: 13px; color: #6c6357;">Total paid: <strong>${amountFormatted}</strong> &middot; Unused slots never expire.</p>
           </div>
-          <p>Credits are consumed only when someone records a message. Unused credits never expire.</p>
-          <p style="margin-top: 24px;">
-            <a href="https://sealtheday.com/request/create" style="background: #1a2744; color: #fdf8f0; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Your Vault</a>
+
+          <h2 style="font-size: 18px; margin: 32px 0 12px; color: #1a2744;">What happens next</h2>
+          <ol style="padding-left: 20px; line-height: 1.7; color: #2a1418;">
+            <li><strong>Name your vault &amp; pick your seal date.</strong> Takes 60 seconds. Seal it for the morning after your wedding, your 1st anniversary, or your 10th \u2014 your call.</li>
+            <li><strong>Grab your Wedding Kit.</strong> Printable QR table cards, an MC script, and pre-written guest invitations \u2014 all populated with your vault link, ready to print.</li>
+            <li><strong>Share with guests.</strong> Drop the QR cards on every table, text the link, or put it in your wedding website. They tap, record, and you unlock everything on the date you chose.</li>
+          </ol>
+
+          <p style="margin-top: 32px; text-align: center;">
+            <a href="https://sealtheday.com/request/create" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Create Your Vault &rarr;</a>
           </p>
-          <p style="margin-top: 40px;">With love,<br/><strong>The SealTheDay Team</strong></p>
+
+          <p style="margin-top: 24px; font-size: 13px; color: #6c6357; text-align: center;">
+            Already created a vault? <a href="https://sealtheday.com/vault/my" style="color: #722F37;">Go to your dashboard</a>
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
+          <p style="font-size: 12px; color: #8a8275; text-align: center; line-height: 1.5;">
+            Questions? Reply to this email or write to support@sealtheday.com<br/>
+            SealTheDay is a product of SendForGood, LLC.
+          </p>
         </div>
       `,
     });
