@@ -86,15 +86,6 @@ const FAQS = [
   },
 ];
 
-const COMPARISON_ROWS: Array<{ feature: string; std: string; hash: string; group: string; vault: string; vaultStrong?: boolean }> = [
-  { feature: "Captures back-hallway / pre-ceremony / afterparty moments", std: "No", hash: "Maybe", group: "Sometimes", vault: "Yes", vaultStrong: true },
-  { feature: "Works without an app or guest login", std: "N/A", hash: "No", group: "Yes", vault: "Yes", vaultStrong: true },
-  { feature: "Survives if guests delete the photo from their phone", std: "Yes", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
-  { feature: "Voice messages from guests who can\u2019t make a speech", std: "No", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
-  { feature: "Sealed until the date YOU choose (time capsule)", std: "No", hash: "No", group: "No", vault: "Yes", vaultStrong: true },
-  { feature: "All-in cost for a 150-person wedding", std: "$1,500\u2013$3,500", hash: "Free", group: "Free", vault: "$60\u2013$200" },
-];
-
 export default function WeddingPage() {
   return (
     <main className="bg-cream">
@@ -112,7 +103,7 @@ export default function WeddingPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
             Turn every guest into a second-shooter. Capture the moments your
             photographer will never reach &mdash; the back hallways, the
-            bridal-suite breakdown, the cigar smoke, the 2 a.m. dance floor.
+            bridal-suite laughter, the cigar smoke, the 2 a.m. dance floor.
             Then open it together on the day you choose.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -177,9 +168,9 @@ export default function WeddingPage() {
               Here&rsquo;s the part nobody tells you: the only reason I have
               <em> any</em> record of my own wedding is because 150 of our
               guests had phones in their pockets and instinctively started
-              filming. My cousin caught my dad crying. My college roommate got
-              the first kiss. A groomsman somehow filmed the entire toast from
-              the back of the room.
+              filming. My cousin caught my dad&rsquo;s face the second he saw
+              me. My college roommate got the first kiss. A groomsman somehow
+              filmed the entire toast from the back of the room.
             </p>
             <p className="font-semibold text-navy">
               When I stitched it all together weeks later, I realized something
@@ -219,11 +210,11 @@ export default function WeddingPage() {
             <p>
               Meanwhile, behind the venue, your groomsmen are passing a flask
               and laughing about a story from college. Upstairs, your mom is
-              fixing your sister&rsquo;s mascara because she just lost it
-              watching you put on your veil. The bridal party is on the floor
-              of the bridal suite stitching a hem back together five minutes
-              before walk-out. Your dad is alone in the hallway, taking a
-              breath before he sees you.
+              helping your sister button the back of her dress, both of them
+              laughing about something only sisters know. The bridal party is
+              on the floor of the bridal suite stitching a hem back together
+              five minutes before walk-out. Your dad is alone in the hallway,
+              taking a breath before he sees you.
             </p>
             <p className="font-semibold text-navy">
               No professional photographer in the world is going to capture all
@@ -349,8 +340,8 @@ export default function WeddingPage() {
             <p>
               Twenty years from now, the photos on your wall will still be
               beautiful. But the thing you will watch over and over is the
-              unguarded clip your cousin recorded of your dad wiping his eyes
-              when no one was looking.
+              unguarded clip your cousin recorded of your uncles laughing in
+              the corner about a story from twenty years ago.
             </p>
             <p className="text-xl font-semibold text-navy">
               That is the gift only your guests can give you. SealTheDay is
@@ -510,60 +501,6 @@ export default function WeddingPage() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── Comparison Table ── */}
-      <section className="bg-white px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            How it compares
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-warm-gray">
-            Most couples already do <em>something</em> to crowdsource photos.
-            Here is how the usual options stack up.
-          </p>
-          <div className="mt-10 overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b-2 border-navy/15">
-                  <th className="py-3 pr-4 font-semibold text-navy">Capability</th>
-                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
-                    Pro Photographer<br />
-                    <span className="text-[10px] font-normal">(alone)</span>
-                  </th>
-                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
-                    Wedding Hashtag<br />
-                    <span className="text-[10px] font-normal">(Instagram)</span>
-                  </th>
-                  <th className="px-3 py-3 text-center font-semibold text-warm-gray">
-                    Group Text<br />
-                    <span className="text-[10px] font-normal">(iMessage)</span>
-                  </th>
-                  <th className="rounded-t-lg bg-gold/15 px-3 py-3 text-center font-bold text-navy">
-                    SealTheDay
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARISON_ROWS.map((row, i) => (
-                  <tr key={i} className="border-b border-cream-dark/60">
-                    <td className="py-4 pr-4 text-navy">{row.feature}</td>
-                    <td className="px-3 py-4 text-center text-warm-gray">{row.std}</td>
-                    <td className="px-3 py-4 text-center text-warm-gray">{row.hash}</td>
-                    <td className="px-3 py-4 text-center text-warm-gray">{row.group}</td>
-                    <td className={`bg-gold/10 px-3 py-4 text-center ${row.vaultStrong ? "font-bold text-navy" : "text-navy"}`}>
-                      {row.vault}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-sm italic text-warm-gray">
-            SealTheDay isn&rsquo;t a replacement for your photographer.
-            It&rsquo;s the layer that captures everything they can&rsquo;t.
-          </p>
         </div>
       </section>
 
