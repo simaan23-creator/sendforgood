@@ -456,50 +456,30 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch vault credits and usage from Supabase
+    // Fetch vault credits via the API endpoint (uses supabaseAdmin, bypasses RLS).
+    // This is the same source of truth used by /request/create on mobile.
     try {
-      const { data: creditsData } = await supabase.from('memory_credits').select('audio_credits, video_credits, photo_credits').eq('user_id', user.id);
-      const purchasedAudio = (creditsData || []).reduce((sum: number, c: { audio_credits: number | null }) => sum + (c.audio_credits || 0), 0);
-      const purchasedVideo = (creditsData || []).reduce((sum: number, c: { video_credits: number | null }) => sum + (c.video_credits || 0), 0);
-      const purchasedPhoto = (creditsData || []).reduce((sum: number, c: { photo_credits?: number | null }) => sum + (c.photo_credits || 0), 0);
-      let totalAudio = purchasedAudio;
-      let totalVideo = purchasedVideo;
-
-      // Also count unused voice messages as available credits
-      // Exclude VMs with completed requests or gifted away
-      let audioFromVMs = 0;
-      let videoFromVMs = 0;
-      const { data: draftVMs } = await supabase.from('voice_messages').select('id, message_format').eq('user_id', user.id).eq('status', 'draft');
-      if (draftVMs && draftVMs.length > 0) {
-        const vmIds = draftVMs.map((vm: { id: string }) => vm.id);
-        const { data: completedReqs } = await supabase.from('message_uses').select('claim_code').eq('user_id', user.id).eq('use_type', 'request').eq('status', 'completed');
-        const usedVmIds = new Set<string>();
-        if (completedReqs) {
-          for (const req of completedReqs) {
-            const parts = ((req as { claim_code: string }).claim_code || '').split('_');
-            const sourceId = parts.length >= 2 ? parts.slice(1).join('_') : null;
-            if (sourceId && vmIds.includes(sourceId)) usedVmIds.add(sourceId);
-          }
-        }
-        const { data: giftedVMs } = await supabase.from('gifted_items').select('item_id').eq('sender_id', user.id).eq('item_type', 'voice_message');
-        if (giftedVMs) {
-          for (const gi of giftedVMs) usedVmIds.add((gi as { item_id: string }).item_id);
-        }
-        for (const vm of draftVMs) {
-          if (!usedVmIds.has((vm as { id: string }).id)) {
-            if ((vm as { message_format: string }).message_format === 'video') { totalVideo++; videoFromVMs++; }
-            else { totalAudio++; audioFromVMs++; }
-          }
-        }
+      const res = await fetch('/api/vault/credits', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setVaultCredits({
+          audioCredits: data.audioCredits || 0,
+          videoCredits: data.videoCredits || 0,
+          photoCredits: data.photoCredits || 0,
+          audioUsed: data.audioUsed || 0,
+          videoUsed: data.videoUsed || 0,
+          audioFromVMs: 0,
+          videoFromVMs: 0,
+          audioFromPurchased: data.audioCredits || 0,
+          videoFromPurchased: data.videoCredits || 0,
+          vaultFees: data.vaultCredits || 0,
+        });
+      } else {
+        console.error('Vault credits fetch failed:', res.status, await res.text());
       }
-
-      // Count unused vault fees
-      const { data: vaultFeesData } = await supabase.from('vault_fees').select('id').eq('user_id', user.id).is('used_at', null);
-      const vaultFeeCount = vaultFeesData?.length || 0;
-
-      // Credits are deducted at vault creation time, so no separate "used" calculation needed
-      setVaultCredits({ audioCredits: totalAudio, videoCredits: totalVideo, photoCredits: purchasedPhoto, audioUsed: 0, videoUsed: 0, audioFromVMs, videoFromVMs, audioFromPurchased: purchasedAudio, videoFromPurchased: purchasedVideo, vaultFees: vaultFeeCount });
-    } catch { /* silently fail */ }
+    } catch (err) {
+      console.error('Vault credits fetch error:', err);
+    }
   }, [supabase, router]);
 
   useEffect(() => {
@@ -643,7 +623,21 @@ export default function DashboardPage() {
   // ---------------------------------------------------------------------------
   // Empty state
   // ---------------------------------------------------------------------------
-  if (orders.length === 0 && giftCredits.length === 0 && letters.length === 0 && giftsGiven.length === 0) {
+  const hasVaultActivity =
+    memoryRequests.length > 0 ||
+    (vaultCredits &&
+      (vaultCredits.audioCredits +
+        vaultCredits.videoCredits +
+        vaultCredits.photoCredits +
+        vaultCredits.vaultFees) >
+        0);
+  if (
+    orders.length === 0 &&
+    giftCredits.length === 0 &&
+    letters.length === 0 &&
+    giftsGiven.length === 0 &&
+    !hasVaultActivity
+  ) {
     return (
       <div className="min-h-screen bg-cream">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -663,10 +657,10 @@ export default function DashboardPage() {
                 Sign Out
               </button>
               <Link
-                href="/vault/buy"
+                href={vaultCredits && vaultCredits.vaultFees > 0 ? "/request/create" : "/vault/buy"}
                 className="rounded-lg border border-forest px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
               >
-                Create Vault
+                {vaultCredits && vaultCredits.vaultFees > 0 ? "Create Your Vault" : "Buy a Vault"}
               </Link>
             </div>
           </div>
@@ -695,10 +689,10 @@ export default function DashboardPage() {
               Start your wedding vault and invite guests to record memories.
             </p>
             <Link
-              href="/vault/buy"
+              href={vaultCredits && vaultCredits.vaultFees > 0 ? "/request/create" : "/vault/buy"}
               className="mt-8 inline-flex items-center rounded-lg bg-forest px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-forest-light"
             >
-              Create a Wedding Vault
+              {vaultCredits && vaultCredits.vaultFees > 0 ? "Create Your Wedding Vault" : "Start Your Wedding Vault"}
             </Link>
           </div>
         </div>
@@ -1883,6 +1877,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-navy">My Memory Vaults</h2>
             <div className="flex gap-2">
+              {vaultCredits && vaultCredits.vaultFees > 0 && (
+                <Link
+                  href="/request/create"
+                  className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-light"
+                >
+                  Create a Vault
+                </Link>
+              )}
               <Link
                 href="/vault/buy"
                 className="rounded-lg border border-cream-dark px-4 py-2 text-sm font-medium text-warm-gray transition-colors hover:bg-cream-dark"
