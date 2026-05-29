@@ -311,10 +311,12 @@ export default function MyVaultsPage() {
                 <p className="text-2xl font-bold text-navy">{credits.vaultCredits || 0}</p>
                 <p className="text-xs text-warm-gray">Vault available</p>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-navy">{availableAudio}</p>
-                <p className="text-xs text-warm-gray">Audio available</p>
-              </div>
+              {availableAudio > 0 && (
+                <div>
+                  <p className="text-2xl font-bold text-navy">{availableAudio}</p>
+                  <p className="text-xs text-warm-gray">Audio available</p>
+                </div>
+              )}
               <div>
                 <p className="text-2xl font-bold text-navy">{availableVideo}</p>
                 <p className="text-xs text-warm-gray">Video available</p>
@@ -476,19 +478,21 @@ export default function MyVaultsPage() {
                   {addingCreditsId === vault.id && (
                     <div className="mt-4 rounded-lg border border-cream-dark bg-cream/50 p-4">
                       <p className="mb-3 text-sm font-semibold text-navy">Add credits to this vault</p>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-navy">Audio</label>
-                          <input
-                            type="number"
-                            min={0}
-                            max={availableAudio}
-                            value={addForm.audio}
-                            onChange={(e) => setAddForm((f) => ({ ...f, audio: Math.max(0, parseInt(e.target.value) || 0) }))}
-                            className="w-full rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy"
-                          />
-                          <p className="mt-0.5 text-[10px] text-warm-gray">{availableAudio} avail</p>
-                        </div>
+                      <div className={`grid gap-3 ${availableAudio > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
+                        {availableAudio > 0 && (
+                          <div>
+                            <label className="mb-1 block text-xs font-medium text-navy">Audio</label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={availableAudio}
+                              value={addForm.audio}
+                              onChange={(e) => setAddForm((f) => ({ ...f, audio: Math.max(0, parseInt(e.target.value) || 0) }))}
+                              className="w-full rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy"
+                            />
+                            <p className="mt-0.5 text-[10px] text-warm-gray">{availableAudio} avail</p>
+                          </div>
+                        )}
                         <div>
                           <label className="mb-1 block text-xs font-medium text-navy">Video</label>
                           <input

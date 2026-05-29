@@ -4,14 +4,14 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Pricing — SealTheDay Wedding Vault",
   description:
-    "$10 one-time vault fee. $1 per video slot, $0.25 per audio or photo slot. Buy any quantity. Slots never expire.",
+    "$10 one-time vault fee. $1 per video slot, $0.25 per photo slot. Buy any quantity. Slots never expire.",
 };
 
 const FAQ = [
   {
     question: "How does pricing work?",
     answer:
-      "It is purely \u00e0 la carte. Pay $10 once to create your vault, then buy as many recording slots as you want \u2014 $1 per video, $0.25 per audio, $0.25 per photo. No minimum. No subscription. Unused slots never expire.",
+      "It is purely \u00e0 la carte. Pay $10 once to create your vault, then buy as many recording slots as you want \u2014 $1 per video, $0.25 per photo. No minimum. No subscription. Unused slots never expire.",
   },
   {
     question: "How many video slots do most weddings buy?",
@@ -31,7 +31,7 @@ const FAQ = [
   {
     question: "How long can each recording be?",
     answer:
-      "Video and audio recordings are capped at 3 minutes each. Photos are uploaded at full resolution.",
+      "Video recordings are capped at 3 minutes each. Photos are uploaded at full resolution.",
   },
   {
     question: "What if I add more slots later?",
@@ -73,14 +73,6 @@ const ITEMS = [
     featured: true,
   },
   {
-    emoji: "\uD83C\uDFA4",
-    label: "Audio Slot",
-    price: "$0.25",
-    unit: "per slot",
-    desc: "Guests leave a voice message. Up to 3 minutes.",
-    featured: false,
-  },
-  {
     emoji: "\uD83D\uDCF7",
     label: "Photo Slot",
     price: "$0.25",
@@ -115,7 +107,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {ITEMS.map((item) => (
             <article
               key={item.label}

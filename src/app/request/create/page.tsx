@@ -99,9 +99,10 @@ export default function CreateMemoryRequestPage() {
     }
   }, [createdRequest]);
 
-  const availableAudio = credits
-    ? credits.audioCredits - credits.audioUsed
-    : 0;
+  // Audio surface hidden 2026-05-29 — vault is video + photo only. Backend
+  // audio_credits column retained; force 0 here so legacy audio credits
+  // can't be allocated to new vaults from the UI.
+  const availableAudio = 0;
   const availableVideo = credits
     ? credits.videoCredits - credits.videoUsed
     : 0;
@@ -370,7 +371,7 @@ export default function CreateMemoryRequestPage() {
               You need credits to create a vault.
             </p>
             <p className="mt-1 text-sm text-warm-gray">
-              Buy audio or video credits first, then come back to create your
+              Buy video or photo credits first, then come back to create your
               vault.
             </p>
             <Link
@@ -390,9 +391,11 @@ export default function CreateMemoryRequestPage() {
               <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
                 {"\uD83D\uDD12"} {vaultCredits} vault
               </span>
-              <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
-                {"\uD83C\uDFA4"} {availableAudio} audio
-              </span>
+              {availableAudio > 0 && (
+                <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
+                  {"\uD83C\uDFA4"} {availableAudio} audio
+                </span>
+              )}
               <span className="inline-flex items-center rounded-full bg-navy/10 px-3 py-1 text-sm font-medium text-navy">
                 {"\uD83C\uDFA5"} {availableVideo} video
               </span>

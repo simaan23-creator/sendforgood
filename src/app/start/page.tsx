@@ -35,7 +35,7 @@ export default function StartPage() {
               straight from their phones.
             </p>
             <ul className="mt-5 space-y-2 text-sm text-navy/80">
-              <li>{"\u2713"} $1 per video slot &middot; $0.25 per audio &middot; $0.25 per photo</li>
+              <li>{"\u2713"} $1 per video slot &middot; $0.25 per photo</li>
               <li>{"\u2713"} Sealed until the date you pick</li>
               <li>{"\u2713"} Unused slots never expire</li>
             </ul>

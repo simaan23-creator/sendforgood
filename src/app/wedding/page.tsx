@@ -487,7 +487,7 @@ export default function WeddingPage() {
                     ))}
                   </div>
                   <div className="mt-1 text-[9px] text-warm-gray">
-                    47 videos &middot; 12 voice &middot; 184 photos
+                    47 videos &middot; 184 photos
                   </div>
                   <div className="mt-auto rounded-md bg-navy py-1.5 text-center text-[10px] font-bold text-cream">
                     Watch the day
@@ -606,7 +606,7 @@ export default function WeddingPage() {
               <div className="rounded-2xl border border-gold/40 bg-gold/5 p-5 text-sm">
                 <div className="font-semibold text-navy">Need more or less?</div>
                 <p className="mt-1 text-warm-gray">
-                  Buy any combination a la carte &mdash; vault for $10, video for $1, audio &amp; photos $0.25 each.
+                  Buy any combination a la carte &mdash; vault for $10, video for $1, photos $0.25 each.
                 </p>
                 <Link
                   href="/vault/buy"
@@ -669,12 +669,6 @@ export default function WeddingPage() {
                 <span className="font-semibold text-navy">Video recording slot</span>
                 <span className="text-2xl font-extrabold tracking-tight text-navy">
                   $1<span className="text-sm font-normal text-warm-gray"> each</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">
-                <span className="font-semibold text-navy">Audio recording slot</span>
-                <span className="text-2xl font-extrabold tracking-tight text-navy">
-                  $0.25<span className="text-sm font-normal text-warm-gray"> each</span>
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-cream-dark/60 pb-3">

@@ -27,7 +27,7 @@ export default function RecordMemoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [recorderName, setRecorderName] = useState("");
   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
-  const [mediaFormat, setMediaFormat] = useState<MediaFormat>("audio");
+  const [mediaFormat, setMediaFormat] = useState<MediaFormat>("video");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<"record" | "photo">("record");

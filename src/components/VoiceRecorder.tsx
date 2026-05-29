@@ -19,7 +19,7 @@ export default function VoiceRecorder({
   onRecordingComplete,
   onFormatChange,
   maxDurationSeconds = 120,
-  defaultFormat = "audio",
+  defaultFormat = "video",
   showFormatToggle = true,
   disableAudio = false,
   disableVideo = false,
