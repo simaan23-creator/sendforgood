@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Exclude non-UI files from Tailwind's content scan. Markdown handoff notes
+   and admin scripts contain characters (×, em-dashes, etc.) that have
+   tripped the v4 oxide scanner with "Invalid code point" errors. */
+@source not "../../*.md";
+@source not "../../scripts/**/*";
+
 @theme {
   --color-cream: #FDF8F0;
   --color-cream-dark: #F5EDE0;
