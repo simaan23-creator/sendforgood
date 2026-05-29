@@ -270,8 +270,11 @@ export default function DashboardPage() {
 
   const showGifts =
     hasLegacyGifts && (activeTab === "all" || activeTab === "gifts");
-  const showLetters = activeTab === "all" || activeTab === "letters";
-  const showMessages = activeTab === "all" || activeTab === "messages";
+  // Letters + voice messages temporarily hidden 2026-05-29 to keep the
+  // wedding-vault surface focused on photo + video. Code preserved; backup
+  // at C:\Users\Simaan\Desktop\sealtheday-archive-letters-vm-2026-05-29.
+  const showLetters = false;
+  const showMessages = false;
   const showVaults = activeTab === "all" || activeTab === "vaults";
 
   const TABS: Array<{ id: typeof activeTab; label: string }> = [
@@ -279,8 +282,6 @@ export default function DashboardPage() {
     ...(hasLegacyGifts
       ? [{ id: "gifts" as const, label: "Gift Credits" }]
       : []),
-    { id: "letters", label: "Letters" },
-    { id: "messages", label: "Messages" },
     { id: "vaults", label: "Vaults" },
   ];
 
@@ -311,7 +312,8 @@ export default function DashboardPage() {
       .single();
     if (profile?.phone) setPhone(profile.phone);
 
-    const [ordersResult, refundsResult, lettersResult, gcResult, givenResult] = await Promise.all([
+    // Letters fetch removed 2026-05-29 — see showLetters comment above.
+    const [ordersResult, refundsResult, gcResult, givenResult] = await Promise.all([
       supabase
         .from("orders")
         .select("*, recipients(*), occasions(*), shipments(id, scheduled_date, status, tracking_number, photo_url)")
@@ -322,12 +324,6 @@ export default function DashboardPage() {
         .select("id, order_id, status")
         .eq("user_id", user.id)
         .eq("status", "pending"),
-      supabase
-        .from("letters")
-        .select("*, recipient_name, recipients(name, relationship)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50),
       supabase
         .from('gift_credits')
         .select('id, tier, quantity, quantity_used, amount_paid, created_at')
@@ -346,10 +342,6 @@ export default function DashboardPage() {
 
     if (!refundsResult.error && refundsResult.data) {
       setRefundRequests(refundsResult.data as RefundRequest[]);
-    }
-
-    if (!lettersResult.error && lettersResult.data) {
-      setLetters(lettersResult.data as Letter[]);
     }
 
     // Process gift credits + fetch their assignments
@@ -394,18 +386,7 @@ export default function DashboardPage() {
       // silently fail
     }
 
-    // Fetch voice messages (exclude vault_allocated ones)
-    try {
-      const { data: vmData } = await supabase
-        .from("voice_messages")
-        .select("*")
-        .eq("user_id", user.id)
-        .neq("status", "vault_allocated")
-        .order("created_at", { ascending: false });
-      if (vmData) setVoiceMessages(vmData);
-    } catch {
-      // silently fail
-    }
+    // Voice messages fetch removed 2026-05-29 — see showMessages comment above.
 
     // Fetch request statuses (linked to voice messages/letters via claim_code format: {random}_{item_id})
     try {
