@@ -28,7 +28,10 @@ export default function VaultBuyPage() {
   const supabase = createClient();
 
   const [vaultFeeQty, setVaultFeeQty] = useState(isStarter ? STARTER_BUNDLE.vaultFees : 1);
-  const [audioQty, setAudioQty] = useState(isStarter ? STARTER_BUNDLE.audioQty : 0);
+  // Audio purchase UI hidden 2026-05-29 — vault is video + photo only for now.
+  // Backend / memory_credits.audio_credits column kept intact so any legacy
+  // audio credits remain valid and re-enabling is a UI-only change.
+  const audioQty = 0;
   const [videoQty, setVideoQty] = useState(isStarter ? STARTER_BUNDLE.videoQty : 10);
   const [photoQty, setPhotoQty] = useState(isStarter ? STARTER_BUNDLE.photoQty : 0);
   const [loading, setLoading] = useState(true);
@@ -337,54 +340,7 @@ export default function VaultBuyPage() {
             </div>
           </div>
 
-          {/* Audio */}
-          <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{"\uD83C\uDFA4"}</span>
-                  <h3 className="text-lg font-bold text-navy">
-                    Audio Credits
-                  </h3>
-                </div>
-                <p className="mt-1 text-sm text-warm-gray">
-                  Guests record a voice message
-                </p>
-              </div>
-              <div className="flex items-baseline gap-1 whitespace-nowrap">
-                <span className="text-xl font-bold text-navy">$0.25</span>
-                <span className="text-sm font-normal text-warm-gray">/each</span>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-3">
-              <button
-                onClick={() => setAudioQty(Math.max(0, audioQty - 1))}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-cream-dark text-lg font-bold text-navy transition hover:bg-cream-dark"
-              >
-                -
-              </button>
-              <input
-                type="number"
-                min={0}
-                value={audioQty}
-                onChange={(e) =>
-                  setAudioQty(Math.max(0, parseInt(e.target.value) || 0))
-                }
-                className="w-20 rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-center text-lg font-bold text-navy outline-none focus:border-gold"
-              />
-              <button
-                onClick={() => setAudioQty(audioQty + 1)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-cream-dark text-lg font-bold text-navy transition hover:bg-cream-dark"
-              >
-                +
-              </button>
-              {audioQty > 0 && (
-                <span className="ml-auto text-sm font-semibold text-navy">
-                  {formatPrice(audioQty * 25)}
-                </span>
-              )}
-            </div>
-          </div>
+          {/* Audio card removed 2026-05-29 — see audioQty comment above. */}
 
           {/* Photo */}
           <div className="rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
