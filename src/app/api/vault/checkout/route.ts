@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 
@@ -11,6 +12,13 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Affiliate referral: middleware writes sfg_affiliate when ?ref=CODE
+  // arrives. Forward it as Stripe metadata so the webhook can credit the
+  // commission to the right affiliate. Matches the pattern used by the
+  // other checkout routes (src/app/api/checkout/route.ts:10).
+  const cookieStore = await cookies();
+  const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
 
   const body = await request.json();
   const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId, bundle } = body;
@@ -145,6 +153,7 @@ export async function POST(request: Request) {
       vaultFeeQty: String(vaultFees),
       ...(targetVault ? { targetVaultId: targetVault } : {}),
       ...(bundleKey ? { bundle: bundleKey } : {}),
+      ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
     },
     customer_email: user.email,
     // session_id is replaced by Stripe at redirect time and used by the
