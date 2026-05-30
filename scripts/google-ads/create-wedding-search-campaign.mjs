@@ -50,8 +50,57 @@ const customer = client.Customer({
 // ---------- config ----------
 const CAMPAIGN_NAME = "SealTheDay — Wedding Memories (Search) [PAUSED draft]";
 const BUDGET_NAME = "SealTheDay Wedding Search Budget";
-const DAILY_BUDGET_USD = 15; // small daily cap, user can raise in UI
+const DAILY_BUDGET_USD = 20; // user-confirmed monthly target ~$600
+const DEFAULT_CPC_USD = 1.5; // Manual CPC default bid; raise per-keyword in UI
 const FINAL_URL = "https://sealtheday.com/wedding";
+
+// Campaign-level negative keywords. Phrase match so close variants are also blocked.
+// Categories: industry overlap (photographer/venue/dress/planner), price-sensitive
+// (free/diy/template/cheap), wrong intent (lyrics/song/vows/speech).
+const NEGATIVE_KEYWORDS = [
+  "photographer",
+  "videographer",
+  "venue",
+  "venues",
+  "dress",
+  "dresses",
+  "planner",
+  "planning",
+  "florist",
+  "flowers",
+  "cake",
+  "catering",
+  "caterer",
+  "dj",
+  "officiant",
+  "ring",
+  "rings",
+  "invitation",
+  "invitations",
+  "gift",
+  "gifts",
+  "free",
+  "diy",
+  "template",
+  "templates",
+  "cheap",
+  "lyrics",
+  "song",
+  "songs",
+  "vows",
+  "speech",
+  "speeches",
+  "quotes",
+  "ideas",
+  "decoration",
+  "decorations",
+  "favors",
+  "registry",
+  "honeymoon",
+  "bachelorette",
+  "bachelor",
+  "engagement",
+];
 
 // One ad group per intent cluster. Keywords use phrase match by default —
 // safer than broad while still picking up close variants.
@@ -108,9 +157,9 @@ const RSA = {
     "Sealed Until Your Anniversary",
     "Starter Pack $99.95",
     "50 Video + 200 Photo Slots",
-    "Built After a Photographer No-Show",
+    "Built After Our Photog Ghosted",
     "Your Day, Permanently Sealed",
-    "Guests Record. You Watch Later.",
+    "Guests Record, You Watch Later",
     "More Than a Hashtag",
     "Replace Your Wedding Hashtag",
   ],
@@ -168,9 +217,13 @@ if (campaignResource) {
       status: enums.CampaignStatus.PAUSED,
       advertising_channel_type: enums.AdvertisingChannelType.SEARCH,
       campaign_budget: budgetResource,
-      // Maximize Conversions — relies on the SealTheDay Purchase conversion
-      // action already created (label 8KHQCL3JsbIcENq_gIdB).
-      maximize_conversions: {},
+      // Manual CPC for the first ~30 conversions so we control spend. Switch to
+      // Maximize Conversions or Target CPA after we have enough conversion
+      // history for Smart Bidding to optimize against.
+      manual_cpc: { enhanced_cpc_enabled: false },
+      // Required by Google Ads API as of 2025-EU DSA compliance.
+      // 3 = DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING.
+      contains_eu_political_advertising: 3,
       network_settings: {
         target_google_search: true,
         target_search_network: true,
@@ -197,7 +250,6 @@ const haveGeos = new Set(
 );
 const wantedGeos = [
   { gtc: "geoTargetConstants/2840", label: "United States" },
-  { gtc: "geoTargetConstants/2124", label: "Canada" },
 ];
 const geoOps = wantedGeos
   .filter((g) => !haveGeos.has(g.gtc))
@@ -233,6 +285,35 @@ if (existingLangs.length === 0) {
   console.log(`[skip] Language already set`);
 }
 
+// ---------- 4b. Campaign-level negative keywords ----------
+const existingNegs = await customer.query(`
+  SELECT campaign_criterion.keyword.text
+  FROM campaign_criterion
+  WHERE campaign_criterion.campaign = '${campaignResource}'
+    AND campaign_criterion.type = 'KEYWORD'
+    AND campaign_criterion.negative = TRUE
+`);
+const haveNegs = new Set(
+  existingNegs.map((r) => r.campaign_criterion?.keyword?.text?.toLowerCase())
+);
+const negOps = NEGATIVE_KEYWORDS
+  .filter((k) => !haveNegs.has(k.toLowerCase()))
+  .map((k) => ({
+    campaign: campaignResource,
+    negative: true,
+    keyword: {
+      text: k,
+      match_type: enums.KeywordMatchType.PHRASE,
+    },
+  }));
+if (negOps.length) {
+  console.log(`Adding ${negOps.length} negative keyword(s) at campaign level...`);
+  await customer.campaignCriteria.create(negOps);
+  console.log(`[ok] Negative keywords added`);
+} else {
+  console.log(`[skip] All negative keywords already present`);
+}
+
 // ---------- 5. Ad groups + keywords + RSA ----------
 for (const ag of AD_GROUPS) {
   const fullName = `${CAMPAIGN_NAME} — ${ag.name}`;
@@ -247,7 +328,7 @@ for (const ag of AD_GROUPS) {
         campaign: campaignResource,
         status: enums.AdGroupStatus.ENABLED,
         type: enums.AdGroupType.SEARCH_STANDARD,
-        cpc_bid_micros: microsFromUsd(1.5), // ignored under Max Conversions, set as floor
+        cpc_bid_micros: microsFromUsd(DEFAULT_CPC_USD),
       },
     ]);
     agResource = out.results[0].resource_name;
