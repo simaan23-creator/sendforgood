@@ -167,7 +167,7 @@ async function sendOne(lead, templateKey) {
     const res = await resend.emails.send({
       from,
       to: lead.email,
-      replyTo: SENDER.email,
+      replyTo: SENDER.replyTo,
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,

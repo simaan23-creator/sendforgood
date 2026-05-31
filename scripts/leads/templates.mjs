@@ -21,9 +21,13 @@
 // stamp every outreach row so we can audit what's been sent.
 export const SENDER = {
   name: "Simaan at SealTheDay",
-  // Use a dedicated outreach alias, NOT noreply@. Replies must land in a
-  // real inbox. Set up outreach@sealtheday.com to forward to your Gmail.
+  // From address — sealtheday.com is verified in Resend so this sends fine,
+  // but no mailbox exists at it. Replies are routed via replyTo below.
   email: "simaan@sealtheday.com",
+  // Reply-To override — when a recipient hits "Reply" their client uses
+  // this header, so replies land directly in the real Gmail inbox without
+  // needing a forwarding alias on sealtheday.com.
+  replyTo: "Simaan23@gmail.com",
 };
 
 // Physical address line — required for CAN-SPAM. Update with your real one.
