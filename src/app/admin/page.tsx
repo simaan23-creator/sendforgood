@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { Fragment, useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -2695,13 +2695,241 @@ function RefundsTab() {
   );
 }
 
+// ─── Stripe Events Tab ──────────────────────────────────────────────────────
+
+type StripeEventRow = {
+  id: string;
+  type: string;
+  created: number; // unix seconds
+  livemode: boolean;
+  amount: number | null;
+  currency: string | null;
+  customer_email: string | null;
+  description: string | null;
+  received_at: string | null;
+};
+
+// Common event types worth filtering for. Not exhaustive — the dropdown
+// also accepts a freeform "All types" so any event still shows.
+const STRIPE_EVENT_TYPES = [
+  "checkout.session.completed",
+  "checkout.session.expired",
+  "payment_intent.succeeded",
+  "payment_intent.payment_failed",
+  "charge.succeeded",
+  "charge.refunded",
+  "charge.dispute.created",
+  "customer.created",
+  "invoice.payment_succeeded",
+  "invoice.payment_failed",
+];
+
+function StripeEventsTab() {
+  const [events, setEvents] = useState<StripeEventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [payloads, setPayloads] = useState<Record<string, unknown>>({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const url = typeFilter
+        ? `/api/admin/stripe-events?type=${encodeURIComponent(typeFilter)}&limit=100`
+        : "/api/admin/stripe-events?limit=100";
+      const res = await fetch(url, { headers: adminHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load events");
+      setEvents(data.events || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load events");
+    } finally {
+      setLoading(false);
+    }
+  }, [typeFilter]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function toggleExpand(id: string) {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(id);
+    if (payloads[id]) return; // already loaded
+    try {
+      const res = await fetch(`/api/admin/stripe-events/${id}`, {
+        headers: adminHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPayloads((p) => ({ ...p, [id]: data.event }));
+      } else {
+        setPayloads((p) => ({ ...p, [id]: { error: data.error } }));
+      }
+    } catch (err) {
+      setPayloads((p) => ({
+        ...p,
+        [id]: { error: err instanceof Error ? err.message : "Fetch failed" },
+      }));
+    }
+  }
+
+  const receivedCount = events.filter((e) => e.received_at).length;
+  const missedCount = events.length - receivedCount;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">Stripe Events</h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Live from Stripe (last 30 days). {receivedCount} received locally
+            {missedCount > 0 && (
+              <span className="text-red-600 font-medium">
+                {" "}· {missedCount} not received
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="flex gap-2 items-center text-xs">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="px-2 py-1 border border-gray-300 rounded text-xs"
+          >
+            <option value="">All types</option>
+            {STRIPE_EVENT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={load}
+            disabled={loading}
+            className="px-3 py-1 rounded bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+          >
+            {loading ? "Loading..." : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
+
+      {loading ? (
+        <div className="py-12 text-center text-sm text-gray-400">Loading...</div>
+      ) : events.length === 0 ? (
+        <div className="py-12 text-center text-sm text-gray-400">
+          No events found.
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs text-gray-500 border-b border-gray-200">
+              <tr>
+                <th className="text-left py-2 px-2 font-medium">Time</th>
+                <th className="text-left py-2 px-2 font-medium">Type</th>
+                <th className="text-right py-2 px-2 font-medium">Amount</th>
+                <th className="text-left py-2 px-2 font-medium">Customer</th>
+                <th className="text-left py-2 px-2 font-medium">Mode</th>
+                <th className="text-left py-2 px-2 font-medium">Received</th>
+                <th className="text-left py-2 px-2 font-medium">ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((e) => {
+                const isExpanded = expandedId === e.id;
+                const amt =
+                  e.amount != null
+                    ? `${(e.amount / 100).toLocaleString("en-US", {
+                        style: "currency",
+                        currency: (e.currency || "usd").toUpperCase(),
+                      })}`
+                    : "—";
+                return (
+                  <Fragment key={e.id}>
+                    <tr
+                      className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => toggleExpand(e.id)}
+                    >
+                      <td className="py-2 px-2 text-xs text-gray-600 whitespace-nowrap">
+                        {new Date(e.created * 1000).toLocaleString()}
+                      </td>
+                      <td className="py-2 px-2 text-gray-900">{e.type}</td>
+                      <td className="py-2 px-2 text-right font-mono text-xs">
+                        {amt}
+                      </td>
+                      <td className="py-2 px-2 text-gray-600 text-xs">
+                        {e.customer_email || "—"}
+                      </td>
+                      <td className="py-2 px-2 text-xs">
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            e.livemode
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {e.livemode ? "live" : "test"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-xs">
+                        {e.received_at ? (
+                          <span className="text-green-600">✓ yes</span>
+                        ) : (
+                          <span className="text-red-600 font-medium">no</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-2 text-[10px] font-mono text-gray-400">
+                        {e.id}
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-gray-50">
+                        <td colSpan={7} className="px-2 py-3">
+                          <div className="text-xs">
+                            <a
+                              href={`https://dashboard.stripe.com/${
+                                e.livemode ? "" : "test/"
+                              }events/${e.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline mb-2 inline-block"
+                            >
+                              Open in Stripe Dashboard →
+                            </a>
+                            <pre className="text-[10px] bg-white border border-gray-200 rounded p-2 overflow-x-auto max-h-96 overflow-y-auto">
+                              {payloads[e.id]
+                                ? JSON.stringify(payloads[e.id], null, 2)
+                                : "Loading payload..."}
+                            </pre>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [tab, setTab] = useState<
-    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments" | "gift-vaults" | "refunds"
+    "shipments" | "orders" | "letters" | "access" | "affiliates" | "gift-assignments" | "gift-vaults" | "refunds" | "stripe-events"
   >("shipments");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -2886,6 +3114,16 @@ export default function AdminDashboard() {
               >
                 Refunds
               </button>
+              <button
+                onClick={() => setTab("stripe-events")}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                  tab === "stripe-events"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Stripe Events
+              </button>
             </div>
 
             {/* Content */}
@@ -2910,6 +3148,8 @@ export default function AdminDashboard() {
                 <GiftVaultsTab />
               ) : tab === "refunds" ? (
                 <RefundsTab />
+              ) : tab === "stripe-events" ? (
+                <StripeEventsTab />
               ) : (
                 <OrdersTab />
               )}
