@@ -80,10 +80,61 @@ const args = Object.fromEntries(
   })
 );
 const DRY_RUN = args["dry-run"] === "true";
-const MAX_INITIALS = args.initials !== undefined ? parseInt(args.initials, 10) : 40;
-const MAX_FOLLOWUPS = args.followups !== undefined ? parseInt(args.followups, 10) : 30;
+const REQ_INITIALS = args.initials !== undefined ? parseInt(args.initials, 10) : 40;
+const REQ_FOLLOWUPS = args.followups !== undefined ? parseInt(args.followups, 10) : 30;
 const STATE_FILTER = args.state || null;
 const FOLLOWUP_DELAY_DAYS = 4;
+
+// ---------- WARMING GUARD ----------
+// Mirrors the warmedCap() in src/app/api/cron/cold-outreach/route.ts. The
+// cron enforces this for scheduled runs; this script enforces it for any
+// local manual run so a half-asleep CLI invocation can't blow past the
+// ramp and burn the outreach subdomain. KEEP IN SYNC with route.ts.
+const WARMING_START_DATE = "2026-06-01";
+function warmedCap(today, target) {
+  const start = new Date(WARMING_START_DATE + "T00:00:00Z").getTime();
+  const days = Math.floor((today.getTime() - start) / 86_400_000);
+  if (days < 0) return 0;                       // before start: nothing
+  if (days < 2) return Math.min(10, target);    // days 0-1: 10/day
+  if (days < 5) return Math.min(20, target);    // days 2-4: 20/day
+  return target;                                // day 5+: full target
+}
+
+// Count sends already logged today (UTC) so a second run in the same day
+// doesn't stack on top of the cron's quota. Photographer outreach is a
+// fixed daily allowance — already-sent + about-to-send must stay ≤ cap.
+async function countSentToday(sequenceStep) {
+  const since = new Date();
+  since.setUTCHours(0, 0, 0, 0);
+  const { count, error } = await supabase
+    .from("lead_outreach_events")
+    .select("id", { count: "exact", head: true })
+    .eq("sequence_step", sequenceStep)
+    .eq("status", "sent")
+    .gte("sent_at", since.toISOString());
+  if (error) throw error;
+  return count || 0;
+}
+
+const now = new Date();
+const capInitials = warmedCap(now, 40);
+const capFollowups = warmedCap(now, 30);
+const sentInitialsToday = await countSentToday(1);
+const sentFollowupsToday = await countSentToday(2);
+const remainingInitials = Math.max(0, capInitials - sentInitialsToday);
+const remainingFollowups = Math.max(0, capFollowups - sentFollowupsToday);
+const MAX_INITIALS = Math.min(REQ_INITIALS, remainingInitials);
+const MAX_FOLLOWUPS = Math.min(REQ_FOLLOWUPS, remainingFollowups);
+
+console.log(`\n=== Warming guard (UTC ${now.toISOString().slice(0,10)}) ===`);
+console.log(`  daily cap:  initials=${capInitials}  followups=${capFollowups}`);
+console.log(`  sent today: initials=${sentInitialsToday}  followups=${sentFollowupsToday}`);
+console.log(`  requested:  initials=${REQ_INITIALS}  followups=${REQ_FOLLOWUPS}`);
+console.log(`  will send:  initials=${MAX_INITIALS}  followups=${MAX_FOLLOWUPS}`);
+if (MAX_INITIALS === 0 && MAX_FOLLOWUPS === 0) {
+  console.log(`\nDaily warming quota already used. Nothing to send. Exiting.`);
+  process.exit(0);
+}
 
 // ---------- helpers ----------
 async function isUnsubscribed(email) {
