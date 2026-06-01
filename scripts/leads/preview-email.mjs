@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Resend } from "resend";
-import { TEMPLATES, SENDER } from "./templates.mjs";
+import { TEMPLATES, SENDER, unsubHeaders } from "./templates.mjs";
 
 const env = Object.fromEntries(
   readFileSync(resolve(process.cwd(), ".env.local"), "utf8")
@@ -33,6 +33,7 @@ for (const key of ["photographer_initial_v1", "photographer_followup_v1"]) {
     subject: `[PREVIEW ${key}] ` + r.subject,
     html: r.html,
     text: r.text,
+    headers: unsubHeaders(TO),
   });
   console.log(key, "→", TO, res.data?.id || res.error);
 }

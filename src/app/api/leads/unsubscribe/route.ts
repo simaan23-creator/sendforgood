@@ -56,7 +56,17 @@ export async function GET(request: Request) {
   );
 }
 
-// POST for programmatic use (admin tooling, "Mark unsubscribed" buttons).
+// POST handles two distinct cases:
+//   1. Programmatic use (admin tooling, "Mark unsubscribed" buttons):
+//        Content-Type: application/json, body { email: "..." }
+//   2. RFC 8058 one-click unsubscribe (the URL is in our
+//      List-Unsubscribe header, Gmail/Outlook POST to it when the user
+//      clicks their native "Unsubscribe" button):
+//        Body is form-encoded "List-Unsubscribe=One-Click", and the
+//        email comes from the ?email= query param on the URL.
+//
+// We accept either shape — query param takes precedence so the one-click
+// path doesn't need to parse a body.
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const limit = rateLimit(`leads-unsub-post:${ip}`, 20, 20 / 60);
@@ -64,13 +74,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  let body: { email?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  let email = new URL(request.url).searchParams.get("email") || "";
+
+  if (!email) {
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        const body = (await request.json()) as { email?: string };
+        email = body?.email || "";
+      } catch {
+        return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+      }
+    }
   }
-  const result = await processUnsubscribe(body.email || "");
+
+  const result = await processUnsubscribe(email);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }

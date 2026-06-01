@@ -154,6 +154,19 @@ function photographerFollowupV1(lead) {
   return { subject, html, text };
 }
 
+// RFC 8058 List-Unsubscribe headers. Gmail/Outlook/Yahoo all treat their
+// presence as a positive deliverability signal and render a native
+// "Unsubscribe" link at the top of the message. See templates.ts for the
+// full reasoning. Keep in sync with the .ts version.
+export function unsubHeaders(email) {
+  const senderDomain = SENDER.email.split("@")[1];
+  const link = `https://${senderDomain}/api/leads/unsubscribe?email=${encodeURIComponent(email)}`;
+  return {
+    "List-Unsubscribe": `<${link}>, <mailto:${SENDER.replyTo}?subject=unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
+
 export const TEMPLATES = {
   photographer_initial_v1: {
     sequenceStep: 1,

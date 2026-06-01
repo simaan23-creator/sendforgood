@@ -37,7 +37,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { TEMPLATES, SENDER } from "./templates.mjs";
+import { TEMPLATES, SENDER, unsubHeaders } from "./templates.mjs";
 
 const ROOT = resolve(process.cwd());
 
@@ -171,6 +171,7 @@ async function sendOne(lead, templateKey) {
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,
+      headers: unsubHeaders(lead.email),
     });
     resendId = res.data?.id || null;
     if (res.error) error = res.error.message || String(res.error);

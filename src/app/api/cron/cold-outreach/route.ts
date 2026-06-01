@@ -4,6 +4,7 @@ import { resend } from "@/lib/resend";
 import {
   TEMPLATES,
   SENDER,
+  unsubHeaders,
   type Lead,
   type TemplateKey,
 } from "@/lib/leads/templates";
@@ -150,6 +151,7 @@ async function sendOne(
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,
+      headers: unsubHeaders(lead.email),
     });
     resendId = res.data?.id || null;
     if (res.error) error = res.error.message || String(res.error);

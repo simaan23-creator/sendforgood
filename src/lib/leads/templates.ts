@@ -147,6 +147,32 @@ function photographerFollowupV1(lead: Lead): Rendered {
   return { subject, html, text };
 }
 
+/**
+ * RFC 8058 List-Unsubscribe headers.
+ *
+ * Gmail's Feb 2024 bulk-sender rules require these for any sender hitting
+ * 5k+/day, and the major filters (Gmail, Outlook, Yahoo) all use their
+ * presence as a positive signal even below that threshold. Without these,
+ * mail-tester drops ~1 point and inbox providers may demote you regardless
+ * of how good your auth and content are.
+ *
+ * The two-value List-Unsubscribe gives the recipient both:
+ *   - an HTTPS URL (clicked by Gmail's native "Unsubscribe" link)
+ *   - a mailto: (used by Outlook and some older clients)
+ *
+ * List-Unsubscribe-Post = One-Click tells Gmail it can POST to the URL
+ * without showing a confirmation page — required for the native unsub link
+ * to appear at all.
+ */
+export function unsubHeaders(email: string): Record<string, string> {
+  const senderDomain = SENDER.email.split("@")[1];
+  const link = `https://${senderDomain}/api/leads/unsubscribe?email=${encodeURIComponent(email)}`;
+  return {
+    "List-Unsubscribe": `<${link}>, <mailto:${SENDER.replyTo}?subject=unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
+
 export type TemplateKey =
   | "photographer_initial_v1"
   | "photographer_followup_v1";
