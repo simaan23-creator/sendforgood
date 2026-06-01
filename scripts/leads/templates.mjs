@@ -34,8 +34,14 @@ export const SENDER = {
 const PHYSICAL_ADDRESS = "SendForGood, LLC · Austin, TX";
 
 function unsubLink(email) {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
+  // CRITICAL for deliverability: the unsubscribe link domain MUST match the
+  // sender's domain. If it doesn't (e.g. sender=@sealtheday.com but link
+  // points to sendforgood.com), Resend and most spam filters flag the
+  // email as a phishing signal — even if the mismatch is just a redirect.
+  // We derive the base from SENDER.email so this stays in sync if the
+  // sending address ever changes.
+  const senderDomain = SENDER.email.split("@")[1];
+  const base = `https://${senderDomain}`;
   return `${base}/api/leads/unsubscribe?email=${encodeURIComponent(email)}`;
 }
 
