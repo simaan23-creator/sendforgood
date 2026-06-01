@@ -30,11 +30,15 @@ export type Rendered = {
 
 export const SENDER = {
   name: "Simaan at SealTheDay",
-  email: "simaan@sealtheday.com",
-  // From + Reply-To now match. The M365 alias at simaan@sealtheday.com
-  // forwards to Simaan23@gmail.com, so replies still reach the monitored
-  // inbox, but we no longer trip Gmail's cross-domain-Reply-To phishing
-  // heuristic.
+  // Cold outreach sends from a dedicated subdomain so its reputation is
+  // isolated from the transactional sealtheday.com domain (order receipts,
+  // gift notifications, etc). If cold mail ever tanks reputation, it
+  // doesn't take order confirmations with it.
+  email: "simaan@outreach.sealtheday.com",
+  // Reply-To points back at the root-domain M365 alias so replies land in
+  // the monitored inbox (forwards to Simaan23@gmail.com). Gmail treats
+  // subdomain-of-sender Reply-Tos as benign — it's only fully unrelated
+  // domains that trip the phishing heuristic.
   replyTo: "simaan@sealtheday.com",
 };
 

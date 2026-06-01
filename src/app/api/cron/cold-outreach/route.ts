@@ -39,8 +39,22 @@ import {
  *   ?dry_run=1       skip actual send + DB writes, just preview counts
  */
 
-const DEFAULT_MAX_INITIALS = 40;
-const DEFAULT_MAX_FOLLOWUPS = 30;
+// Warming schedule for the outreach.sealtheday.com subdomain.
+// A brand-new sending domain starts with neutral reputation; ramping
+// volume slowly tells Gmail/Outlook/etc that this is a real sender, not
+// a snowshoe spammer. Skip the ramp = expect everything in spam for the
+// first 2 weeks.
+const WARMING_START_DATE = "2026-06-01"; // first send day on outreach subdomain
+function warmedCap(today: Date, target: number): number {
+  const start = new Date(WARMING_START_DATE + "T00:00:00Z").getTime();
+  const days = Math.floor((today.getTime() - start) / 86_400_000);
+  if (days < 2) return Math.min(10, target);   // days 0-1: 10/day
+  if (days < 5) return Math.min(20, target);   // days 2-4: 20/day
+  return target;                                // day 5+: full target
+}
+
+const TARGET_MAX_INITIALS = 40;
+const TARGET_MAX_FOLLOWUPS = 30;
 const FOLLOWUP_DELAY_DAYS = 4;
 const SEND_THROTTLE_MS = 1500; // ~40 sends/min
 
@@ -179,15 +193,16 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const today = new Date();
   const maxInitials = clampInt(
     searchParams.get("initials"),
-    DEFAULT_MAX_INITIALS,
+    warmedCap(today, TARGET_MAX_INITIALS),
     0,
     100
   );
   const maxFollowups = clampInt(
     searchParams.get("followups"),
-    DEFAULT_MAX_FOLLOWUPS,
+    warmedCap(today, TARGET_MAX_FOLLOWUPS),
     0,
     100
   );

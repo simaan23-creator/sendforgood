@@ -21,12 +21,15 @@
 // stamp every outreach row so we can audit what's been sent.
 export const SENDER = {
   name: "Simaan at SealTheDay",
-  // From + Reply-To both at the same address. simaan@sealtheday.com is a
-  // real Microsoft 365 alias that forwards to Simaan23@gmail.com, so
-  // replies still reach the monitored inbox — but the SMTP From and
-  // Reply-To headers now match, which removes a major Gmail spam signal
-  // (cross-domain Reply-To looks like phishing).
-  email: "simaan@sealtheday.com",
+  // Cold outreach sends from a dedicated subdomain so its reputation is
+  // isolated from the transactional sealtheday.com domain (order receipts,
+  // gift notifications, etc). If cold mail ever tanks reputation, it
+  // doesn't take order confirmations with it.
+  email: "simaan@outreach.sealtheday.com",
+  // Reply-To points back at the root-domain M365 alias so replies land in
+  // the monitored inbox (forwards to Simaan23@gmail.com). Gmail treats
+  // subdomain-of-sender Reply-Tos as benign — it's only fully unrelated
+  // domains that trip the phishing heuristic.
   replyTo: "simaan@sealtheday.com",
 };
 
