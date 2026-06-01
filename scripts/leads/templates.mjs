@@ -21,13 +21,13 @@
 // stamp every outreach row so we can audit what's been sent.
 export const SENDER = {
   name: "Simaan at SealTheDay",
-  // From address — sealtheday.com is verified in Resend so this sends fine,
-  // but no mailbox exists at it. Replies are routed via replyTo below.
+  // From + Reply-To both at the same address. simaan@sealtheday.com is a
+  // real Microsoft 365 alias that forwards to Simaan23@gmail.com, so
+  // replies still reach the monitored inbox — but the SMTP From and
+  // Reply-To headers now match, which removes a major Gmail spam signal
+  // (cross-domain Reply-To looks like phishing).
   email: "simaan@sealtheday.com",
-  // Reply-To override — when a recipient hits "Reply" their client uses
-  // this header, so replies land directly in the real Gmail inbox without
-  // needing a forwarding alias on sealtheday.com.
-  replyTo: "Simaan23@gmail.com",
+  replyTo: "simaan@sealtheday.com",
 };
 
 // Physical address line — required for CAN-SPAM. Update with your real one.
@@ -103,21 +103,25 @@ function photographerInitialV1(lead) {
     ? `Hey ${firstName(lead.business_name)},`
     : `Hey ${lead.business_name},`;
   const cityLine = lead.city
-    ? `I came across ${lead.business_name} while looking at ${lead.city} wedding photographers and your work looks great.`
-    : `I came across ${lead.business_name} and your work looks great.`;
+    ? `Caught your work while looking at ${lead.city} wedding photographers — beautiful stuff.`
+    : `Caught your work the other day — beautiful stuff.`;
 
+  // New angle (per founder, Nov 2025): lead with the photographer's value
+  // proposition (differentiation, looking pro), not with our affiliate %.
+  // Money mention is demoted to a parenthetical so the email reads like a
+  // peer tip rather than a sales pitch — which both feels better and
+  // tests less spammy in Gmail's filter.
   const paragraphs = [
     greeting,
     cityLine,
-    `Quick pitch: I run SealTheDay — a $99 guest-recording vault. Couples drop a QR code on each table and their 150 guests capture all the moments you can't (the back hallway, the bridal suite, the 2am dance floor). Then they re-open the vault on whatever date they pick.`,
-    `We pay photographers 15% on their first sale and 10% on every repeat — for the life of the account. No minimums, no exclusivity, paid monthly via PayPal/Venmo.`,
-    `Most photographers add one line to their booking confirmation email and earn beer money on every wedding. Worth a 30-second look?`,
-    `Affiliate page: https://sealtheday.com/affiliate/apply`,
+    `Quick thought you might find useful: a few photographers we work with have started offering a small memory vault as an add-on to their booking. Couples set it up themselves and every guest contributes the moments you can't physically be in — getting ready, the back hallway, the 2am dance floor.`,
+    `It sweetens the package for couples, sets you apart from photographers who just hand over a gallery, and quietly makes you the pro who thought of every detail. (There's an affiliate kickback per sale, but most of our partners say the differentiation is the bigger win.)`,
+    `If your clients sound like the type: https://sealtheday.com/affiliate/apply`,
   ];
 
   const subject = lead.city
-    ? `${lead.city} weddings + your couples`
-    : `Your couples + a quick idea`;
+    ? `small idea for your ${lead.city} couples`
+    : `small idea for your couples`;
 
   const text = paragraphs.join("\n\n") + plainFooter(lead.email);
   const html = wrapHtml(paragraphs, lead.email);
@@ -135,12 +139,12 @@ function photographerFollowupV1(lead) {
 
   const paragraphs = [
     greeting,
-    `Bumping this in case it slipped past — I know inboxes are loud in wedding season.`,
-    `Short version: SealTheDay pays you 15% (first) / 10% (recurring) for any couple you refer to our $99 guest-recording vault. Drop your link in your booking email, get paid monthly.`,
-    `If it's not for you, totally fine — no further emails from me either way. If it is: https://sealtheday.com/affiliate/apply`,
+    `Bumping in case it slipped past — wedding season inboxes are wild.`,
+    `Quick recap: it's a small memory vault couples can add to their package after booking. Their guests contribute the moments you can't physically capture, and you end up looking like the photographer who thought of every detail.`,
+    `If it's not your thing, no worries — I won't email again. If it is: https://sealtheday.com/affiliate/apply`,
   ];
 
-  const subject = "re: a quick idea for your couples";
+  const subject = "re: small idea for your couples";
   const text = paragraphs.join("\n\n") + plainFooter(lead.email);
   const html = wrapHtml(paragraphs, lead.email);
 

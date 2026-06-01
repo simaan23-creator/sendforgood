@@ -31,9 +31,11 @@ export type Rendered = {
 export const SENDER = {
   name: "Simaan at SealTheDay",
   email: "simaan@sealtheday.com",
-  // Replies go straight to a real monitored Gmail inbox via Reply-To header,
-  // so we don't need a forwarding alias on sealtheday.com.
-  replyTo: "Simaan23@gmail.com",
+  // From + Reply-To now match. The M365 alias at simaan@sealtheday.com
+  // forwards to Simaan23@gmail.com, so replies still reach the monitored
+  // inbox, but we no longer trip Gmail's cross-domain-Reply-To phishing
+  // heuristic.
+  replyTo: "simaan@sealtheday.com",
 };
 
 const PHYSICAL_ADDRESS = "SendForGood, LLC \u00b7 Austin, TX";
@@ -97,21 +99,24 @@ function photographerInitialV1(lead: Lead): Rendered {
     ? `Hey ${firstName(lead.business_name)},`
     : `Hey ${lead.business_name},`;
   const cityLine = lead.city
-    ? `I came across ${lead.business_name} while looking at ${lead.city} wedding photographers and your work looks great.`
-    : `I came across ${lead.business_name} and your work looks great.`;
+    ? `Caught your work while looking at ${lead.city} wedding photographers \u2014 beautiful stuff.`
+    : `Caught your work the other day \u2014 beautiful stuff.`;
 
+  // New angle (per founder, Nov 2025): lead with the photographer's value
+  // proposition (differentiation, looking pro), not with our affiliate %.
+  // Money mention is demoted to a parenthetical so the email reads like a
+  // peer tip rather than a sales pitch.
   const paragraphs = [
     greeting,
     cityLine,
-    `Quick pitch: I run SealTheDay \u2014 a $99 guest-recording vault. Couples drop a QR code on each table and their 150 guests capture all the moments you can't (the back hallway, the bridal suite, the 2am dance floor). Then they re-open the vault on whatever date they pick.`,
-    `We pay photographers 15% on their first sale and 10% on every repeat \u2014 for the life of the account. No minimums, no exclusivity, paid monthly via PayPal/Venmo.`,
-    `Most photographers add one line to their booking confirmation email and earn beer money on every wedding. Worth a 30-second look?`,
-    `Affiliate page: https://sealtheday.com/affiliate/apply`,
+    `Quick thought you might find useful: a few photographers we work with have started offering a small memory vault as an add-on to their booking. Couples set it up themselves and every guest contributes the moments you can't physically be in \u2014 getting ready, the back hallway, the 2am dance floor.`,
+    `It sweetens the package for couples, sets you apart from photographers who just hand over a gallery, and quietly makes you the pro who thought of every detail. (There's an affiliate kickback per sale, but most of our partners say the differentiation is the bigger win.)`,
+    `If your clients sound like the type: https://sealtheday.com/affiliate/apply`,
   ];
 
   const subject = lead.city
-    ? `${lead.city} weddings + your couples`
-    : `Your couples + a quick idea`;
+    ? `small idea for your ${lead.city} couples`
+    : `small idea for your couples`;
 
   const text = paragraphs.join("\n\n") + plainFooter(lead.email);
   const html = wrapHtml(paragraphs, lead.email);
@@ -126,12 +131,12 @@ function photographerFollowupV1(lead: Lead): Rendered {
 
   const paragraphs = [
     greeting,
-    `Bumping this in case it slipped past \u2014 I know inboxes are loud in wedding season.`,
-    `Short version: SealTheDay pays you 15% (first) / 10% (recurring) for any couple you refer to our $99 guest-recording vault. Drop your link in your booking email, get paid monthly.`,
-    `If it's not for you, totally fine \u2014 no further emails from me either way. If it is: https://sealtheday.com/affiliate/apply`,
+    `Bumping in case it slipped past \u2014 wedding season inboxes are wild.`,
+    `Quick recap: it's a small memory vault couples can add to their package after booking. Their guests contribute the moments you can't physically capture, and you end up looking like the photographer who thought of every detail.`,
+    `If it's not your thing, no worries \u2014 I won't email again. If it is: https://sealtheday.com/affiliate/apply`,
   ];
 
-  const subject = "re: a quick idea for your couples";
+  const subject = "re: small idea for your couples";
   const text = paragraphs.join("\n\n") + plainFooter(lead.email);
   const html = wrapHtml(paragraphs, lead.email);
 
