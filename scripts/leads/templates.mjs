@@ -36,6 +36,12 @@ export const SENDER = {
 // Physical address line — required for CAN-SPAM. Update with your real one.
 const PHYSICAL_ADDRESS = "SendForGood, LLC · Austin, TX";
 
+// Founder direct line, included in the signature. Display format is what
+// recipients see; E.164 (+1...) is what HTML mail clients need for the
+// tap-to-call tel: link on mobile. Keep both in sync.
+const CONTACT_PHONE_DISPLAY = "631-241-5247";
+const CONTACT_PHONE_E164 = "+16312415247";
+
 function unsubLink(email) {
   // CRITICAL for deliverability: the unsubscribe link domain MUST match the
   // sender's domain. If it doesn't (e.g. sender=@sealtheday.com but link
@@ -65,7 +71,7 @@ function plainFooter(email) {
     "—",
     "Simaan",
     "Founder, SealTheDay",
-    "https://sealtheday.com",
+    `sealtheday.com · ${CONTACT_PHONE_DISPLAY}`,
     "",
     PHYSICAL_ADDRESS,
     `Don't want to hear from me? ${unsubLink(email)}`,
@@ -77,7 +83,7 @@ function htmlFooter(email) {
     <p style="margin-top:24px;color:#555;">&mdash;<br/>
       Simaan<br/>
       Founder, SealTheDay<br/>
-      <a href="https://sealtheday.com" style="color:#555;">sealtheday.com</a>
+      <a href="https://sealtheday.com" style="color:#555;">sealtheday.com</a> &middot; <a href="tel:${CONTACT_PHONE_E164}" style="color:#555;">${CONTACT_PHONE_DISPLAY}</a>
     </p>
     <p style="margin-top:24px;font-size:12px;color:#888;line-height:1.5;">
       ${PHYSICAL_ADDRESS}<br/>

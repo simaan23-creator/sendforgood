@@ -44,6 +44,12 @@ export const SENDER = {
 
 const PHYSICAL_ADDRESS = "SendForGood, LLC \u00b7 Austin, TX";
 
+// Founder direct line, included in the signature. Display format is what
+// recipients see; E.164 (+1...) is what HTML mail clients need for the
+// tap-to-call tel: link on mobile. Keep both in sync.
+const CONTACT_PHONE_DISPLAY = "631-241-5247";
+const CONTACT_PHONE_E164 = "+16312415247";
+
 function unsubLink(email: string): string {
   // Deliverability rule: unsubscribe link domain MUST match sender domain or
   // Resend/spam filters flag the message. Derive from SENDER.email.
@@ -67,7 +73,7 @@ function plainFooter(email: string): string {
     "\u2014",
     "Simaan",
     "Founder, SealTheDay",
-    "https://sealtheday.com",
+    `sealtheday.com \u00b7 ${CONTACT_PHONE_DISPLAY}`,
     "",
     PHYSICAL_ADDRESS,
     `Don't want to hear from me? ${unsubLink(email)}`,
@@ -79,7 +85,7 @@ function htmlFooter(email: string): string {
     <p style="margin-top:24px;color:#555;">&mdash;<br/>
       Simaan<br/>
       Founder, SealTheDay<br/>
-      <a href="https://sealtheday.com" style="color:#555;">sealtheday.com</a>
+      <a href="https://sealtheday.com" style="color:#555;">sealtheday.com</a> &middot; <a href="tel:${CONTACT_PHONE_E164}" style="color:#555;">${CONTACT_PHONE_DISPLAY}</a>
     </p>
     <p style="margin-top:24px;font-size:12px;color:#888;line-height:1.5;">
       ${PHYSICAL_ADDRESS}<br/>
