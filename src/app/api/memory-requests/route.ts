@@ -49,6 +49,40 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── 12-month seal cap for Anniversary Capsule credits ────────────────────
+  // The Anniversary Capsule sampler bundle (1 vault + 6 video + 15 photo,
+  // $29.95) ships with a hard 12-month seal cap. If the user has ANY unspent
+  // anniversary credits, the cap applies to the vault they're creating — this
+  // prevents combining sampler credits with full credits to escape the cap.
+  // See supabase/migrations/034_memory_credits_bundle.sql for the bundle tag.
+  let effectiveSealedUntil: string | null = sealed_until || null;
+  let sealClampedByAnniversary = false;
+
+  if (sealed_until) {
+    const { data: anniversaryRows } = await supabaseAdmin
+      .from("memory_credits")
+      .select("audio_credits, video_credits, photo_credits")
+      .eq("user_id", user.id)
+      .eq("bundle", "anniversary");
+
+    const hasAnniversaryBalance = (anniversaryRows || []).some(
+      (r) =>
+        (r.audio_credits || 0) > 0 ||
+        (r.video_credits || 0) > 0 ||
+        (r.photo_credits || 0) > 0
+    );
+
+    if (hasAnniversaryBalance) {
+      const cap = new Date();
+      cap.setUTCFullYear(cap.getUTCFullYear() + 1);
+      const capDate = cap.toISOString().split("T")[0];
+      if (sealed_until > capDate) {
+        effectiveSealedUntil = capDate;
+        sealClampedByAnniversary = true;
+      }
+    }
+  }
+
   // Check for unused vault fee ($10)
   const { data: vaultFee } = await supabaseAdmin
     .from("vault_fees")
@@ -81,8 +115,8 @@ export async function POST(request: Request) {
       occasion,
       delivery_date,
       note_to_recorder: note_to_recorder || null,
-      sealed_until: sealed_until || null,
-      is_sealed: !!sealed_until,
+      sealed_until: effectiveSealedUntil,
+      is_sealed: !!effectiveSealedUntil,
       max_audio_recordings: max_audio_recordings || 0,
       max_video_recordings: max_video_recordings || 0,
       max_photo_uploads: max_photo_uploads || 0,
@@ -197,8 +231,8 @@ export async function POST(request: Request) {
   if (data?.unique_code && user.email) {
     const shareUrl = `https://sealtheday.com/record/${data.unique_code}`;
     const kitUrl = `https://sealtheday.com/vault/wedding-kit?code=${data.unique_code}`;
-    const sealLine = sealed_until
-      ? `Sealed until <strong>${new Date(sealed_until).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong> &mdash; not even you can peek before then.`
+    const sealLine = effectiveSealedUntil
+      ? `Sealed until <strong>${new Date(effectiveSealedUntil).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong> &mdash; not even you can peek before then.${sealClampedByAnniversary ? " <em>(Anniversary Capsule vaults seal for up to 1 year — for time capsules up to 10 years, see our full vault.)</em>" : ""}`
       : `No seal date set &mdash; recordings will be visible to you as they come in.`;
 
     resend.emails.send({
@@ -247,7 +281,10 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({
+    ...data,
+    seal_clamped_by_anniversary: sealClampedByAnniversary,
+  });
 }
 
 export async function GET() {

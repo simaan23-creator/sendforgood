@@ -1962,8 +1962,10 @@ export default function DashboardPage() {
                 className="w-full rounded-lg border border-cream-dark bg-cream/50 px-4 py-2.5 text-navy placeholder:text-warm-gray-light transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
               <p className="mt-1.5 text-xs text-warm-gray-light">
-                We will send you a text 2 weeks before each gift ships to
-                confirm your delivery details.
+                Optional. We&apos;ll call or text you if your vault opens and
+                you haven&apos;t logged in to see it (in case the email lands
+                in spam). Also used to confirm delivery details for any
+                physical gifts.
               </p>
             </div>
 
@@ -1978,7 +1980,8 @@ export default function DashboardPage() {
               </button>
               {phoneSaved && (
                 <p className="text-sm font-medium text-forest">
-                  Phone number saved! We will text you before each delivery.
+                  Phone number saved! Optional — we&apos;ll call you if your
+                  vault opens and you haven&apos;t logged in to see it.
                 </p>
               )}
             </div>

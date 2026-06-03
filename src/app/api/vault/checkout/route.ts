@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   // ── Bundle presets ──
   // When a recognized bundle is requested, credit quantities and price are
   // server-controlled (so a client can't tamper with the discount).
-  const BUNDLES: Record<string, { audio: number; video: number; photo: number; vaultFees: number; priceCents: number; label: string }> = {
+  const BUNDLES: Record<string, { audio: number; video: number; photo: number; vaultFees: number; priceCents: number; label: string; maxSealMonths?: number }> = {
     starter: {
       audio: 0,
       video: 50,
@@ -34,6 +34,22 @@ export async function POST(request: Request) {
       vaultFees: 1,
       priceCents: 9995,
       label: "Starter Package",
+    },
+    // Anniversary Capsule — sampler sized for a single 1st-anniversary reveal.
+    // Lean credit counts (1 vault + 6 video + 15 photo) at $29.95 produce
+    // ~$24 net for us after Stripe + 15% affiliate, and a $4.50 commission
+    // to the photographer — above the threshold where they'll mention us
+    // unprompted. The 12-month seal cap (enforced at vault-creation time
+    // via memory_credits.bundle = 'anniversary') positions the 10-year
+    // full vault as a true premium tier.
+    anniversary: {
+      audio: 0,
+      video: 6,
+      photo: 15,
+      vaultFees: 1,
+      priceCents: 2995,
+      label: "Anniversary Capsule",
+      maxSealMonths: 12,
     },
   };
   const bundleKey = typeof bundle === "string" && bundle in BUNDLES ? bundle : null;

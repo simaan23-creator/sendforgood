@@ -20,20 +20,53 @@ const STARTER_BUNDLE = {
   label: "Starter Package",
 };
 
+// Anniversary Capsule sampler — sized for a single 1st-anniversary reveal.
+// Server-controlled quantities and price in src/app/api/vault/checkout/route.ts;
+// kept here only for read-only display. 12-month seal cap is enforced at vault
+// creation time (src/app/api/memory-requests/route.ts) via the bundle tag on
+// memory_credits.
+const ANNIVERSARY_BUNDLE = {
+  vaultFees: 1,
+  videoQty: 6,
+  photoQty: 15,
+  audioQty: 0,
+  priceCents: 2995,
+  label: "Anniversary Capsule",
+  maxSealMonths: 12,
+};
+
 export default function VaultBuyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bundleParam = searchParams.get("bundle");
   const isStarter = bundleParam === "starter";
+  const isAnniversary = bundleParam === "anniversary";
+  const isBundle = isStarter || isAnniversary;
   const supabase = createClient();
 
-  const [vaultFeeQty, setVaultFeeQty] = useState(isStarter ? STARTER_BUNDLE.vaultFees : 1);
+  const initialBundleVaultFee = isStarter
+    ? STARTER_BUNDLE.vaultFees
+    : isAnniversary
+      ? ANNIVERSARY_BUNDLE.vaultFees
+      : 1;
+  const initialBundleVideo = isStarter
+    ? STARTER_BUNDLE.videoQty
+    : isAnniversary
+      ? ANNIVERSARY_BUNDLE.videoQty
+      : 10;
+  const initialBundlePhoto = isStarter
+    ? STARTER_BUNDLE.photoQty
+    : isAnniversary
+      ? ANNIVERSARY_BUNDLE.photoQty
+      : 0;
+
+  const [vaultFeeQty, setVaultFeeQty] = useState(initialBundleVaultFee);
   // Audio purchase UI hidden 2026-05-29 — vault is video + photo only for now.
   // Backend / memory_credits.audio_credits column kept intact so any legacy
   // audio credits remain valid and re-enabling is a UI-only change.
   const audioQty = 0;
-  const [videoQty, setVideoQty] = useState(isStarter ? STARTER_BUNDLE.videoQty : 10);
-  const [photoQty, setPhotoQty] = useState(isStarter ? STARTER_BUNDLE.photoQty : 0);
+  const [videoQty, setVideoQty] = useState(initialBundleVideo);
+  const [photoQty, setPhotoQty] = useState(initialBundlePhoto);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +84,7 @@ export default function VaultBuyPage() {
       }
       // Fetch existing vaults so user can top up credits on one they already own
       // (skipped entirely for bundle mode — the bundle always creates a fresh vault).
-      if (!isStarter) {
+      if (!isBundle) {
         try {
           const res = await fetch("/api/memory-requests");
           if (res.ok) {
@@ -75,16 +108,20 @@ export default function VaultBuyPage() {
       setLoading(false);
     }
     init();
-  }, [supabase, router, isStarter]);
+  }, [supabase, router, isBundle]);
 
-  const targetingExisting = !isStarter && targetVaultId !== "NEW";
+  const targetingExisting = !isBundle && targetVaultId !== "NEW";
 
   // When targeting an existing vault, no vault fee is charged
   const effectiveVaultFeeQty = targetingExisting ? 0 : vaultFeeQty;
   const slotTotal = audioQty * 25 + videoQty * 100 + photoQty * 25;
   const feeTotal = effectiveVaultFeeQty * 1000;
   const alaCarteTotal = feeTotal + slotTotal;
-  const total = isStarter ? STARTER_BUNDLE.priceCents : alaCarteTotal;
+  const total = isStarter
+    ? STARTER_BUNDLE.priceCents
+    : isAnniversary
+      ? ANNIVERSARY_BUNDLE.priceCents
+      : alaCarteTotal;
   const hasItems = audioQty > 0 || videoQty > 0 || photoQty > 0;
   const targetVaultName = targetingExisting
     ? existingVaults.find((v) => v.id === targetVaultId)?.title ?? "your vault"
@@ -112,13 +149,15 @@ export default function VaultBuyPage() {
         body: JSON.stringify(
           isStarter
             ? { bundle: "starter" }
-            : {
-                audioCredits: audioQty,
-                videoCredits: videoQty,
-                photoCredits: photoQty,
-                vaultFeeQty: effectiveVaultFeeQty,
-                targetVaultId: targetingExisting ? targetVaultId : null,
-              }
+            : isAnniversary
+              ? { bundle: "anniversary" }
+              : {
+                  audioCredits: audioQty,
+                  videoCredits: videoQty,
+                  photoCredits: photoQty,
+                  vaultFeeQty: effectiveVaultFeeQty,
+                  targetVaultId: targetingExisting ? targetVaultId : null,
+                }
         ),
       });
 
@@ -158,12 +197,18 @@ export default function VaultBuyPage() {
             Memory Vault
           </p>
           <h1 className="mt-3 text-3xl font-bold text-navy sm:text-4xl">
-            {isStarter ? "Starter Package" : "Buy vault credits"}
+            {isStarter
+              ? "Starter Package"
+              : isAnniversary
+                ? "Anniversary Capsule"
+                : "Buy vault credits"}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-warm-gray">
             {isStarter
               ? "Everything a typical 100–150 person wedding needs, bundled at $99.95."
-              : "Each credit lets one person record a message or upload a photo to your vault. Unused credits never expire."}
+              : isAnniversary
+                ? "A small, sweet sampler — perfect for opening on your first anniversary."
+                : "Each credit lets one person record a message or upload a photo to your vault. Unused credits never expire."}
           </p>
         </div>
 
@@ -208,8 +253,53 @@ export default function VaultBuyPage() {
           </div>
         )}
 
+        {/* Anniversary Capsule summary card (read-only) */}
+        {isAnniversary && (
+          <div className="mb-6 rounded-2xl border-2 border-gold bg-white p-6 shadow-md">
+            <div className="flex items-baseline justify-between">
+              <span className="rounded-full bg-gold/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-dark">
+                Sampler
+              </span>
+              <div className="text-right">
+                <div className="text-3xl font-extrabold tracking-tight text-navy">
+                  $29<span className="text-xl">.95</span>
+                </div>
+              </div>
+            </div>
+            <ul className="mt-5 space-y-2 text-sm text-navy">
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>1 Memory Vault</strong></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>6 video recording slots</strong></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span><strong>15 photo upload slots</strong></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-forest">✓</span>
+                <span>Unused slots never expire</span>
+              </li>
+            </ul>
+            <div className="mt-4 rounded-lg border border-gold/40 bg-gold/10 p-3 text-xs text-navy">
+              <strong>Anniversary Capsule vaults seal for up to 1 year</strong> —
+              perfect for opening on your first anniversary. For time capsules
+              up to 10 years, see our full vault.
+            </div>
+            <p className="mt-3 text-xs text-warm-gray">
+              Want a longer time capsule?{" "}
+              <Link href="/vault/buy" className="font-semibold text-navy underline hover:text-gold">
+                Build your own (10-year vault) &rarr;
+              </Link>
+            </p>
+          </div>
+        )}
+
         {/* Vault picker — only when user already has at least one vault */}
-        {!isStarter && existingVaults.length > 0 && (
+        {!isBundle && existingVaults.length > 0 && (
           <div className="mb-4 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
             <label htmlFor="targetVault" className="block text-sm font-semibold text-navy">
               Adding credits to
@@ -237,7 +327,7 @@ export default function VaultBuyPage() {
         )}
 
         {/* Credit selectors (hidden in bundle mode) */}
-        {!isStarter && (
+        {!isBundle && (
         <div className="space-y-4">
           {/* Vault fee — hidden when topping up an existing vault */}
           {!targetingExisting && (
@@ -394,7 +484,7 @@ export default function VaultBuyPage() {
         )}
 
         {/* Suggestion */}
-        {!isStarter && (
+        {!isBundle && (
           <p className="mt-4 text-center text-xs text-warm-gray italic">
             Most couples buy 30-50 video slots for their wedding.
           </p>
@@ -403,13 +493,13 @@ export default function VaultBuyPage() {
         {/* Total & checkout */}
         <div className="mt-8 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
           <div className="space-y-2 text-sm text-warm-gray">
-            {!isStarter && !targetingExisting && (
+            {!isBundle && !targetingExisting && (
               <div className="flex justify-between">
                 <span>Vault credit{vaultFeeQty > 1 ? `s (x${vaultFeeQty})` : ""}</span>
                 <span className="font-medium text-navy">{formatPrice(feeTotal)}</span>
               </div>
             )}
-            {!isStarter && hasItems && (
+            {!isBundle && hasItems && (
               <div className="flex justify-between">
                 <span>Recording slots</span>
                 <span className="font-medium text-navy">
@@ -429,6 +519,12 @@ export default function VaultBuyPage() {
                 </div>
               </>
             )}
+            {isAnniversary && (
+              <div className="flex justify-between">
+                <span>{ANNIVERSARY_BUNDLE.label}</span>
+                <span className="font-medium text-navy">$29.95</span>
+              </div>
+            )}
             <div className="border-t border-cream-dark pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold text-navy">Total</span>
@@ -447,14 +543,16 @@ export default function VaultBuyPage() {
 
           <button
             onClick={handleCheckout}
-            disabled={!hasItems || submitting}
+            disabled={(!hasItems && !isBundle) || submitting}
             className="mt-4 w-full rounded-lg bg-gold px-6 py-4 text-lg font-bold text-navy shadow-md transition hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting
               ? "Redirecting to checkout..."
               : isStarter
                 ? "Checkout — Starter Package $99.95"
-                : "Checkout"}
+                : isAnniversary
+                  ? "Checkout — Anniversary Capsule $29.95"
+                  : "Checkout"}
           </button>
 
           <p className="mt-3 text-center text-xs text-warm-gray">

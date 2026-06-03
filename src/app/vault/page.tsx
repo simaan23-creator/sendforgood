@@ -76,7 +76,7 @@ export default function VaultPage() {
             How it works
           </h2>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {[
               {
                 step: "1",
@@ -105,6 +105,13 @@ export default function VaultPage() {
                 title: "Vault opens",
                 description:
                   "On that day, your vault opens and all the messages are waiting.",
+              },
+              {
+                step: "5",
+                emoji: "\u2B07\uFE0F",
+                title: "Yours forever",
+                description:
+                  "Download and keep every video and photo, anytime \u2014 on your own devices.",
               },
             ].map((item) => (
               <article

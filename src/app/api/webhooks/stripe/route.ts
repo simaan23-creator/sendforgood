@@ -1788,7 +1788,14 @@ async function handleVaultCreditOrder(
     ? metadata.targetVaultId
     : null;
 
-  // Insert credit record
+  // Insert credit record. The bundle tag travels with the credit so the
+  // vault-creation endpoint can clamp sealed_until when any of the credits
+  // being consumed came from an 'anniversary' bundle (12-month max seal).
+  // See supabase/migrations/034_memory_credits_bundle.sql.
+  const bundleTag = typeof metadata.bundle === "string" && metadata.bundle.length > 0
+    ? metadata.bundle
+    : null;
+
   const { error: creditError } = await supabaseAdmin
     .from("memory_credits")
     .insert({
@@ -1797,6 +1804,7 @@ async function handleVaultCreditOrder(
       video_credits: videoCredits,
       photo_credits: photoCredits,
       stripe_payment_intent_id: session.payment_intent as string,
+      ...(bundleTag ? { bundle: bundleTag } : {}),
     });
 
   if (creditError) throw creditError;

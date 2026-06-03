@@ -497,7 +497,8 @@ export default function WeddingPage() {
               <span className="mt-5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">4</span>
               <h3 className="mt-3 text-lg font-semibold text-navy">Open it together</h3>
               <p className="mt-2 text-sm leading-relaxed text-warm-gray">
-                On the date you chose, your vault unlocks. Every angle, all at once.
+                On the date you chose, your vault unlocks. Every angle, all at once
+                &mdash; and every video and photo is yours to download and keep forever.
               </p>
             </div>
           </div>
@@ -613,6 +614,33 @@ export default function WeddingPage() {
                   className="mt-2 inline-block text-sm font-semibold text-navy underline hover:text-gold"
                 >
                   Build my own &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Anniversary Capsule — smaller sampler bundle */}
+          <div className="mx-auto mt-12 max-w-3xl rounded-2xl border-2 border-gold bg-white p-6 shadow-md sm:p-8">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                  Also available &mdash; sampler
+                </p>
+                <h3 className="mt-1 text-xl font-bold text-navy">
+                  The Anniversary Capsule
+                </h3>
+                <p className="mt-1 text-sm text-warm-gray">
+                  The gift you open together on your first anniversary.
+                  1 vault, 6 videos, 15 photos &mdash; sealed for up to 1 year.
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-2xl font-extrabold text-navy">$29.95</div>
+                <Link
+                  href="/vault/buy?bundle=anniversary"
+                  className="mt-2 inline-flex items-center justify-center rounded-lg bg-navy px-5 py-2 text-sm font-bold text-cream shadow-md transition hover:bg-navy/90"
+                >
+                  Get the Capsule
                 </Link>
               </div>
             </div>

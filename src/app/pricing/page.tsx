@@ -157,6 +157,27 @@ export default function PricingPage() {
           </Link>
         </div>
 
+        {/* Anniversary Capsule sampler */}
+        <div className="mx-auto mt-16 max-w-2xl rounded-2xl border-2 border-gold bg-white p-8 text-center shadow-md">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+            Sampler
+          </p>
+          <h3 className="mt-2 text-2xl font-bold text-navy">
+            The Anniversary Capsule
+          </h3>
+          <p className="mt-2 text-sm text-warm-gray">
+            The gift you open together on your first anniversary. 1 vault, 6 videos,
+            15 photos &mdash; sealed for up to 1 year.
+          </p>
+          <p className="mt-4 text-3xl font-extrabold text-navy">$29.95</p>
+          <Link
+            href="/vault/buy?bundle=anniversary"
+            className="mt-5 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-base font-bold text-cream shadow-md transition hover:bg-navy/90"
+          >
+            Get the Anniversary Capsule
+          </Link>
+        </div>
+
         <div className="mx-auto mt-24 max-w-3xl">
           <h2 className="text-center text-2xl font-bold sm:text-3xl">
             Frequently Asked Questions

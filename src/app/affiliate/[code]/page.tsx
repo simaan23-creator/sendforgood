@@ -103,8 +103,16 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
     { key: "general", label: "General", path: "" },
     { key: "weddings", label: "Weddings", path: "/wedding" },
     { key: "vault", label: "Wedding Vault", path: "/vault/buy" },
+    { key: "anniversary", label: "Anniversary Capsule", path: "/vault/buy?bundle=anniversary" },
     { key: "messages", label: "Messages", path: "/messages/buy" },
   ];
+
+  // Combined ref + bundle URL for the Anniversary Capsule pitch. The ref
+  // cookie is set by middleware on ?ref=CODE; the bundle query string is
+  // read by /vault/buy. Both have to be on the same URL since each fires
+  // its own side effect.
+  const anniversaryShareUrl = `https://sealtheday.com/vault/buy?ref=${code}&bundle=anniversary`;
+  const anniversaryPitch = `Want to keep one perfect surprise from your wedding sealed for your first anniversary? I send couples this little capsule — a private vault for 6 video messages and 15 photos from the people closest to you, sealed until your anniversary. It's $29.95 and it's been my favorite recent recommendation. Here's the link: ${anniversaryShareUrl}`;
 
   function getCampaignUrl(path: string) {
     return `https://sealtheday.com${path}?ref=${code}`;
@@ -299,6 +307,68 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
             To request a payout, contact: <a href="mailto:support@sealtheday.com" className="text-[#C8A962] font-medium hover:underline">support@sealtheday.com</a>
           </p>
           <p className="text-sm text-gray-500">Payouts are processed monthly.</p>
+        </div>
+
+        {/* Pitch the Anniversary Capsule */}
+        <div className="bg-white rounded-xl shadow-sm border-2 border-[#C8A962] p-5 mb-8">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#C8A962]">
+                New &middot; Concrete product to pitch
+              </p>
+              <h3 className="text-lg font-semibold text-[#1B2A4A] mt-1">
+                Pitch the Anniversary Capsule
+              </h3>
+            </div>
+            <span className="text-2xl font-bold text-[#1B2A4A] shrink-0">$29.95</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            A small, sweet sampler designed for the 1st anniversary
+            reveal: 1 vault + 6 video slots + 15 photo slots, sealed for up
+            to 1 year. Easy to recommend to every couple you photograph.
+          </p>
+
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            Your share link
+          </label>
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="text"
+              readOnly
+              value={anniversaryShareUrl}
+              className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-mono text-gray-600 outline-none"
+            />
+            <button
+              onClick={() => copyPanelContent("anniv-url", anniversaryShareUrl)}
+              className={`rounded-lg px-4 py-2 text-xs font-semibold transition shrink-0 ${
+                copiedPanel === "anniv-url"
+                  ? "bg-green-500 text-white"
+                  : "bg-[#C8A962] text-white hover:bg-[#b89a55]"
+              }`}
+            >
+              {copiedPanel === "anniv-url" ? "Copied!" : "Copy link"}
+            </button>
+          </div>
+
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            Ready-to-send pitch (text or email)
+          </label>
+          <textarea
+            readOnly
+            value={anniversaryPitch}
+            rows={4}
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none"
+          />
+          <button
+            onClick={() => copyPanelContent("anniv-pitch", anniversaryPitch)}
+            className={`mt-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${
+              copiedPanel === "anniv-pitch"
+                ? "bg-green-500 text-white"
+                : "bg-[#1B2A4A] text-white hover:bg-[#1B2A4A]/90"
+            }`}
+          >
+            {copiedPanel === "anniv-pitch" ? "Copied!" : "Copy pitch"}
+          </button>
         </div>
 
         {/* Campaign Links */}

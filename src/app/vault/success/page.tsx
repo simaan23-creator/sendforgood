@@ -67,6 +67,10 @@ function SuccessContent() {
           <p className="mt-3 text-warm-gray">
             Your credits are live. Three quick steps and your guests can start recording.
           </p>
+          <p className="mt-2 text-xs text-warm-gray-light">
+            Yours forever &mdash; once your vault opens, you can download and keep
+            every video and photo on your own devices.
+          </p>
 
           <div className="mt-6 rounded-lg bg-cream p-4">
             <div className="flex justify-center gap-6">
