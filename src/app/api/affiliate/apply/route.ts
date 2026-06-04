@@ -151,6 +151,7 @@ export async function POST(request: Request) {
       name,
       email,
       code,
+      business_name: businessName,
       first_commission_rate: 15,
       repeat_commission_rate: 10,
       notes: notesParts.join(" • "),
@@ -169,6 +170,24 @@ export async function POST(request: Request) {
     );
   }
 
+  // D1: grant the free Anniversary Capsule (1 vault + 6 video + 15 photo).
+  // Stored in affiliate_grants — claimed when the affiliate logs into a
+  // user account whose email matches their affiliate email. Failure here is
+  // non-fatal: the affiliate row already exists and we'd rather they have
+  // working access than block on a grant insert.
+  try {
+    await supabaseAdmin.from("affiliate_grants").insert({
+      affiliate_id: affiliate.id,
+      vault_fees: 1,
+      video_credits: 6,
+      photo_credits: 15,
+      bundle: "anniversary",
+      source: "affiliate_signup_grant",
+    });
+  } catch (grantError) {
+    console.error("Failed to grant free Anniversary Capsule:", grantError);
+  }
+
   const portalUrl = `https://sealtheday.com/affiliate/${code}`;
   const shareLink = `https://sealtheday.com/?ref=${code}`;
 
@@ -183,6 +202,12 @@ export async function POST(request: Request) {
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
           <h1 style="color: #1a2744; margin-top: 0;">Welcome, ${name.split(" ")[0]}.</h1>
           <p style="font-size: 16px; line-height: 1.6;">Thanks for joining the SealTheDay affiliate program. You're approved and earning starts on your first referral.</p>
+
+          <div style="background: #fff8e7; border: 1px solid #C9A961; border-radius: 12px; padding: 20px; margin: 24px 0;">
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 8px;">Welcome gift &mdash; on us</div>
+            <p style="margin: 6px 0; font-size: 15px; color: #1a2744;"><strong>A free Anniversary Capsule</strong> (1 vault + 6 video + 15 photo slots, sealed up to 1 year) is waiting in your dashboard.</p>
+            <p style="margin: 10px 0 0; font-size: 13px; color: #6c6357;">Use it for your own family so you can pitch it from experience. Log in to <a href="https://sealtheday.com/auth" style="color: #722F37;">your dashboard</a> with this email to claim it.</p>
+          </div>
 
           <div style="background: #ffffff; border: 1px solid #f1e8db; border-radius: 12px; padding: 20px; margin: 24px 0;">
             <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 8px;">Your share link</div>

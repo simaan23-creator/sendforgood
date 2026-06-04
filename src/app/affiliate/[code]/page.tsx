@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, use } from "react";
 
 interface AffiliateInfo {
   name: string;
   code: string;
+  business_name?: string | null;
+  aliases?: string[];
   first_commission_rate: number;
   repeat_commission_rate: number;
 }
@@ -40,6 +43,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function AffiliatePortalPage({ params }: { params: Promise<{ code: string }> }) {
+  const router = useRouter();
   const { code } = use(params);
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
@@ -50,6 +54,11 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
   const [copiedPanel, setCopiedPanel] = useState<string | null>(null);
   const [selectedQRCampaign, setSelectedQRCampaign] = useState("general");
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
+  // D3: custom URL panel state.
+  const [newCodeInput, setNewCodeInput] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState("");
+  const [renameSuccess, setRenameSuccess] = useState("");
 
   const [affiliate, setAffiliate] = useState<AffiliateInfo | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -143,6 +152,53 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
       else next.add(key);
       return next;
     });
+  }
+
+  // D3: rename the affiliate's referral code. Pushes the previous code
+  // into aliases server-side so old printed materials keep working.
+  async function handleRename() {
+    if (renaming) return;
+    const requested = newCodeInput.trim();
+    if (!requested) {
+      setRenameError("Pick a new code first.");
+      return;
+    }
+    setRenaming(true);
+    setRenameError("");
+    setRenameSuccess("");
+    const pw = sessionStorage.getItem(`sfg_affiliate_${code}`) || "";
+    try {
+      const res = await fetch(`/api/affiliate/${code}/rename`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-portal-password": pw },
+        body: JSON.stringify({ new_code: requested }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRenameError(data.error || "Rename failed");
+        setRenaming(false);
+        return;
+      }
+      // Migrate sessionStorage password to the new code key so the next
+      // page load still authenticates without re-prompting.
+      if (pw && data.code !== code) {
+        sessionStorage.setItem(`sfg_affiliate_${data.code}`, pw);
+        sessionStorage.removeItem(`sfg_affiliate_${code}`);
+      }
+      setRenameSuccess(
+        data.unchanged
+          ? "That's already your code."
+          : `Your code is now "${data.code}". Old link "${data.previous_code}" still works.`
+      );
+      setNewCodeInput("");
+      // If the code changed, hop to the new URL so the param matches state.
+      if (!data.unchanged && data.code !== code) {
+        router.replace(`/affiliate/${data.code}`);
+      }
+    } catch {
+      setRenameError("Network error. Try again.");
+    }
+    setRenaming(false);
   }
 
   // Login screen
@@ -369,6 +425,49 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
           >
             {copiedPanel === "anniv-pitch" ? "Copied!" : "Copy pitch"}
           </button>
+        </div>
+
+        {/* D3: Custom referral URL */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+          <h3 className="text-lg font-semibold text-[#1B2A4A] mb-1">Custom Referral URL</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Pick a vanity slug for your share link. Your old code{affiliate.aliases && affiliate.aliases.length > 0 ? "s" : ""} will keep working forever &mdash; nothing you&apos;ve printed will break.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-3">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                New code
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 font-mono">sealtheday.com/?ref=</span>
+                <input
+                  type="text"
+                  value={newCodeInput}
+                  onChange={(e) => { setNewCodeInput(e.target.value); setRenameError(""); setRenameSuccess(""); }}
+                  placeholder="yourstudio"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-[#C8A962]/40 focus:border-[#C8A962]"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleRename}
+              disabled={renaming}
+              className="rounded-lg bg-[#1B2A4A] text-white px-5 py-2 text-sm font-semibold hover:bg-[#1B2A4A]/90 transition disabled:opacity-60 shrink-0"
+            >
+              {renaming ? "Saving..." : "Save new code"}
+            </button>
+          </div>
+          {renameError && (
+            <p className="text-sm text-red-600">{renameError}</p>
+          )}
+          {renameSuccess && (
+            <p className="text-sm text-[#2D5016]">{renameSuccess}</p>
+          )}
+          {affiliate.aliases && affiliate.aliases.length > 0 && (
+            <p className="mt-3 text-xs text-gray-500">
+              Old aliases still working: {affiliate.aliases.map((a) => `?ref=${a}`).join(", ")}
+            </p>
+          )}
         </div>
 
         {/* Campaign Links */}

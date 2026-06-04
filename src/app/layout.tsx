@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import { AffiliateBanner } from "@/components/AffiliateBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -86,6 +87,7 @@ export default async function RootLayout({
         />
         <ScrollToTop />
         {!isAdmin && <CookieConsent />}
+        {!isAdmin && <AffiliateBanner />}
         {!isAdmin && <Header />}
         {isAdmin ? children : <main className="flex-1">{children}</main>}
         {!isAdmin && <Footer />}

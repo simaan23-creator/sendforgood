@@ -224,6 +224,14 @@ export default function DashboardPage() {
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
+  // D1: pending free-grant claim for affiliates. Banner shows on the
+  // dashboard if the logged-in user's email matches an affiliate account
+  // with unclaimed affiliate_grants (e.g. their welcome Anniversary
+  // Capsule). Clicking the button calls /api/affiliate/claim-grants which
+  // materializes the grant into vault_fees + memory_credits.
+  const [pendingGrants, setPendingGrants] = useState<number>(0);
+  const [claimingGrants, setClaimingGrants] = useState(false);
+  const [grantClaimed, setGrantClaimed] = useState(false);
   const [editingTitle, setEditingTitle] = useState<{ type: "letter" | "voice"; id: string; value: string } | null>(null);
   const [savingTitle, setSavingTitle] = useState(false);
   const [giftingItem, setGiftingItem] = useState<{
@@ -303,6 +311,19 @@ export default function DashboardPage() {
     }
 
     setUserEmail(user.email ?? "");
+
+    // D1: check for pending affiliate grants (free Anniversary Capsule
+    // waiting for the photographer to claim). Quiet failure — banner just
+    // won't render.
+    try {
+      const grantsRes = await fetch("/api/affiliate/claim-grants", { method: "GET" });
+      if (grantsRes.ok) {
+        const grantsData = await grantsRes.json();
+        setPendingGrants(Number(grantsData.pending) || 0);
+      }
+    } catch {
+      // ignore
+    }
 
     // Load phone from profile
     const { data: profile } = await supabase
@@ -477,6 +498,26 @@ export default function DashboardPage() {
     router.push("/");
   }
 
+  async function handleClaimGrants() {
+    if (claimingGrants || pendingGrants <= 0) return;
+    setClaimingGrants(true);
+    try {
+      const res = await fetch("/api/affiliate/claim-grants", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        if ((data.claimed || 0) > 0) {
+          setGrantClaimed(true);
+          setPendingGrants(0);
+          // Refresh vault credits so the new free balance shows immediately.
+          await loadDashboard();
+        }
+      }
+    } catch {
+      // Quiet failure — claim is idempotent and the user can retry.
+    }
+    setClaimingGrants(false);
+  }
+
   async function handleSavePhone() {
     setPhoneSaving(true);
     setPhoneSaved(false);
@@ -646,6 +687,29 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* D1: affiliate welcome-gift banner (empty-state variant). */}
+          {pendingGrants > 0 && (
+            <div className="mb-6 rounded-xl border-2 border-gold bg-white px-5 py-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                    Affiliate welcome gift
+                  </p>
+                  <p className="mt-1 text-sm text-navy">
+                    You have a free <strong>Anniversary Capsule</strong> waiting &mdash; 1 vault + 6 video + 15 photo slots, sealed up to 1 year.
+                  </p>
+                </div>
+                <button
+                  onClick={handleClaimGrants}
+                  disabled={claimingGrants}
+                  className="shrink-0 rounded-lg bg-gold px-5 py-2 text-sm font-bold text-navy shadow-sm transition hover:bg-gold-light disabled:opacity-60"
+                >
+                  {claimingGrants ? "Claiming..." : "Claim free vault"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Empty state card */}
           <div className="flex flex-col items-center justify-center rounded-2xl border border-cream-dark bg-white py-20 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
@@ -710,6 +774,36 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
             <span>Gift assigned successfully! We&apos;ll handle the rest.</span>
             <button onClick={() => setAssignSuccess(false)} className="ml-4 font-semibold hover:underline">Dismiss</button>
+          </div>
+        )}
+
+        {/* D1: free Anniversary Capsule banner for affiliates whose welcome
+            grant hasn't been claimed yet. */}
+        {pendingGrants > 0 && (
+          <div className="mb-6 rounded-xl border-2 border-gold bg-white px-5 py-4 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                  Affiliate welcome gift
+                </p>
+                <p className="mt-1 text-sm text-navy">
+                  You have a free <strong>Anniversary Capsule</strong> waiting &mdash; 1 vault + 6 video + 15 photo slots, sealed up to 1 year. Perfect for your own family.
+                </p>
+              </div>
+              <button
+                onClick={handleClaimGrants}
+                disabled={claimingGrants}
+                className="shrink-0 rounded-lg bg-gold px-5 py-2 text-sm font-bold text-navy shadow-sm transition hover:bg-gold-light disabled:opacity-60"
+              >
+                {claimingGrants ? "Claiming..." : "Claim free vault"}
+              </button>
+            </div>
+          </div>
+        )}
+        {grantClaimed && (
+          <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
+            <span>Anniversary Capsule claimed! Your free credits are in your balance.</span>
+            <button onClick={() => setGrantClaimed(false)} className="ml-4 font-semibold hover:underline">Dismiss</button>
           </div>
         )}
 

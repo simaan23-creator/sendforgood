@@ -2009,13 +2009,16 @@ async function processAffiliateReferral(
   if (!affiliateCode) return;
 
   try {
-    // Look up the affiliate by code
+    // Look up the affiliate by canonical code OR by any legacy alias from
+    // a prior rename (D3). Old printed materials with the original code
+    // must keep working forever — alias resolution is the cheap insurance.
+    const codeLower = affiliateCode.trim().toLowerCase();
     const { data: affiliate, error: affError } = await supabaseAdmin
       .from("affiliates")
       .select("*")
-      .eq("code", affiliateCode)
+      .or(`code.eq.${codeLower},aliases.cs.{${codeLower}}`)
       .eq("active", true)
-      .single();
+      .maybeSingle();
 
     if (affError || !affiliate) {
       // Don't log the attempted code (could enable enumeration via log scraping).

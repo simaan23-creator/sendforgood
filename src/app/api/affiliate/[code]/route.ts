@@ -30,12 +30,15 @@ export async function GET(
     return NextResponse.json({ error: "Password required" }, { status: 401 });
   }
 
-  // Fetch affiliate by code
+  // Fetch affiliate by canonical code OR any legacy alias (D3) so old
+  // bookmarks and printed materials with the original code still load
+  // the right portal after a rename.
+  const codeLower = code.trim().toLowerCase();
   const { data: affiliate, error: affError } = await supabaseAdmin
     .from("affiliates")
     .select("*")
-    .eq("code", code)
-    .single();
+    .or(`code.eq.${codeLower},aliases.cs.{${codeLower}}`)
+    .maybeSingle();
 
   if (affError || !affiliate) {
     return NextResponse.json({ error: "Affiliate not found" }, { status: 404 });
@@ -92,6 +95,8 @@ export async function GET(
     affiliate: {
       name: affiliate.name,
       code: affiliate.code,
+      business_name: affiliate.business_name || null,
+      aliases: Array.isArray(affiliate.aliases) ? affiliate.aliases : [],
       first_commission_rate: affiliate.first_commission_rate,
       repeat_commission_rate: affiliate.repeat_commission_rate,
     },
