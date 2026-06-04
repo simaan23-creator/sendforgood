@@ -212,7 +212,7 @@ export async function POST(request: Request) {
           <div style="background: #ffffff; border: 1px solid #f1e8db; border-radius: 12px; padding: 20px; margin: 24px 0;">
             <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 8px;">Your share link</div>
             <p style="margin: 6px 0; font-family: ui-monospace, Menlo, monospace; word-break: break-all;"><a href="${shareLink}" style="color: #722F37;">${shareLink}</a></p>
-            <p style="margin: 12px 0 0; font-size: 13px; color: #6c6357;">Anyone who clicks this link is cookied to your code for 30 days. Commissions: <strong>15%</strong> on first purchase, <strong>10%</strong> on every repeat purchase forever.</p>
+            <p style="margin: 12px 0 0; font-size: 13px; color: #6c6357;">Anyone who clicks this link is cookied to your code for 30 days. Commissions: <strong>15%</strong> on every first purchase. Repeat purchases pay <strong>10%</strong> at Tier 1, <strong>12%</strong> from your 5th paid referral, and <strong>15%</strong> from your 10th &mdash; forever.</p>
           </div>
 
           <div style="background: #ffffff; border: 1px solid #f1e8db; border-radius: 12px; padding: 20px; margin: 24px 0;">

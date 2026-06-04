@@ -109,6 +109,17 @@ interface Affiliate {
   total_unpaid: number;
 }
 
+interface PotmRow {
+  id: string;
+  affiliate_id: string;
+  month: string;
+  business_name: string;
+  photo_url: string | null;
+  quote: string | null;
+  website: string | null;
+  published_at: string;
+}
+
 interface AffiliateReferral {
   id: string;
   affiliate_id: string;
@@ -1404,7 +1415,7 @@ function AccessRequestsTab() {
 // ─── Affiliates Tab ─────────────────────────────────────────────────────────
 
 function AffiliatesTab() {
-  const [subTab, setSubTab] = useState<"list" | "referrals">("list");
+  const [subTab, setSubTab] = useState<"list" | "referrals" | "potm">("list");
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [totalUnpaid, setTotalUnpaid] = useState(0);
@@ -1415,6 +1426,32 @@ function AffiliatesTab() {
   // Referral filters
   const [filterAffiliateId, setFilterAffiliateId] = useState("all");
   const [filterPaid, setFilterPaid] = useState("all");
+
+  // D5: Photographer of the Month
+  const [potmData, setPotmData] = useState<{
+    month: string;
+    shortlist: Array<{
+      affiliate_id: string;
+      paid_referrals: number;
+      commission_cents: number;
+      name: string;
+      business_name: string;
+      email: string;
+      code: string;
+    }>;
+    current_winner: PotmRow | null;
+    past_winners: PotmRow[];
+  } | null>(null);
+  const [potmForm, setPotmForm] = useState({
+    affiliate_id: "",
+    business_name: "",
+    photo_url: "",
+    quote: "",
+    website: "",
+  });
+  const [potmPublishing, setPotmPublishing] = useState(false);
+  const [potmError, setPotmError] = useState("");
+  const [showPastWinners, setShowPastWinners] = useState(false);
 
   const fetchAffiliates = useCallback(async () => {
     const res = await fetch("/api/admin/affiliates", { headers: adminHeaders() });
@@ -1432,9 +1469,55 @@ function AffiliatesTab() {
     setTotalUnpaid(data.totalUnpaid || 0);
   }, [filterAffiliateId, filterPaid]);
 
+  const fetchPotm = useCallback(async () => {
+    const res = await fetch("/api/admin/photographer-of-month", { headers: adminHeaders() });
+    if (!res.ok) return;
+    const data = await res.json();
+    setPotmData(data);
+  }, []);
+
   useEffect(() => {
-    Promise.all([fetchAffiliates(), fetchReferrals()]).then(() => setLoading(false));
-  }, [fetchAffiliates, fetchReferrals]);
+    Promise.all([fetchAffiliates(), fetchReferrals(), fetchPotm()]).then(() => setLoading(false));
+  }, [fetchAffiliates, fetchReferrals, fetchPotm]);
+
+  async function handlePublishPotm(e: React.FormEvent) {
+    e.preventDefault();
+    setPotmError("");
+    setPotmPublishing(true);
+    try {
+      const res = await fetch("/api/admin/photographer-of-month", {
+        method: "POST",
+        headers: adminJsonHeaders(),
+        body: JSON.stringify({
+          affiliate_id: potmForm.affiliate_id,
+          month: potmData!.month,
+          business_name: potmForm.business_name,
+          photo_url: potmForm.photo_url || undefined,
+          quote: potmForm.quote || undefined,
+          website: potmForm.website || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setPotmError(j.error || "Publish failed");
+        return;
+      }
+      setPotmForm({ affiliate_id: "", business_name: "", photo_url: "", quote: "", website: "" });
+      fetchPotm();
+    } finally {
+      setPotmPublishing(false);
+    }
+  }
+
+  function formatPotmMonth(yyyymmdd: string): string {
+    const [y, m] = yyyymmdd.split("-").map(Number);
+    if (!y || !m) return yyyymmdd;
+    return new Date(Date.UTC(y, m - 1, 1)).toLocaleString("en-US", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  }
 
   async function handleToggleActive(affiliate: Affiliate) {
     await fetch("/api/admin/affiliates", {
@@ -1483,9 +1566,19 @@ function AffiliatesTab() {
         >
           Referrals Log
         </button>
+        <button
+          onClick={() => setSubTab("potm")}
+          className={`text-sm font-medium pb-1 border-b-2 transition ${
+            subTab === "potm"
+              ? "border-gray-900 text-gray-900"
+              : "border-transparent text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Photographer of the Month
+        </button>
       </div>
 
-      {subTab === "list" ? (
+      {subTab === "list" && (
         <>
           {/* Add Affiliate button */}
           <div className="flex justify-end mb-4">
@@ -1583,7 +1676,9 @@ function AffiliatesTab() {
             </div>
           )}
         </>
-      ) : (
+      )}
+
+      {subTab === "referrals" && (
         <>
           {/* Referrals Log */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-center">
@@ -1668,6 +1763,181 @@ function AffiliatesTab() {
             </div>
           )}
         </>
+      )}
+
+      {subTab === "potm" && potmData && (
+        <div className="space-y-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Featuring for</p>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{formatPotmMonth(potmData.month)}</h3>
+          </div>
+
+          {potmData.current_winner && (
+            <div className="border-2 border-amber-300 bg-amber-50 rounded-xl p-5">
+              <div className="flex items-start gap-4">
+                {potmData.current_winner.photo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={potmData.current_winner.photo_url}
+                    alt={potmData.current_winner.business_name}
+                    className="w-20 h-20 rounded-lg object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-amber-100 shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Current winner</p>
+                  <p className="text-lg font-bold text-gray-900 mt-0.5">{potmData.current_winner.business_name}</p>
+                  {potmData.current_winner.quote && (
+                    <p className="mt-2 text-sm text-gray-700 italic">&ldquo;{potmData.current_winner.quote}&rdquo;</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-500">Republish below to overwrite.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Top 5 from {formatPotmMonth(potmData.month)}</h4>
+            {potmData.shortlist.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-gray-200">
+                No paid referrals in the prior month yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="pb-3 pr-4">Rank</th>
+                      <th className="pb-3 pr-4">Business</th>
+                      <th className="pb-3 pr-4">Paid Referrals</th>
+                      <th className="pb-3 pr-4">Commission</th>
+                      <th className="pb-3 pr-4">Email</th>
+                      <th className="pb-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {potmData.shortlist.map((s, i) => (
+                      <tr key={s.affiliate_id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 pr-4 font-mono text-gray-500">#{i + 1}</td>
+                        <td className="py-3 pr-4 font-medium text-gray-900">{s.business_name}</td>
+                        <td className="py-3 pr-4 text-center">{s.paid_referrals}</td>
+                        <td className="py-3 pr-4">{formatCurrency(s.commission_cents)}</td>
+                        <td className="py-3 pr-4 text-xs text-gray-500">{s.email}</td>
+                        <td className="py-3">
+                          <button
+                            onClick={() =>
+                              setPotmForm({
+                                affiliate_id: s.affiliate_id,
+                                business_name: s.business_name,
+                                photo_url: "",
+                                quote: "",
+                                website: "",
+                              })
+                            }
+                            className="rounded bg-blue-50 border border-blue-200 text-blue-600 px-2.5 py-1 text-xs font-medium hover:bg-blue-100 transition"
+                          >
+                            Pick
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handlePublishPotm} className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Publish winner</h4>
+            {!potmForm.affiliate_id && (
+              <p className="text-xs text-gray-500">Pick an affiliate from the shortlist above to enable this form.</p>
+            )}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Business name *</label>
+              <input
+                type="text"
+                value={potmForm.business_name}
+                onChange={(e) => setPotmForm({ ...potmForm, business_name: e.target.value })}
+                disabled={!potmForm.affiliate_id}
+                required
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Photo URL</label>
+              <input
+                type="url"
+                value={potmForm.photo_url}
+                onChange={(e) => setPotmForm({ ...potmForm, photo_url: e.target.value })}
+                disabled={!potmForm.affiliate_id}
+                placeholder="https://..."
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Quote <span className="text-gray-400">({potmForm.quote.length}/280)</span>
+              </label>
+              <textarea
+                value={potmForm.quote}
+                onChange={(e) => setPotmForm({ ...potmForm, quote: e.target.value.slice(0, 280) })}
+                disabled={!potmForm.affiliate_id}
+                rows={3}
+                maxLength={280}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Website</label>
+              <input
+                type="url"
+                value={potmForm.website}
+                onChange={(e) => setPotmForm({ ...potmForm, website: e.target.value })}
+                disabled={!potmForm.affiliate_id}
+                placeholder="https://..."
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
+            {potmError && <p className="text-sm text-red-600">{potmError}</p>}
+            <button
+              type="submit"
+              disabled={!potmForm.affiliate_id || potmPublishing}
+              className="rounded-md bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              {potmPublishing ? "Publishing..." : "Publish winner"}
+            </button>
+          </form>
+
+          {potmData.past_winners.length > 0 && (
+            <div>
+              <button
+                onClick={() => setShowPastWinners((v) => !v)}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                {showPastWinners ? "Hide" : "Show"} past winners ({potmData.past_winners.length})
+              </button>
+              {showPastWinners && (
+                <ul className="mt-3 space-y-2">
+                  {potmData.past_winners.slice(0, 12).map((w) => (
+                    <li key={w.id} className="flex items-center justify-between text-sm border-b border-gray-100 py-2">
+                      <span className="text-gray-500 font-mono text-xs">{formatPotmMonth(w.month)}</span>
+                      <span className="font-medium text-gray-900">{w.business_name}</span>
+                      <a
+                        href="/partners"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        View
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Add/Edit Affiliate Modal */}

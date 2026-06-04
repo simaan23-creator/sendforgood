@@ -2036,9 +2036,38 @@ async function processAffiliateReferral(
 
     const isFirstPurchase = !count || count === 0;
     const referralType = isFirstPurchase ? "first" : "repeat";
-    const commissionRate = isFirstPurchase
-      ? affiliate.first_commission_rate
-      : affiliate.repeat_commission_rate;
+
+    // D7: tiered repeat commissions. First-purchase rate is unchanged
+    // (always uses affiliate.first_commission_rate). Repeat rate scales
+    // with the affiliate's lifetime paid referral count:
+    //   0..4  paid referrals -> 10% (their base repeat_commission_rate)
+    //   5..9                  -> 12%
+    //   10+                   -> 15%
+    // We use the count of paid referrals (not all referrals) so the
+    // bump triggers on actual cash earned, not stalled pending rows.
+    let commissionRate: number;
+    let tier: string;
+    if (isFirstPurchase) {
+      commissionRate = Number(affiliate.first_commission_rate);
+      tier = "first";
+    } else {
+      const { count: paidCount } = await supabaseAdmin
+        .from("affiliate_referrals")
+        .select("*", { count: "exact", head: true })
+        .eq("affiliate_id", affiliate.id)
+        .eq("paid", true);
+      const priorPaid = paidCount || 0;
+      if (priorPaid >= 10) {
+        commissionRate = 15;
+        tier = "repeat_t3";
+      } else if (priorPaid >= 5) {
+        commissionRate = 12;
+        tier = "repeat_t2";
+      } else {
+        commissionRate = Number(affiliate.repeat_commission_rate);
+        tier = "repeat_t1";
+      }
+    }
     const commissionAmount = Math.round((amountPaid * commissionRate) / 100);
 
     // Insert referral record
@@ -2052,6 +2081,7 @@ async function processAffiliateReferral(
         commission_rate: commissionRate,
         commission_amount: commissionAmount,
         referral_type: referralType,
+        tier,
         paid: false,
       });
 

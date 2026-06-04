@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { getRepeatTier } from "@/lib/affiliates/tiers";
 
 function maskEmail(email: string): string {
   if (!email || !email.includes("@")) return "***";
@@ -70,12 +71,27 @@ export async function GET(
     .select("*", { count: "exact", head: true })
     .eq("affiliate_id", affiliate.id);
 
+  // D7: paid referral count drives the repeat-commission tier the
+  // affiliate is currently in (and the count needed for the next tier).
+  const { count: paidCountResult } = await supabaseAdmin
+    .from("affiliate_referrals")
+    .select("*", { count: "exact", head: true })
+    .eq("affiliate_id", affiliate.id)
+    .eq("paid", true);
+  const paidReferrals = paidCountResult || 0;
+  const tierInfo = getRepeatTier(
+    paidReferrals,
+    Number(affiliate.repeat_commission_rate || 10)
+  );
+
   // Get full totals from affiliate record (more accurate than just last 50)
   const stats = {
     total_referrals: fullCount || totalReferrals,
     total_earned: affiliate.total_earned || 0,
     total_paid: affiliate.total_paid || 0,
     pending_payout: (affiliate.total_earned || 0) - (affiliate.total_paid || 0),
+    paid_referrals: paidReferrals,
+    tier: tierInfo,
   };
 
   // Mask customer emails in referrals

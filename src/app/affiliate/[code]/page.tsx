@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, use } from "react";
+import { BrandedQR } from "@/components/BrandedQR";
 
 interface AffiliateInfo {
   name: string;
@@ -12,11 +13,22 @@ interface AffiliateInfo {
   repeat_commission_rate: number;
 }
 
+interface TierInfo {
+  tier: "repeat_t1" | "repeat_t2" | "repeat_t3";
+  rate: number;
+  label: string;
+  nextRate: number | null;
+  nextLabel: string | null;
+  paidNeededForNext: number | null;
+}
+
 interface Stats {
   total_referrals: number;
   total_earned: number;
   total_paid: number;
   pending_payout: number;
+  paid_referrals?: number;
+  tier?: TierInfo;
 }
 
 interface Referral {
@@ -356,6 +368,34 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
           )}
         </div>
 
+        {/* D7: Tier progress */}
+        {stats.tier && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-[#1B2A4A]">Repeat Commission Tier</h3>
+                <p className="mt-1 text-2xl font-bold text-[#2D5016]">{stats.tier.label}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Paid referrals</p>
+                <p className="text-2xl font-bold text-[#1B2A4A]">{stats.paid_referrals || 0}</p>
+              </div>
+            </div>
+            {stats.tier.paidNeededForNext != null && stats.tier.nextLabel ? (
+              <p className="text-sm text-gray-600">
+                <strong>{stats.tier.paidNeededForNext}</strong> more paid referral{stats.tier.paidNeededForNext === 1 ? "" : "s"} to reach <strong>{stats.tier.nextLabel}</strong>.
+              </p>
+            ) : (
+              <p className="text-sm text-[#2D5016] font-medium">
+                You&apos;re at the top tier. Every repeat purchase earns 15%.
+              </p>
+            )}
+            <p className="mt-3 text-xs text-gray-500">
+              First-purchase commissions stay at {affiliate.first_commission_rate}% across all tiers.
+            </p>
+          </div>
+        )}
+
         {/* Payout Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
           <h3 className="text-sm font-semibold text-[#1B2A4A] mb-2">Payouts</h3>
@@ -519,24 +559,11 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
                   <option key={c.key} value={c.key}>{c.label}</option>
                 ))}
               </select>
-              <a
-                href={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(getCampaignUrl(campaignLinks.find((c) => c.key === selectedQRCampaign)?.path || ""))}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-block rounded-lg bg-[#1B2A4A] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#1B2A4A]/90 transition"
-              >
-                Download QR Code
-              </a>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(getCampaignUrl(campaignLinks.find((c) => c.key === selectedQRCampaign)?.path || ""))}`}
-                alt="QR Code"
-                width={200}
-                height={200}
-                className="rounded-lg"
-              />
-            </div>
+            <BrandedQR
+              url={getCampaignUrl(campaignLinks.find((c) => c.key === selectedQRCampaign)?.path || "")}
+              businessName={affiliate.business_name || affiliate.name || "Photographer"}
+            />
           </div>
         </div>
 

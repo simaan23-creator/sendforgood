@@ -103,7 +103,7 @@ export default function AffiliateApplyPage() {
               </button>
               <p className="mt-3 text-xs text-warm-gray">
                 Anyone who clicks this is cookied to your code for 30 days.
-                15% on first purchase, 10% on every repeat forever.
+                15% on first purchase. Repeat rates: 10% (Tier 1) &rarr; 12% (5+ paid) &rarr; 15% (10+ paid).
               </p>
             </div>
 
@@ -181,7 +181,7 @@ export default function AffiliateApplyPage() {
               {
                 step: "3",
                 title: "Get paid",
-                body: "We pay 15% on the couple's first purchase and 10% on every repeat — for the life of their account. Payouts via PayPal or Venmo.",
+                body: "We pay 15% on the couple's first purchase. Repeat purchases pay 10% at Tier 1, bumping to 12% on your 5th paid referral and 15% on your 10th — for the life of their account. Payouts via PayPal or Venmo.",
               },
             ].map((s) => (
               <div
@@ -230,7 +230,7 @@ export default function AffiliateApplyPage() {
                 <dd className="font-bold text-gold">~$150</dd>
               </div>
               <div className="flex justify-between py-3">
-                <dt className="text-warm-gray">Plus 10% on every repeat purchase</dt>
+                <dt className="text-warm-gray">Plus 10&ndash;15% on every repeat purchase (tiered)</dt>
                 <dd className="font-semibold text-navy">Recurring</dd>
               </div>
             </dl>
@@ -359,6 +359,10 @@ export default function AffiliateApplyPage() {
               {
                 q: "When and how do I get paid?",
                 a: "Monthly via PayPal or Venmo, on commissions older than 30 days (Stripe refund window). $25 minimum to send. You tell us your handle when we send your first payout email.",
+              },
+              {
+                q: "How does the tiered commission work?",
+                a: "First-purchase commissions are always 15%. Repeat-purchase commissions start at 10% (Tier 1), bump to 12% from your 5th paid referral, and 15% from your 10th — for the lifetime of those customers. Your tier and progress show in your portal.",
               },
               {
                 q: "How long does the cookie last?",
