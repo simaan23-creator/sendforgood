@@ -31,7 +31,7 @@ const FAQ = [
   {
     question: "How long can each recording be?",
     answer:
-      "Video recordings are capped at 3 minutes each. Photos are uploaded at full resolution.",
+      "Video recordings are capped at 2 minutes each. Photos are uploaded at full resolution.",
   },
   {
     question: "What if I add more slots later?",
@@ -69,7 +69,7 @@ const ITEMS = [
     label: "Video Slot",
     price: "$1",
     unit: "per slot",
-    desc: "Guests record up to 3 minutes of video from their phone browser.",
+    desc: "Guests record up to 2 minutes of video from their phone browser.",
     featured: true,
   },
   {
