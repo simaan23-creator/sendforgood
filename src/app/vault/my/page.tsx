@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -35,9 +35,37 @@ interface CreditBalance {
   vaultCredits: number;
 }
 
-export default function MyVaultsPage() {
+function MyVaultsInner() {
   const router = useRouter();
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const giftedFlag = searchParams.get("gifted") === "1";
+
+  // D10: one-time celebration banner after a successful gift claim. Looks
+  // up the gifting photographer's business name from the most recently
+  // claimed gift so the banner can credit them by name.
+  const [giftBannerName, setGiftBannerName] = useState<string | null>(null);
+  const [giftBannerDismissed, setGiftBannerDismissed] = useState(false);
+  useEffect(() => {
+    if (!giftedFlag) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/gift/my-latest");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setGiftBannerName(data?.business_name || "your photographer");
+        } else {
+          if (!cancelled) setGiftBannerName("your photographer");
+        }
+      } catch {
+        if (!cancelled) setGiftBannerName("your photographer");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [giftedFlag]);
 
   const [loading, setLoading] = useState(false);
   const [vaults, setVaults] = useState<MemoryRequest[]>([]);
@@ -278,6 +306,34 @@ export default function MyVaultsPage() {
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+        {/* D10: gift welcome banner */}
+        {giftedFlag && giftBannerName && !giftBannerDismissed && (
+          <div className="mb-6 rounded-xl border-2 border-gold bg-gold/10 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                  Welcome
+                </p>
+                <h2 className="mt-1 text-lg font-bold text-navy">
+                  Your gift from {giftBannerName} is ready
+                </h2>
+                <p className="mt-1 text-sm text-warm-gray">
+                  Create your vault when you&apos;re ready. Your credits are waiting in your balance below.
+                </p>
+              </div>
+              <button
+                onClick={() => setGiftBannerDismissed(true)}
+                className="shrink-0 rounded-md p-1 text-warm-gray hover:bg-cream-dark hover:text-navy transition"
+                aria-label="Dismiss"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -729,5 +785,19 @@ export default function MyVaultsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function MyVaultsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-cream">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-navy border-t-transparent" />
+        </div>
+      }
+    >
+      <MyVaultsInner />
+    </Suspense>
   );
 }

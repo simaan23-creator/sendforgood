@@ -2,8 +2,30 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import VoiceRecorder, { type MediaFormat } from "@/components/VoiceRecorder";
 import { useUploadQueue } from "@/lib/use-upload-queue";
+
+function ViralFooter() {
+  return (
+    <footer className="border-t border-cream-dark bg-cream/30 px-6 py-10 mt-12">
+      <div className="mx-auto max-w-md text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+          Powered by SealTheDay
+        </p>
+        <p className="mt-2 text-sm text-warm-gray">
+          Got a wedding, birthday, or milestone coming up?
+        </p>
+        <Link
+          href="/wedding"
+          className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-navy underline hover:text-navy/80"
+        >
+          Start your own vault &rarr;
+        </Link>
+      </div>
+    </footer>
+  );
+}
 
 interface MemoryRequest {
   title: string;
@@ -279,6 +301,7 @@ export default function RecordMemoryPage() {
             <p className="mt-3 text-warm-gray">{error}</p>
           </div>
         </div>
+        <ViralFooter />
       </main>
     );
   }
@@ -304,6 +327,7 @@ export default function RecordMemoryPage() {
             </p>
           </div>
         </div>
+        <ViralFooter />
       </main>
     );
   }
@@ -339,6 +363,7 @@ export default function RecordMemoryPage() {
             </p>
           </div>
         </div>
+        <ViralFooter />
       </main>
     );
   }
@@ -672,6 +697,7 @@ export default function RecordMemoryPage() {
           </div>
         )}
       </div>
+      <ViralFooter />
     </main>
   );
 }

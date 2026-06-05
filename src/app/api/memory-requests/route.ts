@@ -86,7 +86,7 @@ export async function POST(request: Request) {
   // Check for unused vault fee ($10)
   const { data: vaultFee } = await supabaseAdmin
     .from("vault_fees")
-    .select("id")
+    .select("id, source, source_id")
     .eq("user_id", user.id)
     .is("used_at", null)
     .order("created_at", { ascending: true })
@@ -106,6 +106,21 @@ export async function POST(request: Request) {
     .update({ used_at: new Date().toISOString() })
     .eq("id", vaultFee.id);
 
+  // If the consumed vault fee came from a gifted Anniversary Capsule,
+  // stamp the new vault with the gifting affiliate's id so the unlock
+  // cron can notify them and the portal funnel can mark it Activated.
+  let giftedByAffiliateId: string | null = null;
+  if (vaultFee.source === "affiliate_gift" && vaultFee.source_id) {
+    const { data: sourceGrant } = await supabaseAdmin
+      .from("affiliate_grants")
+      .select("affiliate_id")
+      .eq("id", vaultFee.source_id)
+      .maybeSingle();
+    if (sourceGrant?.affiliate_id) {
+      giftedByAffiliateId = sourceGrant.affiliate_id;
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from("memory_requests")
     .insert({
@@ -121,6 +136,7 @@ export async function POST(request: Request) {
       max_video_recordings: max_video_recordings || 0,
       max_photo_uploads: max_photo_uploads || 0,
       status: "active",
+      ...(giftedByAffiliateId ? { gifted_by_affiliate_id: giftedByAffiliateId } : {}),
     })
     .select()
     .single();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
@@ -18,7 +19,29 @@ export async function POST(request: Request) {
   // commission to the right affiliate. Matches the pattern used by the
   // other checkout routes (src/app/api/checkout/route.ts:10).
   const cookieStore = await cookies();
-  const affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
+  let affiliateCode = cookieStore.get("sfg_affiliate")?.value || "";
+
+  // Persistent affiliate attribution fallback: if the cookie is empty
+  // (cleared, different device), look up profiles.attributed_affiliate_id
+  // for this user. Set when a recipient claims a photographer's gift, so
+  // any future credit purchase still pays the gifting affiliate.
+  if (!affiliateCode) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("attributed_affiliate_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.attributed_affiliate_id) {
+      const { data: affiliate } = await supabaseAdmin
+        .from("affiliates")
+        .select("code")
+        .eq("id", profile.attributed_affiliate_id)
+        .maybeSingle();
+      if (affiliate?.code) {
+        affiliateCode = affiliate.code;
+      }
+    }
+  }
 
   const body = await request.json();
   const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId, bundle } = body;

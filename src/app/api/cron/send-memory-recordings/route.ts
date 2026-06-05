@@ -137,6 +137,66 @@ export async function GET(request: Request) {
           .update({ status: "completed", is_sealed: false })
           .eq("id", req.id);
 
+        // If this vault was a photographer's gift, notify the gifting
+        // affiliate too — strongest moment to ask for a testimonial.
+        // Best-effort: a failure here must not unwind the main delivery.
+        if (req.gifted_by_affiliate_id) {
+          try {
+            const { data: affiliate } = await supabaseAdmin
+              .from("affiliates")
+              .select("email, name, code, business_name")
+              .eq("id", req.gifted_by_affiliate_id)
+              .maybeSingle();
+
+            if (affiliate?.email) {
+              const recipientFirstName =
+                (req.requester_first_name as string | null) ||
+                (req.requester_email
+                  ? String(req.requester_email).split("@")[0]
+                  : "") ||
+                "your client";
+              const portalUrl = `${baseUrl}/affiliate/${affiliate.code}`;
+              const subjectName =
+                recipientFirstName === "your client"
+                  ? "your client"
+                  : recipientFirstName;
+
+              await resend.emails.send({
+                from: "SealTheDay <noreply@sealtheday.com>",
+                to: affiliate.email,
+                subject: `Your gift to ${subjectName} just opened`,
+                html: `
+<div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
+  <h1 style="color: #1a2744; margin-top: 0;">Your gift just opened</h1>
+  <p style="font-size: 16px; line-height: 1.6;">
+    Your SealTheDay gift to <strong>${escapeHtml(subjectName)}</strong> opened today. Their guests recorded <strong>${recordings.length}</strong> message${recordings.length !== 1 ? "s" : ""}.
+  </p>
+
+  <div style="background: #fff8e7; border: 1px solid #C9A961; border-radius: 12px; padding: 20px; margin: 24px 0;">
+    <p style="margin: 0; font-size: 15px; color: #1a2744; line-height: 1.6;">
+      Ask them how it went &mdash; testimonials from gifted clients are the strongest pitch material you can have.
+    </p>
+  </div>
+
+  <p style="margin-top: 28px; text-align: center;">
+    <a href="${portalUrl}" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Open my portal &rarr;</a>
+  </p>
+
+  <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
+  <p style="font-size: 12px; color: #8a8275; text-align: center; line-height: 1.5;">
+    SealTheDay is a product of SendForGood, LLC.
+  </p>
+</div>`,
+              });
+            }
+          } catch (notifyError) {
+            console.error(
+              `Failed to notify gifting affiliate for request ${req.id}:`,
+              notifyError
+            );
+          }
+        }
+
         sent++;
       } catch (emailError) {
         const msg = emailError instanceof Error ? emailError.message : "Unknown error";

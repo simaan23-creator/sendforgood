@@ -159,6 +159,7 @@ export async function POST(request: Request) {
       active: true,
       total_earned: 0,
       total_paid: 0,
+      gift_credits: 1,
     })
     .select()
     .single();

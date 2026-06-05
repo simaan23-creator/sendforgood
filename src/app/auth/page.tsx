@@ -12,8 +12,9 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
 
+  const emailHint = searchParams.get("email_hint") || "";
   const [tab, setTab] = useState<AuthTab>("sign-in");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailHint);
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState<string | null>(null);

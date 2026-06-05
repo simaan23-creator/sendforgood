@@ -11,6 +11,24 @@ interface AffiliateInfo {
   aliases?: string[];
   first_commission_rate: number;
   repeat_commission_rate: number;
+  gift_credits?: number;
+}
+
+interface GiftRow {
+  id: string;
+  recipient_email: string;
+  sent_at: string;
+  expires_at: string | null;
+  claimed_at: string | null;
+  status: "sent" | "claimed" | "activated" | "converted" | "expired";
+}
+
+interface GiftCounts {
+  sent: number;
+  claimed: number;
+  activated: number;
+  converted: number;
+  expired: number;
 }
 
 interface TierInfo {
@@ -76,6 +94,20 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
   const [stats, setStats] = useState<Stats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [lastUpdated, setLastUpdated] = useState("");
+  // Gift kit (D10) state.
+  const [gifts, setGifts] = useState<GiftRow[]>([]);
+  const [giftCounts, setGiftCounts] = useState<GiftCounts>({
+    sent: 0,
+    claimed: 0,
+    activated: 0,
+    converted: 0,
+    expired: 0,
+  });
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
+  const [giftSending, setGiftSending] = useState(false);
+  const [giftError, setGiftError] = useState("");
+  const [giftSuccess, setGiftSuccess] = useState("");
 
   const fetchPortalData = useCallback(async (pw: string) => {
     setLoading(true);
@@ -100,6 +132,8 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
     setAffiliate(data.affiliate);
     setStats(data.stats);
     setReferrals(data.referrals);
+    setGifts(Array.isArray(data.gifts) ? data.gifts : []);
+    if (data.gift_counts) setGiftCounts(data.gift_counts);
     setLastUpdated(data.last_updated);
     setAuthenticated(true);
     sessionStorage.setItem(`sfg_affiliate_${code}`, pw);
@@ -211,6 +245,47 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
       setRenameError("Network error. Try again.");
     }
     setRenaming(false);
+  }
+
+  // D10: send a free Anniversary Capsule gift to a real client. The
+  // portal password (already in sessionStorage from login) authenticates
+  // the request server-side, so we don't re-prompt here.
+  async function handleSendGift(e: React.FormEvent) {
+    e.preventDefault();
+    if (giftSending) return;
+    setGiftError("");
+    setGiftSuccess("");
+    const email = giftEmail.trim();
+    if (!email) {
+      setGiftError("Recipient email is required.");
+      return;
+    }
+    setGiftSending(true);
+    const pw = sessionStorage.getItem(`sfg_affiliate_${code}`) || "";
+    try {
+      const res = await fetch(`/api/affiliate/${code}/send-gift`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          portal_password: pw,
+          recipient_email: email,
+          personal_message: giftMessage.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGiftError(data.error || "Could not send gift.");
+        setGiftSending(false);
+        return;
+      }
+      setGiftSuccess(`Gift sent to ${email}. They have 90 days to claim it.`);
+      setGiftEmail("");
+      setGiftMessage("");
+      await fetchPortalData(pw);
+    } catch {
+      setGiftError("Network error. Try again.");
+    }
+    setGiftSending(false);
   }
 
   // Login screen
@@ -466,6 +541,140 @@ export default function AffiliatePortalPage({ params }: { params: Promise<{ code
             {copiedPanel === "anniv-pitch" ? "Copied!" : "Copy pitch"}
           </button>
         </div>
+
+        {/* D10: Send a free Anniversary Capsule */}
+        {(affiliate.gift_credits ?? 0) > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border-2 border-[#C8A962] p-5 mb-8">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#C8A962]">
+                  Gift kit &middot; One free Anniversary Capsule
+                </p>
+                <h3 className="text-lg font-semibold text-[#1B2A4A] mt-1">
+                  Send a free vault to a client
+                </h3>
+              </div>
+              <span className="text-2xl font-bold text-[#1B2A4A] shrink-0">$29.95 value</span>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              One-time gift &mdash; a full Anniversary Capsule (1 vault + 6 video + 15 photo slots) at no cost to your client. They get the complete experience, and any future credit purchase they make pays you commission for life.
+            </p>
+
+            <form onSubmit={handleSendGift} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Recipient email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={giftEmail}
+                  onChange={(e) => { setGiftEmail(e.target.value); setGiftError(""); setGiftSuccess(""); }}
+                  placeholder="couple@example.com"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C8A962]/40 focus:border-[#C8A962]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Personal message (optional)
+                </label>
+                <textarea
+                  rows={3}
+                  maxLength={500}
+                  value={giftMessage}
+                  onChange={(e) => { setGiftMessage(e.target.value); setGiftError(""); setGiftSuccess(""); }}
+                  placeholder="Couldn't be more excited to shoot your wedding! Here's a little something extra..."
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C8A962]/40 focus:border-[#C8A962]"
+                />
+                <p className="mt-1 text-xs text-gray-400 text-right">
+                  {giftMessage.length}/500
+                </p>
+              </div>
+              {giftError && <p className="text-sm text-red-600">{giftError}</p>}
+              {giftSuccess && <p className="text-sm text-[#2D5016]">{giftSuccess}</p>}
+              <button
+                type="submit"
+                disabled={giftSending}
+                className="rounded-lg bg-[#1B2A4A] text-white px-5 py-2 text-sm font-semibold hover:bg-[#1B2A4A]/90 transition disabled:opacity-60"
+              >
+                {giftSending ? "Sending..." : "Send gift"}
+              </button>
+            </form>
+            <p className="mt-3 text-xs text-gray-500">
+              {affiliate.gift_credits} gift credit{affiliate.gift_credits === 1 ? "" : "s"} remaining.
+            </p>
+          </div>
+        )}
+
+        {/* D10: Your gifts (funnel view) */}
+        {gifts.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+            <h3 className="text-lg font-semibold text-[#1B2A4A] mb-1">Your gifts</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Track each gift from send to conversion.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Sent</p>
+                <p className="text-xl font-bold text-[#1B2A4A]">{giftCounts.sent}</p>
+              </div>
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Claimed</p>
+                <p className="text-xl font-bold text-[#1B2A4A]">{giftCounts.claimed}</p>
+              </div>
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Activated</p>
+                <p className="text-xl font-bold text-[#1B2A4A]">{giftCounts.activated}</p>
+              </div>
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Converted</p>
+                <p className="text-xl font-bold text-[#2D5016]">{giftCounts.converted}</p>
+              </div>
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Expired</p>
+                <p className="text-xl font-bold text-gray-400">{giftCounts.expired}</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="px-3 py-2">Sent</th>
+                    <th className="px-3 py-2">Recipient</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Expires</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gifts.map((g) => (
+                    <tr key={g.id} className="border-b border-gray-50">
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-600">{formatDate(g.sent_at)}</td>
+                      <td className="px-3 py-2 text-gray-500 font-mono text-xs">{g.recipient_email}</td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                          g.status === "converted"
+                            ? "bg-green-100 text-green-700"
+                            : g.status === "activated"
+                              ? "bg-blue-100 text-blue-700"
+                              : g.status === "claimed"
+                                ? "bg-purple-100 text-purple-700"
+                                : g.status === "expired"
+                                  ? "bg-gray-100 text-gray-500"
+                                  : "bg-yellow-100 text-yellow-700"
+                        }`}>
+                          {g.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">
+                        {g.claimed_at ? "—" : g.expires_at ? formatDate(g.expires_at) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* D3: Custom referral URL */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
