@@ -232,6 +232,12 @@ export default function DashboardPage() {
   const [pendingGrants, setPendingGrants] = useState<number>(0);
   const [claimingGrants, setClaimingGrants] = useState(false);
   const [grantClaimed, setGrantClaimed] = useState(false);
+  // Affiliate row for this user (if any), surfaced so we can deep-link
+  // photographers into their portal when they have an unused client gift.
+  const [affiliateMe, setAffiliateMe] = useState<{
+    code: string;
+    gift_credits: number;
+  } | null>(null);
   const [editingTitle, setEditingTitle] = useState<{ type: "letter" | "voice"; id: string; value: string } | null>(null);
   const [savingTitle, setSavingTitle] = useState(false);
   const [giftingItem, setGiftingItem] = useState<{
@@ -320,6 +326,24 @@ export default function DashboardPage() {
       if (grantsRes.ok) {
         const grantsData = await grantsRes.json();
         setPendingGrants(Number(grantsData.pending) || 0);
+      }
+    } catch {
+      // ignore
+    }
+
+    // Look up an affiliate row matching this user's email. If they have
+    // an unused gift_credits balance, the dashboard surfaces a deep-link
+    // into the affiliate portal where the gift-to-client form lives.
+    try {
+      const meRes = await fetch("/api/affiliate/me", { method: "GET" });
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData?.code) {
+          setAffiliateMe({
+            code: meData.code,
+            gift_credits: Number(meData.gift_credits) || 0,
+          });
+        }
       }
     } catch {
       // ignore
@@ -710,6 +734,30 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Affiliate client-gift deep-link (empty-state variant). The
+              gift-a-client form lives in the password-gated portal, so the
+              dashboard surfaces a clear pointer to it. */}
+          {affiliateMe && affiliateMe.gift_credits > 0 && (
+            <div className="mb-6 rounded-xl border-2 border-gold bg-white px-5 py-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                    Free client gift waiting
+                  </p>
+                  <p className="mt-1 text-sm text-navy">
+                    You have <strong>{affiliateMe.gift_credits} free Anniversary Capsule{affiliateMe.gift_credits === 1 ? "" : "s"}</strong> to gift to a client &mdash; send it from your affiliate portal.
+                  </p>
+                </div>
+                <Link
+                  href={`/affiliate/${affiliateMe.code}`}
+                  className="shrink-0 rounded-lg bg-gold px-5 py-2 text-sm font-bold text-navy shadow-sm transition hover:bg-gold-light"
+                >
+                  Open portal
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Empty state card */}
           <div className="flex flex-col items-center justify-center rounded-2xl border border-cream-dark bg-white py-20 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
@@ -804,6 +852,30 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-lg bg-forest/10 border border-forest/20 px-4 py-3 text-sm text-forest flex items-center justify-between">
             <span>Anniversary Capsule claimed! Your free credits are in your balance.</span>
             <button onClick={() => setGrantClaimed(false)} className="ml-4 font-semibold hover:underline">Dismiss</button>
+          </div>
+        )}
+
+        {/* Affiliate client-gift deep-link. The gift-a-client form lives in
+            the password-gated portal, so the dashboard surfaces a clear
+            pointer to it for photographers who are also signed in as users. */}
+        {affiliateMe && affiliateMe.gift_credits > 0 && (
+          <div className="mb-6 rounded-xl border-2 border-gold bg-white px-5 py-4 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                  Free client gift waiting
+                </p>
+                <p className="mt-1 text-sm text-navy">
+                  You have <strong>{affiliateMe.gift_credits} free Anniversary Capsule{affiliateMe.gift_credits === 1 ? "" : "s"}</strong> to gift to a client &mdash; send it from your affiliate portal.
+                </p>
+              </div>
+              <Link
+                href={`/affiliate/${affiliateMe.code}`}
+                className="shrink-0 rounded-lg bg-gold px-5 py-2 text-sm font-bold text-navy shadow-sm transition hover:bg-gold-light"
+              >
+                Open portal
+              </Link>
+            </div>
           </div>
         )}
 

@@ -24,7 +24,7 @@ const fakeLead = {
 };
 
 const resend = new Resend(env.RESEND_API_KEY);
-for (const key of ["photographer_initial_v1", "photographer_followup_v1"]) {
+for (const key of ["photographer_initial_v2", "photographer_followup_v2"]) {
   const r = TEMPLATES[key].render(fakeLead);
   const res = await resend.emails.send({
     from: `${SENDER.name} <${SENDER.email}>`,

@@ -160,6 +160,64 @@ function photographerFollowupV1(lead) {
   return { subject, html, text };
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// Template: photographer_initial_v2
+//
+// Lead-with-gift variant ("drug dealer" framing per founder, Jun 2026).
+// v1 was peer-tip framing with the affiliate kickback demoted; it hit
+// 0 conversions in 115 sends, so v2 leads with the free Anniversary
+// Capsule hook and names the concrete $29.95 product + 10–15% tier.
+// ──────────────────────────────────────────────────────────────────────
+function photographerInitialV2(lead) {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hey ${lead.business_name},`;
+  const cityLine = lead.city
+    ? `Caught your work while looking at ${lead.city} wedding photographers — beautiful stuff.`
+    : `Caught your work the other day — beautiful stuff.`;
+
+  const paragraphs = [
+    greeting,
+    cityLine,
+    `Short version: I'd rather you try our product than take my word for it. Two Anniversary Capsules are on me — one for your own family, one to gift to a couple you've shot. It's a small sealed vault of guest messages and photos that opens on the couple's first anniversary ($29.95 retail each).`,
+    `If your clients dig it, there's an affiliate program behind it — 10–15% commission, custom URL, and a "Recommended by [your studio]" banner on the page anyone you send lands on. Five minutes:`,
+    `https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `small gift for ${lead.city} wedding photographers`
+    : `small gift for wedding photographers`;
+
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+
+  return { subject, html, text };
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Template: photographer_followup_v2
+// ──────────────────────────────────────────────────────────────────────
+function photographerFollowupV2(lead) {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hey ${lead.business_name},`;
+
+  const paragraphs = [
+    greeting,
+    `Bumping in case it slipped past — wedding season inboxes are wild.`,
+    `Quick recap: small sealed vault couples open on their first anniversary ($29.95). You pitch it, earn 10–15% commission, and get a "Recommended by [your studio]" landing page for your audience. Two Capsules are on me — one for you, one to gift — so you can try it before pitching.`,
+    `If it's not your thing, no worries — won't email again. If it is: https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `re: small gift for ${lead.city} wedding photographers`
+    : `re: small gift for wedding photographers`;
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+
+  return { subject, html, text };
+}
+
 // RFC 8058 List-Unsubscribe headers. Gmail/Outlook/Yahoo all treat their
 // presence as a positive deliverability signal and render a native
 // "Unsubscribe" link at the top of the message. See templates.ts for the
@@ -181,5 +239,13 @@ export const TEMPLATES = {
   photographer_followup_v1: {
     sequenceStep: 2,
     render: photographerFollowupV1,
+  },
+  photographer_initial_v2: {
+    sequenceStep: 1,
+    render: photographerInitialV2,
+  },
+  photographer_followup_v2: {
+    sequenceStep: 2,
+    render: photographerFollowupV2,
   },
 };

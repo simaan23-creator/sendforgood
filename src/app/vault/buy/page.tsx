@@ -175,9 +175,10 @@ export default function VaultBuyPage() {
   }
 
   function formatPrice(cents: number) {
-    return cents >= 100
-      ? `$${(cents / 100).toFixed(0)}`
-      : `$${(cents / 100).toFixed(2)}`;
+    const dollars = cents / 100;
+    return cents % 100 === 0
+      ? `$${dollars.toFixed(0)}`
+      : `$${dollars.toFixed(2)}`;
   }
 
   if (loading) {

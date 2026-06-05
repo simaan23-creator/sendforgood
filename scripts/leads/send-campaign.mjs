@@ -275,7 +275,7 @@ if (MAX_INITIALS > 0) {
     process.stdout.write(
       `  ${lead.business_name.slice(0, 36).padEnd(38)} ${lead.email.padEnd(36)} `
     );
-    const r = await sendOne(lead, "photographer_initial_v1");
+    const r = await sendOne(lead, "photographer_initial_v2");
     if (r.skipped) {
       console.log(`SKIP (${r.reason})`);
       initSkipped++;
@@ -306,7 +306,7 @@ if (MAX_FOLLOWUPS > 0) {
     process.stdout.write(
       `  ${lead.business_name.slice(0, 36).padEnd(38)} ${lead.email.padEnd(36)} `
     );
-    const r = await sendOne(lead, "photographer_followup_v1");
+    const r = await sendOne(lead, "photographer_followup_v2");
     if (r.skipped) {
       console.log(`SKIP (${r.reason})`);
       fuSkipped++;

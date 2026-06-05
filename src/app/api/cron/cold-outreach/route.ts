@@ -222,7 +222,7 @@ export async function GET(request: Request) {
       const initials = await selectInitials(maxInitials, stateFilter);
       counts.initials.queued = initials.length;
       for (const lead of initials) {
-        const r = await sendOne(lead, "photographer_initial_v1", dryRun);
+        const r = await sendOne(lead, "photographer_initial_v2", dryRun);
         tally(counts.initials, r, errors, lead);
         if (!dryRun) await sleep(SEND_THROTTLE_MS);
       }
@@ -232,7 +232,7 @@ export async function GET(request: Request) {
       const followups = await selectFollowups(maxFollowups, stateFilter);
       counts.followups.queued = followups.length;
       for (const lead of followups) {
-        const r = await sendOne(lead, "photographer_followup_v1", dryRun);
+        const r = await sendOne(lead, "photographer_followup_v2", dryRun);
         tally(counts.followups, r, errors, lead);
         if (!dryRun) await sleep(SEND_THROTTLE_MS);
       }
