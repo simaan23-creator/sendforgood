@@ -38,6 +38,15 @@ import {
  *   ?followups=N     override 30
  *   ?state=TX        only this state
  *   ?dry_run=1       skip actual send + DB writes, just preview counts
+ *   ?force=1         bypass per-day idempotency lock (use after a crashed
+ *                    run when you need to re-trigger the same day)
+ *
+ * Per-day idempotency:
+ *   First invocation each UTC day inserts a row into cron_run_log
+ *   keyed (cron_name, run_date). Concurrent or duplicate invocations hit
+ *   the unique-constraint and exit cleanly. Prevents the duplicate-send
+ *   bug that affected 44 recipients between 2026-06-08 and 2026-06-11
+ *   when Vercel cron fired the handler twice in parallel.
  */
 
 // Warming schedule for the outreach.sealtheday.com subdomain.
@@ -210,12 +219,34 @@ export async function GET(request: Request) {
   );
   const stateFilter = searchParams.get("state") || null;
   const dryRun = searchParams.get("dry_run") === "1";
+  const force = searchParams.get("force") === "1";
 
   const counts = {
     initials: { sent: 0, skipped: 0, failed: 0, queued: 0 },
     followups: { sent: 0, skipped: 0, failed: 0, queued: 0 },
   };
   const errors: string[] = [];
+
+  // Per-day idempotency lock. Insert (cron_name, run_date) — if Vercel
+  // fires this handler twice for the same day, the second invocation hits
+  // the PK violation and exits without sending. dry_run and force skip
+  // the lock (dry_run never sends; force is the manual-recovery escape).
+  const runDate = today.toISOString().slice(0, 10); // YYYY-MM-DD UTC
+  if (!dryRun && !force) {
+    const { error: lockError } = await supabaseAdmin
+      .from("cron_run_log")
+      .insert({ cron_name: "cold-outreach", run_date: runDate });
+    if (lockError) {
+      // Postgres unique_violation = "23505". Any other error is unexpected
+      // and we still abort (safer to skip a day than risk dupes).
+      return NextResponse.json({
+        skipped: true,
+        reason: lockError.code === "23505" ? "already_ran_today" : "lock_error",
+        run_date: runDate,
+        detail: lockError.message,
+      });
+    }
+  }
 
   try {
     if (maxInitials > 0) {
@@ -236,6 +267,20 @@ export async function GET(request: Request) {
         tally(counts.followups, r, errors, lead);
         if (!dryRun) await sleep(SEND_THROTTLE_MS);
       }
+    }
+
+    // Stamp the lock row with completion time + send total so the admin
+    // log shows what the run actually did. Best-effort: a failed update
+    // doesn't unwind a successful send.
+    if (!dryRun && !force) {
+      await supabaseAdmin
+        .from("cron_run_log")
+        .update({
+          finished_at: new Date().toISOString(),
+          events_sent: counts.initials.sent + counts.followups.sent,
+        })
+        .eq("cron_name", "cold-outreach")
+        .eq("run_date", runDate);
     }
 
     return NextResponse.json({
