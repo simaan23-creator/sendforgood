@@ -85,6 +85,18 @@ export default function VaultBuyPage() {
     giftRecipientEmail.trim()
   );
 
+  // Pre-flip gift mode when the page is opened from a "Send as a gift" CTA
+  // (/vault/buy?bundle=anniversary&gift=1). Only meaningful for the Anniversary
+  // Capsule, since that's the only bundle that supports gifting today.
+  useEffect(() => {
+    if (isAnniversary && searchParams.get("gift") === "1") {
+      setGiftMode(true);
+    }
+    // Intentionally runs only on mount — flipping the toggle later shouldn't
+    // be undone by a stale query-param re-read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     async function init() {
       const {

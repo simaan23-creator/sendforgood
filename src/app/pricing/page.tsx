@@ -169,13 +169,24 @@ export default function PricingPage() {
             The gift you open together on your first anniversary. 1 vault, 6 videos,
             15 photos &mdash; sealed for up to 1 year.
           </p>
+          <p className="mt-2 text-sm font-medium text-navy">
+            Buy it for yourselves, or send it as a wedding gift.
+          </p>
           <p className="mt-4 text-3xl font-extrabold text-navy">$29.95</p>
-          <Link
-            href="/vault/buy?bundle=anniversary"
-            className="mt-5 inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-base font-bold text-cream shadow-md transition hover:bg-navy/90"
-          >
-            Get the Anniversary Capsule
-          </Link>
+          <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href="/vault/buy?bundle=anniversary"
+              className="inline-flex items-center justify-center rounded-lg bg-navy px-8 py-3 text-base font-bold text-cream shadow-md transition hover:bg-navy/90"
+            >
+              Get the Anniversary Capsule
+            </Link>
+            <Link
+              href="/vault/buy?bundle=anniversary&gift=1"
+              className="inline-flex items-center justify-center rounded-lg bg-gold px-8 py-3 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
+            >
+              Send as a gift &rarr;
+            </Link>
+          </div>
         </div>
 
         <div className="mx-auto mt-24 max-w-3xl">

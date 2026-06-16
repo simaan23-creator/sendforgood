@@ -120,6 +120,15 @@ export default function WeddingPage() {
               See Starter Package &mdash; $99.95
             </a>
           </div>
+          <p className="mt-4 text-sm text-warm-gray">
+            Looking for a wedding gift?{" "}
+            <a
+              href="#anniversary-capsule"
+              className="font-semibold text-navy underline decoration-gold underline-offset-4 hover:text-gold"
+            >
+              Send an Anniversary Capsule &rarr;
+            </a>
+          </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-warm-gray">
             <span className="inline-flex items-center gap-1.5">
               <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
@@ -620,7 +629,10 @@ export default function WeddingPage() {
           </div>
 
           {/* Anniversary Capsule — smaller sampler bundle */}
-          <div className="mx-auto mt-12 max-w-3xl rounded-2xl border-2 border-gold bg-white p-6 shadow-md sm:p-8">
+          <div
+            id="anniversary-capsule"
+            className="mx-auto mt-12 max-w-3xl scroll-mt-24 rounded-2xl border-2 border-gold bg-white p-6 shadow-md sm:p-8"
+          >
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-gold">
@@ -633,15 +645,27 @@ export default function WeddingPage() {
                   The gift you open together on your first anniversary.
                   1 vault, 6 videos, 15 photos &mdash; sealed for up to 1 year.
                 </p>
+                <p className="mt-2 text-sm font-medium text-navy">
+                  Buy it for yourselves, or send it as a wedding gift &mdash;
+                  the couple opens it together on their first anniversary.
+                </p>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-2xl font-extrabold text-navy">$29.95</div>
-                <Link
-                  href="/vault/buy?bundle=anniversary"
-                  className="mt-2 inline-flex items-center justify-center rounded-lg bg-navy px-5 py-2 text-sm font-bold text-cream shadow-md transition hover:bg-navy/90"
-                >
-                  Get the Capsule
-                </Link>
+                <div className="mt-2 flex flex-col gap-2 sm:items-end">
+                  <Link
+                    href="/vault/buy?bundle=anniversary"
+                    className="inline-flex items-center justify-center rounded-lg bg-navy px-5 py-2 text-sm font-bold text-cream shadow-md transition hover:bg-navy/90"
+                  >
+                    Get the Capsule
+                  </Link>
+                  <Link
+                    href="/vault/buy?bundle=anniversary&gift=1"
+                    className="inline-flex items-center justify-center rounded-lg bg-gold px-5 py-2 text-sm font-bold text-navy shadow-md transition hover:bg-gold-light"
+                  >
+                    Send as a gift &rarr;
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
