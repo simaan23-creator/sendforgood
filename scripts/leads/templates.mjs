@@ -55,9 +55,11 @@ function unsubLink(email) {
 }
 
 function firstName(businessName) {
-  // Best-effort: photographers often name studios after themselves.
+  // Best-effort: photographers/officiants often name businesses after themselves.
   // "Jane Smith Photography" → "Jane"
+  // "Rev. John Doe Wedding Ceremonies" → "John" (after stripping titles)
   const cleaned = businessName
+    .replace(/\b(rev\.?|reverend|minister|officiant|ceremonies?|weddings?|celebrant|pastor|father)\b/gi, "")
     .replace(/photography|photo|studios?|films?|productions?|llc|inc\.?/gi, "")
     .trim();
   const first = cleaned.split(/\s+/)[0];
@@ -231,6 +233,65 @@ export function unsubHeaders(email) {
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// Template: officiant_initial_v1
+//
+// Officiants meet couples at the most emotionally loaded moment of the
+// wedding. They're rarely pitched, and their recommendation carries
+// trust photographers can't match (photographers are also vendors;
+// officiants are advisors). Value prop pivots from "differentiate your
+// gallery" to "give your couples a ceremony keepsake."
+// ──────────────────────────────────────────────────────────────────────
+function officiantInitialV1(lead) {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hi there,`;
+  const cityLine = lead.city
+    ? `Came across your work while researching ${lead.city} wedding officiants — appreciate what you do for couples on what's easily the most loaded morning of their lives.`
+    : `Came across your work the other day — appreciate what you do for couples on what's easily the most loaded morning of their lives.`;
+
+  const paragraphs = [
+    greeting,
+    cityLine,
+    `Quick idea: I run a small product called SealTheDay — a sealed memory vault couples set up before the wedding so their guests can record private video messages that open on a chosen future date (their 1st anniversary, their 10th, the morning after). It pairs really naturally with what officiants already do — you're the one person who talks with both sides about what this day means to them.`,
+    `Two Anniversary Capsules are on me — one for your own family, one to gift to a couple you've married. If your clients dig it, there's an affiliate program (10–15% commission, a custom URL, and a "Recommended by [your name]" banner on the page). Five minutes:`,
+    `https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `small idea for your ${lead.city} couples`
+    : `small idea for your couples`;
+
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+
+  return { subject, html, text };
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Template: officiant_followup_v1
+// ──────────────────────────────────────────────────────────────────────
+function officiantFollowupV1(lead) {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hi there,`;
+
+  const paragraphs = [
+    greeting,
+    `Bumping in case it slipped past — wedding-season inboxes are wild.`,
+    `Quick recap: small sealed vault couples open on their 1st anniversary ($29.95). You mention it during planning, earn 10–15% commission, and get a "Recommended by [your name]" landing page for your couples. Two Capsules are on me — one for you, one to gift — so you can try it before pitching.`,
+    `If it's not your thing, no worries — won't email again. If it is: https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `re: small idea for your ${lead.city} couples`
+    : `re: small idea for your couples`;
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+
+  return { subject, html, text };
+}
+
 export const TEMPLATES = {
   photographer_initial_v1: {
     sequenceStep: 1,
@@ -247,5 +308,13 @@ export const TEMPLATES = {
   photographer_followup_v2: {
     sequenceStep: 2,
     render: photographerFollowupV2,
+  },
+  officiant_initial_v1: {
+    sequenceStep: 1,
+    render: officiantInitialV1,
+  },
+  officiant_followup_v1: {
+    sequenceStep: 2,
+    render: officiantFollowupV1,
   },
 };

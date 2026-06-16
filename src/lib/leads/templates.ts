@@ -20,6 +20,7 @@ export type Lead = {
   email: string;
   city?: string | null;
   state?: string | null;
+  lead_type?: string | null;
 };
 
 export type Rendered = {
@@ -59,7 +60,10 @@ function unsubLink(email: string): string {
 }
 
 function firstName(businessName: string): string | null {
+  // Cleans common business-name suffixes/titles so we can pull a personable
+  // first name out of "Jane Smith Photography" or "Rev. John Doe Ceremonies".
   const cleaned = businessName
+    .replace(/\b(rev\.?|reverend|minister|officiant|ceremonies?|weddings?|celebrant|pastor|father)\b/gi, "")
     .replace(/photography|photo|studios?|films?|productions?|llc|inc\.?/gi, "")
     .trim();
   const first = cleaned.split(/\s+/)[0];
@@ -234,11 +238,60 @@ export function unsubHeaders(email: string): Record<string, string> {
   };
 }
 
+// Officiant variants — see scripts/leads/templates.mjs for the full
+// rationale (officiants pitch differently than photographers because they
+// are advisors at the most emotional moment, not vendors with a gallery).
+function officiantInitialV1(lead: Lead): Rendered {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hi there,`;
+  const cityLine = lead.city
+    ? `Came across your work while researching ${lead.city} wedding officiants \u2014 appreciate what you do for couples on what's easily the most loaded morning of their lives.`
+    : `Came across your work the other day \u2014 appreciate what you do for couples on what's easily the most loaded morning of their lives.`;
+
+  const paragraphs = [
+    greeting,
+    cityLine,
+    `Quick idea: I run a small product called SealTheDay \u2014 a sealed memory vault couples set up before the wedding so their guests can record private video messages that open on a chosen future date (their 1st anniversary, their 10th, the morning after). It pairs really naturally with what officiants already do \u2014 you're the one person who talks with both sides about what this day means to them.`,
+    `Two Anniversary Capsules are on me \u2014 one for your own family, one to gift to a couple you've married. If your clients dig it, there's an affiliate program (10\u201315% commission, a custom URL, and a "Recommended by [your name]" banner on the page). Five minutes:`,
+    `https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `small idea for your ${lead.city} couples`
+    : `small idea for your couples`;
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+  return { subject, html, text };
+}
+
+function officiantFollowupV1(lead: Lead): Rendered {
+  const greeting = firstName(lead.business_name)
+    ? `Hey ${firstName(lead.business_name)},`
+    : `Hi there,`;
+
+  const paragraphs = [
+    greeting,
+    `Bumping in case it slipped past \u2014 wedding-season inboxes are wild.`,
+    `Quick recap: small sealed vault couples open on their 1st anniversary ($29.95). You mention it during planning, earn 10\u201315% commission, and get a "Recommended by [your name]" landing page for your couples. Two Capsules are on me \u2014 one for you, one to gift \u2014 so you can try it before pitching.`,
+    `If it's not your thing, no worries \u2014 won't email again. If it is: https://sealtheday.com/affiliate/apply`,
+  ];
+
+  const subject = lead.city
+    ? `re: small idea for your ${lead.city} couples`
+    : `re: small idea for your couples`;
+  const text = paragraphs.join("\n\n") + plainFooter(lead.email);
+  const html = wrapHtml(paragraphs, lead.email);
+  return { subject, html, text };
+}
+
 export type TemplateKey =
   | "photographer_initial_v1"
   | "photographer_followup_v1"
   | "photographer_initial_v2"
-  | "photographer_followup_v2";
+  | "photographer_followup_v2"
+  | "officiant_initial_v1"
+  | "officiant_followup_v1";
 
 export const TEMPLATES: Record<
   TemplateKey,
@@ -259,5 +312,30 @@ export const TEMPLATES: Record<
   photographer_followup_v2: {
     sequenceStep: 2,
     render: photographerFollowupV2,
+  },
+  officiant_initial_v1: {
+    sequenceStep: 1,
+    render: officiantInitialV1,
+  },
+  officiant_followup_v1: {
+    sequenceStep: 2,
+    render: officiantFollowupV1,
+  },
+};
+
+// Default templates for new lead types. Cron and CLI senders consult this
+// map to pick which template key to use for a given lead_type so each
+// persona gets its own variant without forking the sender code.
+export const LEAD_TYPE_TEMPLATES: Record<
+  string,
+  { initial: TemplateKey; followup: TemplateKey }
+> = {
+  photographer: {
+    initial: "photographer_initial_v2",
+    followup: "photographer_followup_v2",
+  },
+  officiant: {
+    initial: "officiant_initial_v1",
+    followup: "officiant_followup_v1",
   },
 };

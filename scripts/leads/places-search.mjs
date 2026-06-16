@@ -70,6 +70,10 @@ const args = Object.fromEntries(
 );
 const QUERY_TEMPLATE = args.query || "wedding photographer in";
 const MAX_CITIES = args.cities ? parseInt(args.cities, 10) : 30;
+// Persona tag for the cron's template selector. Defaults to 'photographer'
+// to preserve historical behavior; pass --lead-type=officiant when running
+// the officiant query.
+const LEAD_TYPE = args["lead-type"] || args.leadType || "photographer";
 
 // ---------- target cities ----------
 // Top US wedding metros by combined wedding-spend + photographer density.
@@ -148,7 +152,7 @@ async function searchCity({ city, state }) {
 }
 
 // ---------- main ----------
-console.log(`\n=== Photographer lead discovery ===`);
+console.log(`\n=== Lead discovery (${LEAD_TYPE}) ===`);
 console.log(`Query template: "${QUERY_TEMPLATE} {city}, {state}"`);
 console.log(`Cities: ${CITIES.length}\n`);
 
@@ -187,6 +191,7 @@ for (const target of CITIES) {
       user_ratings_total:
         typeof p.userRatingCount === "number" ? p.userRatingCount : null,
       status: "new",
+      lead_type: LEAD_TYPE,
     };
     const { error } = await supabase
       .from("photographer_leads")

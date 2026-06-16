@@ -5,6 +5,7 @@ import {
   TEMPLATES,
   SENDER,
   unsubHeaders,
+  LEAD_TYPE_TEMPLATES,
   type Lead,
   type TemplateKey,
 } from "@/lib/leads/templates";
@@ -79,15 +80,17 @@ async function isUnsubscribed(email: string): Promise<boolean> {
 
 async function selectInitials(
   limit: number,
-  stateFilter: string | null
+  stateFilter: string | null,
+  leadTypeFilter: string | null
 ): Promise<Lead[]> {
   let q = supabaseAdmin
     .from("photographer_leads")
-    .select("id, business_name, email, city, state")
+    .select("id, business_name, email, city, state, lead_type")
     .eq("status", "enriched")
     .not("email", "is", null)
     .limit(limit);
   if (stateFilter) q = q.eq("state", stateFilter);
+  if (leadTypeFilter) q = q.eq("lead_type", leadTypeFilter);
   const { data, error } = await q;
   if (error) throw error;
   return (data || []) as Lead[];
@@ -95,7 +98,8 @@ async function selectInitials(
 
 async function selectFollowups(
   limit: number,
-  stateFilter: string | null
+  stateFilter: string | null,
+  leadTypeFilter: string | null
 ): Promise<Lead[]> {
   const cutoff = new Date(
     Date.now() - FOLLOWUP_DELAY_DAYS * 86_400_000
@@ -103,12 +107,13 @@ async function selectFollowups(
 
   let q = supabaseAdmin
     .from("photographer_leads")
-    .select("id, business_name, email, city, state, emailed_at")
+    .select("id, business_name, email, city, state, lead_type, emailed_at")
     .eq("status", "emailed")
     .not("email", "is", null)
     .lt("emailed_at", cutoff)
     .limit(limit * 2); // over-fetch, filter in JS
   if (stateFilter) q = q.eq("state", stateFilter);
+  if (leadTypeFilter) q = q.eq("lead_type", leadTypeFilter);
   const { data, error } = await q;
   if (error) throw error;
 
@@ -218,6 +223,10 @@ export async function GET(request: Request) {
     100
   );
   const stateFilter = searchParams.get("state") || null;
+  // Optional persona filter. Default: no filter, so the cron pulls leads
+  // from both photographer + officiant pools. Pass ?lead_type=officiant
+  // to test one persona in isolation.
+  const leadTypeFilter = searchParams.get("lead_type") || null;
   const dryRun = searchParams.get("dry_run") === "1";
   const force = searchParams.get("force") === "1";
 
@@ -250,20 +259,22 @@ export async function GET(request: Request) {
 
   try {
     if (maxInitials > 0) {
-      const initials = await selectInitials(maxInitials, stateFilter);
+      const initials = await selectInitials(maxInitials, stateFilter, leadTypeFilter);
       counts.initials.queued = initials.length;
       for (const lead of initials) {
-        const r = await sendOne(lead, "photographer_initial_v2", dryRun);
+        const templateKey = pickInitialTemplate(lead);
+        const r = await sendOne(lead, templateKey, dryRun);
         tally(counts.initials, r, errors, lead);
         if (!dryRun) await sleep(SEND_THROTTLE_MS);
       }
     }
 
     if (maxFollowups > 0) {
-      const followups = await selectFollowups(maxFollowups, stateFilter);
+      const followups = await selectFollowups(maxFollowups, stateFilter, leadTypeFilter);
       counts.followups.queued = followups.length;
       for (const lead of followups) {
-        const r = await sendOne(lead, "photographer_followup_v2", dryRun);
+        const templateKey = pickFollowupTemplate(lead);
+        const r = await sendOne(lead, templateKey, dryRun);
         tally(counts.followups, r, errors, lead);
         if (!dryRun) await sleep(SEND_THROTTLE_MS);
       }
@@ -299,6 +310,22 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+function pickInitialTemplate(lead: Lead): TemplateKey {
+  const type = lead.lead_type || "photographer";
+  return (
+    LEAD_TYPE_TEMPLATES[type]?.initial ||
+    LEAD_TYPE_TEMPLATES.photographer.initial
+  );
+}
+
+function pickFollowupTemplate(lead: Lead): TemplateKey {
+  const type = lead.lead_type || "photographer";
+  return (
+    LEAD_TYPE_TEMPLATES[type]?.followup ||
+    LEAD_TYPE_TEMPLATES.photographer.followup
+  );
 }
 
 function tally(

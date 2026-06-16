@@ -83,6 +83,9 @@ const DRY_RUN = args["dry-run"] === "true";
 const REQ_INITIALS = args.initials !== undefined ? parseInt(args.initials, 10) : 40;
 const REQ_FOLLOWUPS = args.followups !== undefined ? parseInt(args.followups, 10) : 30;
 const STATE_FILTER = args.state || null;
+// Optional persona filter; omit to send to both photographer + officiant
+// pools at once. The template per lead is picked from lead.lead_type.
+const LEAD_TYPE_FILTER = args["lead-type"] || args.leadType || null;
 const FOLLOWUP_DELAY_DAYS = 4;
 
 // ---------- WARMING GUARD ----------
@@ -146,14 +149,31 @@ async function isUnsubscribed(email) {
   return !!data;
 }
 
+// Default-template lookup mirrors src/lib/leads/templates.ts. Keep in sync.
+const LEAD_TYPE_TEMPLATES = {
+  photographer: { initial: "photographer_initial_v2", followup: "photographer_followup_v2" },
+  officiant: { initial: "officiant_initial_v1", followup: "officiant_followup_v1" },
+};
+
+function pickInitialTemplate(lead) {
+  const t = lead.lead_type || "photographer";
+  return LEAD_TYPE_TEMPLATES[t]?.initial || LEAD_TYPE_TEMPLATES.photographer.initial;
+}
+
+function pickFollowupTemplate(lead) {
+  const t = lead.lead_type || "photographer";
+  return LEAD_TYPE_TEMPLATES[t]?.followup || LEAD_TYPE_TEMPLATES.photographer.followup;
+}
+
 async function selectInitials(limit) {
   let q = supabase
     .from("photographer_leads")
-    .select("id, business_name, email, city, state")
+    .select("id, business_name, email, city, state, lead_type")
     .eq("status", "enriched")
     .not("email", "is", null)
     .limit(limit);
   if (STATE_FILTER) q = q.eq("state", STATE_FILTER);
+  if (LEAD_TYPE_FILTER) q = q.eq("lead_type", LEAD_TYPE_FILTER);
   const { data, error } = await q;
   if (error) throw error;
   return data;
@@ -168,12 +188,13 @@ async function selectFollowups(limit) {
 
   let q = supabase
     .from("photographer_leads")
-    .select("id, business_name, email, city, state, emailed_at")
+    .select("id, business_name, email, city, state, lead_type, emailed_at")
     .eq("status", "emailed")
     .not("email", "is", null)
     .lt("emailed_at", cutoff)
     .limit(limit * 2); // over-fetch, filter further in JS
   if (STATE_FILTER) q = q.eq("state", STATE_FILTER);
+  if (LEAD_TYPE_FILTER) q = q.eq("lead_type", LEAD_TYPE_FILTER);
   const { data, error } = await q;
   if (error) throw error;
 
@@ -261,6 +282,7 @@ console.log(`\n=== Cold email campaign send ===`);
 console.log(`Mode: ${DRY_RUN ? "DRY RUN (no emails will be sent)" : "LIVE"}`);
 console.log(`From: ${SENDER.name} <${SENDER.email}>`);
 console.log(`State filter: ${STATE_FILTER || "all"}`);
+console.log(`Lead-type filter: ${LEAD_TYPE_FILTER || "all"}`);
 console.log(`Caps: ${MAX_INITIALS} initial / ${MAX_FOLLOWUPS} follow-up\n`);
 
 // 1. Initials
@@ -275,7 +297,7 @@ if (MAX_INITIALS > 0) {
     process.stdout.write(
       `  ${lead.business_name.slice(0, 36).padEnd(38)} ${lead.email.padEnd(36)} `
     );
-    const r = await sendOne(lead, "photographer_initial_v2");
+    const r = await sendOne(lead, pickInitialTemplate(lead));
     if (r.skipped) {
       console.log(`SKIP (${r.reason})`);
       initSkipped++;
@@ -306,7 +328,7 @@ if (MAX_FOLLOWUPS > 0) {
     process.stdout.write(
       `  ${lead.business_name.slice(0, 36).padEnd(38)} ${lead.email.padEnd(36)} `
     );
-    const r = await sendOne(lead, "photographer_followup_v2");
+    const r = await sendOne(lead, pickFollowupTemplate(lead));
     if (r.skipped) {
       console.log(`SKIP (${r.reason})`);
       fuSkipped++;

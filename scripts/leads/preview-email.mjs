@@ -16,16 +16,43 @@ const env = Object.fromEntries(
 process.env.NEXT_PUBLIC_SITE_URL = env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
 
 const TO = process.argv[2] || SENDER.replyTo;
-const fakeLead = {
-  business_name: "Acme Wedding Photography",
-  email: TO,
-  city: "Austin",
-  state: "TX",
-};
+// Pass a 3rd CLI arg with a comma-separated list of template keys to
+// preview a subset. Default sends all four current variants (photographer
+// v2 and officiant v1).
+const keysArg = process.argv[3];
+const keys = keysArg
+  ? keysArg.split(",").map((s) => s.trim()).filter(Boolean)
+  : [
+      "photographer_initial_v2",
+      "photographer_followup_v2",
+      "officiant_initial_v1",
+      "officiant_followup_v1",
+    ];
+
+function fakeLeadFor(key) {
+  if (key.startsWith("officiant")) {
+    return {
+      business_name: "Rev. Jane Doe Wedding Ceremonies",
+      email: TO,
+      city: "Austin",
+      state: "TX",
+    };
+  }
+  return {
+    business_name: "Acme Wedding Photography",
+    email: TO,
+    city: "Austin",
+    state: "TX",
+  };
+}
 
 const resend = new Resend(env.RESEND_API_KEY);
-for (const key of ["photographer_initial_v2", "photographer_followup_v2"]) {
-  const r = TEMPLATES[key].render(fakeLead);
+for (const key of keys) {
+  if (!TEMPLATES[key]) {
+    console.log(key, "→ SKIP (unknown template)");
+    continue;
+  }
+  const r = TEMPLATES[key].render(fakeLeadFor(key));
   const res = await resend.emails.send({
     from: `${SENDER.name} <${SENDER.email}>`,
     to: TO,
