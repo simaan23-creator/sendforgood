@@ -44,7 +44,34 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { audioCredits, videoCredits, photoCredits, vaultFeeQty, targetVaultId, bundle } = body;
+  const {
+    audioCredits,
+    videoCredits,
+    photoCredits,
+    vaultFeeQty,
+    targetVaultId,
+    bundle,
+    giftRecipientEmail,
+    giftRecipientName,
+    giftPersonalMessage,
+  } = body;
+
+  // Gift mode: purchaser pays, recipient claims. Only supported for bundle
+  // purchases (no targetVault, no à-la-carte gifts). Recipient email is
+  // validated loosely here; the webhook generates a claim_code and emails
+  // the recipient a /gift/vault/claim/[code] link.
+  const isGift =
+    typeof giftRecipientEmail === "string" &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(giftRecipientEmail.trim());
+  const giftEmail = isGift ? giftRecipientEmail.trim().toLowerCase() : null;
+  const giftName =
+    isGift && typeof giftRecipientName === "string" && giftRecipientName.trim().length > 0
+      ? giftRecipientName.trim().slice(0, 120)
+      : null;
+  const giftMessage =
+    isGift && typeof giftPersonalMessage === "string" && giftPersonalMessage.trim().length > 0
+      ? giftPersonalMessage.trim().slice(0, 1000)
+      : null;
 
   // ── Bundle presets ──
   // When a recognized bundle is requested, credit quantities and price are
@@ -90,6 +117,15 @@ export async function POST(request: Request) {
   if (audio <= 0 && video <= 0 && photo <= 0) {
     return NextResponse.json(
       { error: "At least one credit type must be greater than 0" },
+      { status: 400 }
+    );
+  }
+
+  // Gifts must be a bundle (so credit counts + bundle tag are server-controlled).
+  // À-la-carte gifting is intentionally not supported in this iteration.
+  if (isGift && !bundleSpec) {
+    return NextResponse.json(
+      { error: "Gift purchases require selecting a bundle" },
       { status: 400 }
     );
   }
@@ -186,6 +222,7 @@ export async function POST(request: Request) {
     metadata: {
       isVaultOrder: "true",
       userId: user.id,
+      purchaserEmail: user.email || "",
       audioCredits: String(audio),
       videoCredits: String(video),
       photoCredits: String(photo),
@@ -193,12 +230,24 @@ export async function POST(request: Request) {
       ...(targetVault ? { targetVaultId: targetVault } : {}),
       ...(bundleKey ? { bundle: bundleKey } : {}),
       ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
+      ...(isGift
+        ? {
+            isGiftPurchase: "true",
+            giftRecipientEmail: giftEmail!,
+            ...(giftName ? { giftRecipientName: giftName } : {}),
+            ...(giftMessage ? { giftPersonalMessage: giftMessage } : {}),
+          }
+        : {}),
     },
     customer_email: user.email,
     // session_id is replaced by Stripe at redirect time and used by the
   // success page as transaction_id for analytics deduplication.
-  success_url: `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/vault/buy`,
+  success_url: isGift
+    ? `${baseUrl}/vault/success?gift=1&recipient=${encodeURIComponent(giftEmail!)}&session_id={CHECKOUT_SESSION_ID}`
+    : `${baseUrl}/vault/success?audio=${audio}&video=${video}&photo=${photo}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: bundleKey
+      ? `${baseUrl}/vault/buy?bundle=${bundleKey}`
+      : `${baseUrl}/vault/buy`,
   });
 
   return NextResponse.json({ url: session.url });

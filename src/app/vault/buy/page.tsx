@@ -73,6 +73,18 @@ export default function VaultBuyPage() {
   const [existingVaults, setExistingVaults] = useState<ExistingVault[]>([]);
   const [targetVaultId, setTargetVaultId] = useState<string>("NEW");
 
+  // Gift mode — only supported for the Anniversary Capsule today.
+  // Purchaser pays; recipient receives an email with a /gift/vault/claim
+  // link that materializes the credits on their account when they sign in
+  // with the recipient email.
+  const [giftMode, setGiftMode] = useState(false);
+  const [giftRecipientEmail, setGiftRecipientEmail] = useState("");
+  const [giftRecipientName, setGiftRecipientName] = useState("");
+  const [giftPersonalMessage, setGiftPersonalMessage] = useState("");
+  const isValidGiftEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    giftRecipientEmail.trim()
+  );
+
   useEffect(() => {
     async function init() {
       const {
@@ -139,8 +151,25 @@ export default function VaultBuyPage() {
 
   async function handleCheckout() {
     if (!hasItems) return;
+    if (giftMode && !isValidGiftEmail) {
+      setError("Please enter a valid recipient email address.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
+
+    const giftFields =
+      giftMode && isAnniversary
+        ? {
+            giftRecipientEmail: giftRecipientEmail.trim().toLowerCase(),
+            ...(giftRecipientName.trim()
+              ? { giftRecipientName: giftRecipientName.trim() }
+              : {}),
+            ...(giftPersonalMessage.trim()
+              ? { giftPersonalMessage: giftPersonalMessage.trim() }
+              : {}),
+          }
+        : {};
 
     try {
       const res = await fetch("/api/vault/checkout", {
@@ -150,7 +179,7 @@ export default function VaultBuyPage() {
           isStarter
             ? { bundle: "starter" }
             : isAnniversary
-              ? { bundle: "anniversary" }
+              ? { bundle: "anniversary", ...giftFields }
               : {
                   audioCredits: audioQty,
                   videoCredits: videoQty,
@@ -296,6 +325,99 @@ export default function VaultBuyPage() {
                 Build your own (10-year vault) &rarr;
               </Link>
             </p>
+          </div>
+        )}
+
+        {/* Gift toggle — Anniversary Capsule only. Toggling on swaps the
+            checkout into gift mode: purchaser pays, recipient gets a claim
+            email at /gift/vault/claim/[code]. */}
+        {isAnniversary && (
+          <div className="mb-6 rounded-2xl border border-cream-dark bg-white p-6 shadow-md">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-navy">
+                  Buying this as a gift?
+                </h3>
+                <p className="mt-1 text-sm text-warm-gray">
+                  Send the Anniversary Capsule to a couple, parent, or friend.
+                  They&apos;ll get an email with a one-time claim link.
+                </p>
+              </div>
+              <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  checked={giftMode}
+                  onChange={(e) => setGiftMode(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="h-6 w-11 rounded-full bg-cream-dark peer-checked:bg-gold transition" />
+                <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+              </label>
+            </div>
+
+            {giftMode && (
+              <div className="mt-5 space-y-3">
+                <div>
+                  <label
+                    htmlFor="giftEmail"
+                    className="block text-xs font-semibold uppercase tracking-wider text-gold-dark"
+                  >
+                    Recipient email
+                  </label>
+                  <input
+                    id="giftEmail"
+                    type="email"
+                    required
+                    placeholder="them@example.com"
+                    value={giftRecipientEmail}
+                    onChange={(e) => setGiftRecipientEmail(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-base text-navy outline-none focus:border-gold"
+                  />
+                  <p className="mt-1 text-xs text-warm-gray">
+                    They&apos;ll need to sign in with this email to claim the
+                    gift.
+                  </p>
+                </div>
+                <div>
+                  <label
+                    htmlFor="giftName"
+                    className="block text-xs font-semibold uppercase tracking-wider text-gold-dark"
+                  >
+                    Recipient name <span className="text-warm-gray font-normal normal-case">(optional)</span>
+                  </label>
+                  <input
+                    id="giftName"
+                    type="text"
+                    placeholder="Alex &amp; Sam"
+                    value={giftRecipientName}
+                    onChange={(e) => setGiftRecipientName(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-base text-navy outline-none focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="giftMessage"
+                    className="block text-xs font-semibold uppercase tracking-wider text-gold-dark"
+                  >
+                    Personal message <span className="text-warm-gray font-normal normal-case">(optional)</span>
+                  </label>
+                  <textarea
+                    id="giftMessage"
+                    rows={3}
+                    maxLength={1000}
+                    placeholder="A little something for you to open on your first anniversary..."
+                    value={giftPersonalMessage}
+                    onChange={(e) => setGiftPersonalMessage(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-cream-dark bg-cream/50 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  />
+                </div>
+                <p className="text-xs text-warm-gray">
+                  We&apos;ll email them right after checkout. You&apos;ll also
+                  get a copy of the claim link in case you want to forward it
+                  yourself.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -544,7 +666,11 @@ export default function VaultBuyPage() {
 
           <button
             onClick={handleCheckout}
-            disabled={(!hasItems && !isBundle) || submitting}
+            disabled={
+              (!hasItems && !isBundle) ||
+              submitting ||
+              (giftMode && !isValidGiftEmail)
+            }
             className="mt-4 w-full rounded-lg bg-gold px-6 py-4 text-lg font-bold text-navy shadow-md transition hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting
@@ -552,7 +678,9 @@ export default function VaultBuyPage() {
               : isStarter
                 ? "Checkout — Starter Package $99.95"
                 : isAnniversary
-                  ? "Checkout — Anniversary Capsule $29.95"
+                  ? giftMode
+                    ? "Send gift — $29.95"
+                    : "Checkout — Anniversary Capsule $29.95"
                   : "Checkout"}
           </button>
 

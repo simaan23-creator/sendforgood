@@ -17,6 +17,64 @@ function SuccessContent() {
   const video = searchParams.get("video") || "0";
   const photo = searchParams.get("photo") || "0";
   const sessionId = searchParams.get("session_id") || "";
+  const isGift = searchParams.get("gift") === "1";
+  const giftRecipient = searchParams.get("recipient") || "";
+
+  if (isGift) {
+    return (
+      <main className="min-h-screen bg-cream">
+        <div className="mx-auto max-w-lg px-4 py-20 text-center">
+          <div className="rounded-2xl border border-cream-dark bg-white p-10 shadow-md">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-forest/10">
+              <svg
+                className="h-8 w-8 text-forest"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h1 className="mt-5 text-2xl font-bold text-navy">
+              Gift sent &mdash; nicely done.
+            </h1>
+            <p className="mt-3 text-warm-gray">
+              We just emailed{" "}
+              <span className="font-semibold text-navy">
+                {giftRecipient || "your recipient"}
+              </span>{" "}
+              a one-time link to claim their Anniversary Capsule. A confirmation
+              copy is also on its way to your inbox.
+            </p>
+            <p className="mt-4 text-sm text-warm-gray">
+              If they don&apos;t see it in the next few minutes, ask them to
+              check spam (the claim email comes from{" "}
+              <span className="font-mono text-xs">noreply@sealtheday.com</span>).
+            </p>
+            <div className="mt-8 flex flex-col gap-3">
+              <Link
+                href="/vault/my"
+                className="rounded-lg bg-gold px-6 py-4 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
+              >
+                Back to my dashboard
+              </Link>
+              <Link
+                href="/vault/buy?bundle=anniversary"
+                className="text-sm font-medium text-warm-gray underline hover:text-navy"
+              >
+                Send another Anniversary Capsule
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Fire purchase conversion to GA4 + Google Ads on mount. trackPurchase
   // dedupes via sessionStorage so a refresh won't double-count.

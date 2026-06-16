@@ -67,6 +67,8 @@ export async function POST(request: Request) {
       // Check order type
       if (metadata.isVaultFee === "true") {
         await handleVaultFeeOrder(session, metadata);
+      } else if (metadata.isVaultOrder === "true" && metadata.isGiftPurchase === "true") {
+        await handleGiftVaultCreditOrder(session, metadata);
       } else if (metadata.isVaultOrder === "true") {
         await handleVaultCreditOrder(session, metadata);
       } else if (metadata.isVoiceMessageOrder === "true") {
@@ -1775,6 +1777,161 @@ async function handleVoiceMessageOrder(
 /* ═══════════════════════════════════════════════════════════════════════════
    Vault Credit Order Handler
    ═══════════════════════════════════════════════════════════════════════════ */
+
+async function handleGiftVaultCreditOrder(
+  session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
+  metadata: Record<string, string>
+) {
+  const purchaserUserId = metadata.userId;
+  const purchaserEmail = (metadata.purchaserEmail || session.customer_email || "").toLowerCase();
+  const recipientEmail = (metadata.giftRecipientEmail || "").toLowerCase();
+  const recipientName = metadata.giftRecipientName || null;
+  const personalMessage = metadata.giftPersonalMessage || null;
+  const audioCredits = parseInt(metadata.audioCredits) || 0;
+  const videoCredits = parseInt(metadata.videoCredits) || 0;
+  const photoCredits = parseInt(metadata.photoCredits) || 0;
+  const vaultFeeQty = parseInt(metadata.vaultFeeQty) || 1;
+  const bundle = metadata.bundle || "anniversary";
+
+  if (!recipientEmail) {
+    throw new Error("Gift purchase missing recipient email");
+  }
+
+  // Create the gift row with a unique claim code. Insert is retried on
+  // collision (extremely unlikely with 16-char alphanum).
+  let claimCode = generateClaimCode();
+  let giftId: string | null = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data, error } = await supabaseAdmin
+      .from("vault_gift_purchases")
+      .insert({
+        purchaser_user_id: purchaserUserId,
+        purchaser_email: purchaserEmail,
+        recipient_email: recipientEmail,
+        recipient_name: recipientName,
+        personal_message: personalMessage,
+        audio_credits: audioCredits,
+        video_credits: videoCredits,
+        photo_credits: photoCredits,
+        vault_fees: vaultFeeQty,
+        bundle,
+        claim_code: claimCode,
+        stripe_payment_intent_id: session.payment_intent as string,
+        status: "pending",
+      })
+      .select("id")
+      .single();
+    if (!error && data) {
+      giftId = data.id;
+      break;
+    }
+    // Retry only on unique-violation; rethrow other errors.
+    if (error && error.code !== "23505") throw error;
+    claimCode = generateClaimCode();
+  }
+  if (!giftId) {
+    throw new Error("Failed to generate unique claim code for vault gift");
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sealtheday.com";
+  const claimUrl = `${baseUrl}/gift/vault/claim/${claimCode}`;
+  const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+  const fromLine = recipientName
+    ? `<p style="font-size: 16px; line-height: 1.6;">Hi ${recipientName.split(/\s+/)[0]},</p>`
+    : "";
+  const messageBlock = personalMessage
+    ? `<div style="background:#fff;border-left:4px solid #C9A961;padding:16px 20px;margin:20px 0;font-style:italic;color:#3d3528;">${personalMessage.replace(/</g, "&lt;").replace(/\n/g, "<br/>")}</div>`
+    : "";
+
+  // Email the recipient with the claim link.
+  try {
+    await resend.emails.send({
+      from: "SealTheDay <noreply@sealtheday.com>",
+      to: recipientEmail,
+      subject: "Someone gifted you a SealTheDay Anniversary Capsule",
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
+          <h1 style="color: #1a2744; margin-top: 0;">You\u2019ve been gifted an Anniversary Capsule \uD83C\uDF81</h1>
+          ${fromLine}
+          <p style="font-size: 16px; line-height: 1.6;">
+            ${purchaserEmail ? `<strong>${purchaserEmail}</strong> sent you a` : "Someone sent you a"} <strong>SealTheDay Anniversary Capsule</strong> \u2014 a private vault where your friends and family can record video messages for you to open on a future date you choose (up to 1 year out).
+          </p>
+          ${messageBlock}
+          <div style="background: #ffffff; border: 1px solid #f1e8db; border-radius: 12px; padding: 20px; margin: 24px 0;">
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A961; margin-bottom: 8px;">Your gift includes</div>
+            <ul style="margin: 8px 0 0; padding-left: 20px; line-height: 1.8; color: #1a2744;">
+              <li><strong>${vaultFeeQty}</strong> private memory vault</li>
+              ${videoCredits > 0 ? `<li><strong>${videoCredits}</strong> video message slot${videoCredits > 1 ? "s" : ""}</li>` : ""}
+              ${photoCredits > 0 ? `<li><strong>${photoCredits}</strong> photo upload slot${photoCredits > 1 ? "s" : ""}</li>` : ""}
+              ${audioCredits > 0 ? `<li><strong>${audioCredits}</strong> audio slot${audioCredits > 1 ? "s" : ""}</li>` : ""}
+              <li>Seal for up to 12 months \u2014 perfect for opening on your first anniversary</li>
+            </ul>
+          </div>
+          <p style="margin-top: 28px; text-align: center;">
+            <a href="${claimUrl}" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Claim my gift \u2192</a>
+          </p>
+          <p style="margin-top: 16px; font-size: 13px; color: #6c6357; text-align: center;">
+            You\u2019ll need to create a free account (or sign in) with the email <strong>${recipientEmail}</strong> to claim.
+          </p>
+          <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
+          <p style="font-size: 12px; color: #8a8275; text-align: center; line-height: 1.5;">
+            SealTheDay is a product of SendForGood, LLC.
+          </p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send vault gift recipient email:", emailError);
+  }
+
+  // Confirmation email to the purchaser.
+  if (purchaserEmail) {
+    try {
+      await resend.emails.send({
+        from: "SealTheDay <noreply@sealtheday.com>",
+        to: purchaserEmail,
+        subject: "Your Anniversary Capsule gift has been sent",
+        html: `
+          <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a2744; background: #fdf8f0;">
+            <h1 style="color: #1a2744; margin-top: 0;">Gift sent \uD83C\uDF81</h1>
+            <p style="font-size: 16px; line-height: 1.6;">
+              Your Anniversary Capsule is on its way to <strong>${recipientEmail}</strong>. They\u2019ll receive an email with a one-time link to claim it and set up their vault.
+            </p>
+            <p style="font-size: 14px; color: #6c6357;">Total paid: <strong>${amountFormatted}</strong></p>
+            <p style="font-size: 14px; color: #6c6357;">If they haven\u2019t claimed it within a few days, forward them this claim link directly:<br/><a href="${claimUrl}" style="color: #722F37; word-break: break-all;">${claimUrl}</a></p>
+            <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
+            <p style="font-size: 12px; color: #8a8275; text-align: center;">Questions? Reply to this email or write to support@sealtheday.com</p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send vault gift purchaser confirmation:", emailError);
+    }
+  }
+
+  // Owner notification.
+  try {
+    await resend.emails.send({
+      from: "SealTheDay <noreply@sealtheday.com>",
+      to: "Simaan23@gmail.com",
+      subject: `\uD83C\uDF81 Anniversary Capsule GIFT \u2014 ${amountFormatted}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <h1 style="color: #1a2744;">New Anniversary Capsule gift</h1>
+          <div style="background: #fef7ed; border-radius: 12px; padding: 24px; margin: 24px 0;">
+            <p><strong>Purchaser:</strong> ${purchaserEmail || "(unknown)"}</p>
+            <p><strong>Recipient:</strong> ${recipientEmail}</p>
+            ${recipientName ? `<p><strong>Recipient name:</strong> ${recipientName}</p>` : ""}
+            <p><strong>Amount:</strong> ${amountFormatted}</p>
+            <p><strong>Claim URL:</strong> <a href="${claimUrl}">${claimUrl}</a></p>
+          </div>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Failed to send gift owner notification:", emailError);
+  }
+}
 
 async function handleVaultCreditOrder(
   session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
