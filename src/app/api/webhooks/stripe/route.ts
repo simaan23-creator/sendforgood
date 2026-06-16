@@ -3,15 +3,7 @@ import { stripe, TIER_PRICES } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
 import { log } from "@/lib/log";
-
-function generateClaimCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  let code = "";
-  for (let i = 0; i < 16; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
+import { generateClaimCode } from "@/lib/leads/gift-code";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -1818,6 +1810,10 @@ async function handleGiftVaultCreditOrder(
         claim_code: claimCode,
         stripe_payment_intent_id: session.payment_intent as string,
         status: "pending",
+        // Explicit channel tag so admin queries can distinguish in-app gift
+        // purchases from off-site channels like etsy_order (migration 043).
+        source: "in_app_gift",
+        redeemable_by_anyone: false,
       })
       .select("id")
       .single();

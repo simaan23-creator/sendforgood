@@ -6,9 +6,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 interface GiftSummary {
-  from: string;
-  recipient_name: string | null;
-  personal_message: string | null;
+  mode?: "email_match" | "bearer";
+  from?: string;
+  recipient_name?: string | null;
+  personal_message?: string | null;
   bundle: string | null;
   claimed: boolean;
   contents: {
@@ -132,16 +133,22 @@ export default function VaultGiftClaimPage({
 
   const loggedIn = !!userEmail;
   const authRedirect = `/auth?redirect=${encodeURIComponent(`/gift/vault/claim/${code}`)}`;
-  const greeting = summary.recipient_name
-    ? `Hi ${summary.recipient_name.split(/\s+/)[0]} \u2014 you${"\u2019"}ve been gifted an Anniversary Capsule`
-    : `You${"\u2019"}ve been gifted an Anniversary Capsule`;
+  const isBearer = summary.mode === "bearer";
+
+  const greeting = isBearer
+    ? "Your Anniversary Capsule is ready to claim"
+    : summary.recipient_name
+      ? `Hi ${summary.recipient_name.split(/\s+/)[0]} \u2014 you${"\u2019"}ve been gifted an Anniversary Capsule`
+      : `You${"\u2019"}ve been gifted an Anniversary Capsule`;
+
+  const eyebrow = isBearer ? "Anniversary Capsule" : "A gift just for you";
 
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-xl px-6 py-16">
         <div className="rounded-2xl border border-cream-dark bg-white p-8 shadow-md">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">
-            A gift just for you
+            {eyebrow}
           </p>
           <h1
             className="mt-2 text-2xl font-bold text-navy"
@@ -149,11 +156,20 @@ export default function VaultGiftClaimPage({
           >
             {greeting}
           </h1>
-          <p className="mt-2 text-sm text-warm-gray">
-            From <span className="font-semibold text-navy">{summary.from}</span>
-          </p>
+          {!isBearer && summary.from && (
+            <p className="mt-2 text-sm text-warm-gray">
+              From <span className="font-semibold text-navy">{summary.from}</span>
+            </p>
+          )}
+          {isBearer && (
+            <p className="mt-2 text-sm text-warm-gray">
+              Sign in (or create a free account) and the capsule credits will
+              land on your account. You can then build the vault and seal it
+              for up to 12 months &mdash; perfect for a 1st-anniversary reveal.
+            </p>
+          )}
 
-          {summary.personal_message && (
+          {!isBearer && summary.personal_message && (
             <blockquote className="mt-5 rounded-lg border-l-4 border-gold bg-gold/10 px-4 py-3 text-sm italic text-navy whitespace-pre-line">
               {summary.personal_message}
             </blockquote>

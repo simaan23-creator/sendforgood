@@ -27,7 +27,7 @@ export async function GET(
   const { data: gift } = await supabaseAdmin
     .from("vault_gift_purchases")
     .select(
-      "id, purchaser_email, personal_message, recipient_name, status, claimed_user_id, vault_fees, audio_credits, video_credits, photo_credits, bundle, created_at"
+      "id, purchaser_email, personal_message, recipient_name, recipient_email, redeemable_by_anyone, status, claimed_user_id, vault_fees, audio_credits, video_credits, photo_credits, bundle, created_at"
     )
     .eq("claim_code", code)
     .maybeSingle();
@@ -36,7 +36,27 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Bearer mode: open-redemption codes (e.g. Etsy orders) have no specific
+  // recipient. The claim page renders a generic "ready to claim" pitch
+  // instead of "from {purchaser} to {recipient}".
+  const isBearer = !!gift.redeemable_by_anyone || !gift.recipient_email;
+
+  if (isBearer) {
+    return NextResponse.json({
+      mode: "bearer",
+      bundle: gift.bundle,
+      claimed: gift.status === "claimed" || !!gift.claimed_user_id,
+      contents: {
+        vault_fees: gift.vault_fees || 0,
+        audio_credits: gift.audio_credits || 0,
+        video_credits: gift.video_credits || 0,
+        photo_credits: gift.photo_credits || 0,
+      },
+    });
+  }
+
   return NextResponse.json({
+    mode: "email_match",
     from: gift.purchaser_email || "A friend",
     recipient_name: gift.recipient_name,
     personal_message: gift.personal_message,
@@ -71,7 +91,7 @@ export async function POST(
   const { data: gift } = await supabaseAdmin
     .from("vault_gift_purchases")
     .select(
-      "id, recipient_email, status, claimed_user_id, vault_fees, audio_credits, video_credits, photo_credits, bundle"
+      "id, recipient_email, redeemable_by_anyone, status, claimed_user_id, vault_fees, audio_credits, video_credits, photo_credits, bundle"
     )
     .eq("claim_code", code)
     .maybeSingle();
@@ -86,19 +106,53 @@ export async function POST(
     );
   }
 
-  const userEmail = user.email.toLowerCase();
-  const recipient = (gift.recipient_email || "").toLowerCase();
-  if (!recipient || recipient !== userEmail) {
+  // Bearer mode (e.g. Etsy): any signed-in user can claim. Email-match mode:
+  // the user must sign in with the address the purchaser specified.
+  if (!gift.redeemable_by_anyone) {
+    const userEmail = user.email.toLowerCase();
+    const recipient = (gift.recipient_email || "").toLowerCase();
+    if (!recipient || recipient !== userEmail) {
+      return NextResponse.json(
+        {
+          error:
+            "This gift was sent to a different email address. Please sign in with the address the gift was sent to.",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
+  // Lock the gift row FIRST via optimistic update. If two users race for
+  // the same bearer code, only one update will affect a row; the loser
+  // sees count=0 and bails before any credits are written. This is the
+  // key correctness guarantee for open-redemption codes.
+  const { data: locked, error: lockError } = await supabaseAdmin
+    .from("vault_gift_purchases")
+    .update({
+      status: "claimed",
+      claimed_user_id: user.id,
+      claimed_at: new Date().toISOString(),
+    })
+    .eq("id", gift.id)
+    .is("claimed_user_id", null)
+    .select("id");
+
+  if (lockError) {
+    console.error("vault gift claim: lock failed", lockError);
     return NextResponse.json(
-      {
-        error:
-          "This gift was sent to a different email address. Please sign in with the address the gift was sent to.",
-      },
-      { status: 403 }
+      { error: "Could not claim gift. Please try again." },
+      { status: 500 }
+    );
+  }
+  if (!locked || locked.length === 0) {
+    return NextResponse.json(
+      { error: "This gift has already been claimed." },
+      { status: 409 }
     );
   }
 
-  // Materialize: vault_fees row(s) + memory_credits row.
+  // Materialize: vault_fees row(s) + memory_credits row. The lock above
+  // makes this safe to run unconditionally for the claiming user.
   if ((gift.vault_fees || 0) > 0) {
     const vaultFeeRows = Array.from({ length: gift.vault_fees || 0 }, () => ({
       user_id: user.id,
@@ -139,24 +193,6 @@ export async function POST(
         { status: 500 }
       );
     }
-  }
-
-  const { error: markError } = await supabaseAdmin
-    .from("vault_gift_purchases")
-    .update({
-      status: "claimed",
-      claimed_user_id: user.id,
-      claimed_at: new Date().toISOString(),
-    })
-    .eq("id", gift.id)
-    .is("claimed_user_id", null);
-
-  if (markError) {
-    console.error("vault gift claim: mark claimed failed", markError);
-    return NextResponse.json(
-      { error: "Could not claim gift. Please try again." },
-      { status: 500 }
-    );
   }
 
   return NextResponse.json({ claimed: true });
