@@ -191,7 +191,9 @@ export default function WeddingPage() {
               of that day is because 150 guests had phones and instinctively
               started filming &mdash; my cousin caught my wife waiting in the
               hallway before she walked down the aisle, a groomsman filmed
-              the entire toast from the back of the room.
+              the entire toast from the back of the room, and I ended up
+              with more than ten different angles of her coming down the
+              aisle.
             </p>
             <p className="font-semibold text-navy">
               When I stitched it together weeks later, I realized something
