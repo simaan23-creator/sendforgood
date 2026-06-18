@@ -189,22 +189,20 @@ export default function WeddingPage() {
               On my wedding day, the photographer we hired didn&rsquo;t show
               up. Not late. <em>Gone.</em> The only reason I have any record
               of that day is because 150 guests had phones and instinctively
-              started filming &mdash; my cousin caught my wife waiting in the
-              hallway before she walked down the aisle, a groomsman filmed
-              the entire toast from the back of the room, and I ended up
-              with more than ten different angles of her coming down the
-              aisle.
+              started filming &mdash; my cousin caught my wife waiting in
+              the hallway before the ceremony, and I ended up with more than
+              ten different angles of her walking down the aisle.
             </p>
             <p className="font-semibold text-navy">
-              When I stitched it together weeks later, I realized something
-              uncomfortable: even if the photographer <em>had</em> shown up,
-              what my guests captured was better. Rawer. Wider. The day from
-              the inside, not from a tripod in the corner.
+              Here&rsquo;s the thing: my guests filmed willingly. They
+              actually enjoyed it. The hard part wasn&rsquo;t getting people
+              to record &mdash; it was getting them to send me the videos
+              afterward. Months of chasing texts, dead-end Dropbox links,
+              and &ldquo;I&rsquo;ll look for it this weekend.&rdquo;
             </p>
             <p className="border-l-4 border-gold pl-5 text-base italic text-navy">
-              That&rsquo;s why I built SealTheDay &mdash; not as a backup for
-              when your vendor flakes, but as the thing every wedding should
-              have had from the start.
+              That&rsquo;s why I built SealTheDay &mdash; guests record once
+              and the clips land straight in your vault. No chasing.
               <span className="mt-2 block text-sm not-italic text-warm-gray">
                 &mdash; Simaan, founder
               </span>
