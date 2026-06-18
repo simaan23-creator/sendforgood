@@ -102,9 +102,10 @@ export default function WeddingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-warm-gray sm:text-xl">
             Turn every guest into a second-shooter. Capture the moments your
-            photographer will never reach &mdash; the back hallways, the
-            bridal-suite laughter, the cigar smoke, the 2 a.m. dance floor.
-            Then open it together on the day you choose.
+            photographer will never reach &mdash; the limo ride to the
+            ceremony, the bridal-suite laughter, the 2 a.m. afterparty, the
+            breakfast the next day. Then open it together on the day you
+            choose.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -120,15 +121,6 @@ export default function WeddingPage() {
               See Starter Package &mdash; $99.95
             </a>
           </div>
-          <p className="mt-4 text-sm text-warm-gray">
-            Looking for a wedding gift?{" "}
-            <a
-              href="#anniversary-capsule"
-              className="font-semibold text-navy underline decoration-gold underline-offset-4 hover:text-gold"
-            >
-              Send an Anniversary Capsule &rarr;
-            </a>
-          </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-warm-gray">
             <span className="inline-flex items-center gap-1.5">
               <svg className="h-4 w-4 text-forest" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
@@ -153,6 +145,36 @@ export default function WeddingPage() {
         </div>
       </section>
 
+      {/* ── Shopping for a wedding gift? ── */}
+      <section className="bg-cream-dark px-6 py-12 sm:py-16">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-2xl border-2 border-gold bg-white p-6 shadow-md sm:p-8">
+            <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+                  Shopping for a wedding gift?
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-navy sm:text-3xl">
+                  Send the couple an Anniversary Capsule.
+                </h2>
+                <p className="mt-2 text-base text-warm-gray">
+                  A wedding gift the couple opens together on their first
+                  anniversary &mdash; sealed video and photo messages from
+                  the people who matter most. Digital delivery, no shipping,
+                  $29.95.
+                </p>
+              </div>
+              <Link
+                href="/vault/buy?bundle=anniversary&gift=1"
+                className="shrink-0 inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
+              >
+                Send as a gift &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Founder Story ── */}
       <section className="bg-white px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl">
@@ -164,102 +186,28 @@ export default function WeddingPage() {
           </h2>
           <div className="mx-auto mt-8 max-w-2xl space-y-5 text-lg leading-relaxed text-warm-gray">
             <p>
-              On my wedding day, the photographer we hired didn&rsquo;t show up.
-              Not late. Not stuck in traffic. <em>Gone.</em>
-            </p>
-            <p>
-              I spent the morning of what was supposed to be the best day of my
-              life on the phone, watching the clock, hoping. By the time I
-              accepted she wasn&rsquo;t coming, the ceremony had already
-              started.
-            </p>
-            <p>
-              Here&rsquo;s the part nobody tells you: the only reason I have
-              <em> any</em> record of my own wedding is because 150 of our
-              guests had phones in their pockets and instinctively started
-              filming. My cousin caught my dad&rsquo;s face the second he saw
-              me. My college roommate got the first kiss. A groomsman somehow
-              filmed the entire toast from the back of the room.
+              On my wedding day, the photographer we hired didn&rsquo;t show
+              up. Not late. <em>Gone.</em> The only reason I have any record
+              of that day is because 150 guests had phones and instinctively
+              started filming &mdash; my cousin caught my dad&rsquo;s face the
+              second he saw me, a groomsman filmed the entire toast from the
+              back of the room.
             </p>
             <p className="font-semibold text-navy">
-              When I stitched it all together weeks later, I realized something
+              When I stitched it together weeks later, I realized something
               uncomfortable: even if the photographer <em>had</em> shown up,
-              what my guests captured was better.
-            </p>
-            <p>
-              It was rawer. It was wider. It was the day from the inside, not
-              the day from a tripod in the corner. That&rsquo;s when I built
-              SealTheDay &mdash; not as a backup for when your vendor flakes,
-              but as the thing every wedding should have had from the start.
+              what my guests captured was better. Rawer. Wider. The day from
+              the inside, not from a tripod in the corner.
             </p>
             <p className="border-l-4 border-gold pl-5 text-base italic text-navy">
-              I never want another couple to have to choose between
-              &ldquo;hope my photographer shows up&rdquo; and &ldquo;lose the
-              day forever.&rdquo; That&rsquo;s the promise of this product.
+              That&rsquo;s why I built SealTheDay &mdash; not as a backup for
+              when your vendor flakes, but as the thing every wedding should
+              have had from the start.
               <span className="mt-2 block text-sm not-italic text-warm-gray">
                 &mdash; Simaan, founder
               </span>
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* ── The Pitch: Swarm of Photographers ── */}
-      <section className="bg-cream px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            One photographer can&rsquo;t be a swarm.
-          </h2>
-          <div className="mx-auto mt-8 max-w-2xl space-y-5 text-lg leading-relaxed text-warm-gray">
-            <p>
-              Your wedding photographer is brilliant at the moments they can
-              see &mdash; the first look, the kiss, the first dance. But they
-              are one person, holding one camera, in one room.
-            </p>
-            <p>
-              Meanwhile, behind the venue, your groomsmen are passing a flask
-              and laughing about a story from college. Upstairs, your mom is
-              helping your sister button the back of her dress, both of them
-              laughing about something only sisters know. The bridal party is
-              on the floor of the bridal suite stitching a hem back together
-              five minutes before walk-out. Your dad is alone in the hallway,
-              taking a breath before he sees you.
-            </p>
-            <p className="font-semibold text-navy">
-              No professional photographer in the world is going to capture all
-              of that. They can&rsquo;t. They are not a swarm.
-            </p>
-            <p>
-              But your guests are.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 150 Phones ── */}
-      <section className="bg-navy px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gold">
-            What you actually get
-          </p>
-          <h2 className="mt-4 text-3xl font-bold text-cream sm:text-4xl">
-            Turn 150 phones into 150 second-shooters.
-          </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-cream/80">
-            SealTheDay replaces &ldquo;the photographer&rdquo; with a
-            decentralized swarm of recorders &mdash; every guest, in every
-            room, capturing the moments your hired vendors will never reach.
-          </p>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-cream/80">
-            A QR code on the table. A 30-second prompt from your MC. That is
-            all it takes to flip a guest from spectator into archivist. They
-            open their camera, record what they are already seeing, and drop
-            it into your vault. No app. No account. No login.
-          </p>
-          <p className="mx-auto mt-4 max-w-2xl text-lg font-semibold leading-relaxed text-gold">
-            What you get is something no single photographer could ever
-            produce: the full, unedited, in-stereo truth of your wedding day.
-          </p>
         </div>
       </section>
 
@@ -288,6 +236,63 @@ export default function WeddingPage() {
             These are not the photos you frame. These are the moments you would
             give anything to step back into.
           </p>
+        </div>
+      </section>
+
+      {/* ── Three ways your vault gets used ── */}
+      <section className="bg-white px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
+            Three ways your vault gets used
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-warm-gray">
+            The vault stays open until you seal it. Anyone with the link
+            can record &mdash; from anywhere, anytime &mdash; as long as
+            there&rsquo;s a slot left.
+          </p>
+          <div className="mt-14 grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-cream-dark bg-cream p-7 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+                01 &middot; The day itself
+              </p>
+              <h3 className="mt-3 text-xl font-bold text-navy">
+                The wedding-day swarm
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                A QR card on every table. Guests open their camera, point,
+                and drop video and photos into the vault from wherever they
+                are at the venue. No app, no login, no signup.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-cream-dark bg-cream p-7 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+                02 &middot; The people who couldn&rsquo;t make it
+              </p>
+              <h3 className="mt-3 text-xl font-bold text-navy">
+                A video instead of a card
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                The grandparent who couldn&rsquo;t fly out. The friend who
+                got sick the week before. The cousin deployed overseas.
+                Send them the link &mdash; they record a 90-second congrats
+                video from their couch instead of mailing a card.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-cream-dark bg-cream p-7 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-widest text-gold">
+                03 &middot; Personal messages, on their time
+              </p>
+              <h3 className="mt-3 text-xl font-bold text-navy">
+                Parents, siblings, your closest people
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-warm-gray">
+                The people who want to say something real don&rsquo;t want
+                to be rushed at the venue. They can record at home, after
+                the kids are asleep, take their time, redo it if they need
+                to. The vault waits.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -326,37 +331,6 @@ export default function WeddingPage() {
           <p className="mt-10 text-base font-semibold text-navy">
             Your vault. Your timeline. Your discretion.
           </p>
-        </div>
-      </section>
-
-      {/* ── Why this matters ── */}
-      <section className="bg-cream px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-3xl font-bold text-navy sm:text-4xl">
-            Why this matters
-          </h2>
-          <div className="mx-auto mt-8 max-w-2xl space-y-5 text-lg leading-relaxed text-warm-gray">
-            <p>
-              Hiring a photographer captures{" "}
-              <em>what your wedding looked like.</em>
-            </p>
-            <p>
-              Activating a swarm captures{" "}
-              <em>what your wedding actually felt like</em> &mdash; every
-              room, every group, every private aside, all of it raw, all of it
-              real, none of it edited down to a 90-second highlight reel.
-            </p>
-            <p>
-              Twenty years from now, the photos on your wall will still be
-              beautiful. But the thing you will watch over and over is the
-              unguarded clip your cousin recorded of your uncles laughing in
-              the corner about a story from twenty years ago.
-            </p>
-            <p className="text-xl font-semibold text-navy">
-              That is the gift only your guests can give you. SealTheDay is
-              how you ask them for it.
-            </p>
-          </div>
         </div>
       </section>
 
