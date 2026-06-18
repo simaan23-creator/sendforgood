@@ -189,9 +189,9 @@ export default function WeddingPage() {
               On my wedding day, the photographer we hired didn&rsquo;t show
               up. Not late. <em>Gone.</em> The only reason I have any record
               of that day is because 150 guests had phones and instinctively
-              started filming &mdash; my cousin caught my dad&rsquo;s face the
-              second he saw me, a groomsman filmed the entire toast from the
-              back of the room.
+              started filming &mdash; my cousin caught my wife waiting in the
+              hallway before she walked down the aisle, a groomsman filmed
+              the entire toast from the back of the room.
             </p>
             <p className="font-semibold text-navy">
               When I stitched it together weeks later, I realized something
