@@ -10,6 +10,7 @@ import ManagePlanModal from "@/components/manage-plan-modal";
 import GiftItemModal from "@/components/gift-item-modal";
 import VaultModal from "@/components/vault-modal";
 import RequestModal from "@/components/request-modal";
+import HeardAboutUsPrompt from "@/components/HeardAboutUsPrompt";
 
 interface Shipment {
   id: string;
@@ -711,6 +712,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          <HeardAboutUsPrompt />
+
           {/* D1: affiliate welcome-gift banner (empty-state variant). */}
           {pendingGrants > 0 && (
             <div className="mb-6 rounded-xl border-2 border-gold bg-white px-5 py-4 shadow-sm">
@@ -816,6 +819,8 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        <HeardAboutUsPrompt />
 
         {/* Assignment success banner */}
         {assignSuccess && (
