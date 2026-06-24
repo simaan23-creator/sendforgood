@@ -105,12 +105,21 @@ async function selectFollowups(
     Date.now() - FOLLOWUP_DELAY_DAYS * 86_400_000
   ).toISOString();
 
+  // FIFO followup queue: oldest-emailed-first. The .order() clause is
+  // load-bearing — without it PostgREST returns rows in physical heap
+  // order, which after migration 042's ALTER TABLE rewrite happens to
+  // surface old already-followed-up leads first. The JS-side N+1 filter
+  // below then rejects all 60 candidates and selectFollowups returns []
+  // even when hundreds of leads are genuinely eligible. This regressed
+  // silently from 2026-06-16 (the day migration 042 deployed) until
+  // 2026-06-23 when the zero-followup pattern was caught. Don't remove.
   let q = supabaseAdmin
     .from("photographer_leads")
     .select("id, business_name, email, city, state, lead_type, emailed_at")
     .eq("status", "emailed")
     .not("email", "is", null)
     .lt("emailed_at", cutoff)
+    .order("emailed_at", { ascending: true })
     .limit(limit * 2); // over-fetch, filter in JS
   if (stateFilter) q = q.eq("state", stateFilter);
   if (leadTypeFilter) q = q.eq("lead_type", leadTypeFilter);
