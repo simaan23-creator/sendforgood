@@ -208,6 +208,22 @@ export default function WeddingPage() {
               </span>
             </p>
           </div>
+
+          {/* Lauren's testimonial — the bride's side of the story */}
+          <figure className="mx-auto mt-12 max-w-2xl rounded-2xl border border-cream-dark bg-cream p-7 shadow-sm sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+              From the bride
+            </p>
+            <blockquote className="mt-3 text-lg italic leading-relaxed text-navy sm:text-xl">
+              &ldquo;I depended on my husband to hire a proper videographer
+              &mdash; and we both know how that turned out. Future brides:
+              have a backup plan. It&rsquo;s worth way more than it
+              costs.&rdquo;
+            </blockquote>
+            <figcaption className="mt-4 text-sm font-semibold text-warm-gray">
+              &mdash; Lauren, Simaan&rsquo;s wife
+            </figcaption>
+          </figure>
         </div>
       </section>
 
