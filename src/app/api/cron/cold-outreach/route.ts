@@ -108,11 +108,26 @@ async function selectFollowups(
   // FIFO followup queue: oldest-emailed-first. The .order() clause is
   // load-bearing — without it PostgREST returns rows in physical heap
   // order, which after migration 042's ALTER TABLE rewrite happens to
-  // surface old already-followed-up leads first. The JS-side N+1 filter
-  // below then rejects all 60 candidates and selectFollowups returns []
-  // even when hundreds of leads are genuinely eligible. This regressed
-  // silently from 2026-06-16 (the day migration 042 deployed) until
-  // 2026-06-23 when the zero-followup pattern was caught. Don't remove.
+  // surface old already-followed-up leads first. Don't remove.
+  //
+  // Exclusion of already-followed-up leads happens at the DB level via
+  // .not("id", "in", ...) against a pre-fetched list of lead_ids that
+  // already have a sequence_step >= 2 event. The previous design used a
+  // JS-side N+1 loop over an over-fetched window (limit * 2), which broke
+  // a second time on 2026-06-25: once the cron's own 06-24 send pushed
+  // 27 new leads into the already-followed-up set, the FIFO start of the
+  // queue was entirely occupied by done leads and the over-fetch window
+  // returned zero eligible rows. Bumping the multiplier would only delay
+  // the next failure. Exclude at the DB level instead.
+  const { data: doneEvents, error: doneErr } = await supabaseAdmin
+    .from("lead_outreach_events")
+    .select("lead_id")
+    .gte("sequence_step", 2);
+  if (doneErr) throw doneErr;
+  const doneIds = Array.from(
+    new Set((doneEvents || []).map((e) => e.lead_id as string))
+  );
+
   let q = supabaseAdmin
     .from("photographer_leads")
     .select("id, business_name, email, city, state, lead_type, emailed_at")
@@ -120,26 +135,14 @@ async function selectFollowups(
     .not("email", "is", null)
     .lt("emailed_at", cutoff)
     .order("emailed_at", { ascending: true })
-    .limit(limit * 2); // over-fetch, filter in JS
+    .limit(limit);
   if (stateFilter) q = q.eq("state", stateFilter);
   if (leadTypeFilter) q = q.eq("lead_type", leadTypeFilter);
+  if (doneIds.length) q = q.not("id", "in", `(${doneIds.join(",")})`);
   const { data, error } = await q;
   if (error) throw error;
 
-  // Exclude leads who already have a sequence_step >= 2 event.
-  const result: Lead[] = [];
-  for (const lead of (data || []) as Lead[]) {
-    const { count } = await supabaseAdmin
-      .from("lead_outreach_events")
-      .select("id", { count: "exact", head: true })
-      .eq("lead_id", lead.id)
-      .gte("sequence_step", 2);
-    if (!count || count === 0) {
-      result.push(lead);
-      if (result.length >= limit) break;
-    }
-  }
-  return result;
+  return (data || []) as Lead[];
 }
 
 type SendOutcome =
