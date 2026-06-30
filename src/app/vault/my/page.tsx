@@ -84,6 +84,7 @@ function MyVaultsInner() {
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -287,6 +288,37 @@ function MyVaultsInner() {
     }
   }
 
+  async function cancelVault(vault: MemoryRequest) {
+    // Only allowed when the vault has zero recordings — server enforces this
+    // too, but bail early to skip the confirm dialog when the vault is used.
+    if (vault.recording_count > 0) return;
+
+    const ok = window.confirm(
+      `Cancel "${vault.title}" and refund the vault fee + any remaining recording credits?\n\nThis can't be undone, but you can always create a new vault with the refunded credits.`
+    );
+    if (!ok) return;
+
+    setCancellingId(vault.id);
+    try {
+      const res = await fetch(`/api/memory-requests/${vault.id}/cancel-vault`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to cancel vault");
+        setCancellingId(null);
+        return;
+      }
+
+      await reloadData();
+    } catch {
+      alert("Something went wrong");
+    } finally {
+      setCancellingId(null);
+    }
+  }
+
   const availableAudio = credits
     ? credits.audioCredits - credits.audioUsed
     : 0;
@@ -420,11 +452,16 @@ function MyVaultsInner() {
               // Compute unlock status from dates rather than relying on the cron
               // (which only flips the row when delivery emails go out). A vault is
               // unlocked when its delivery date has passed and any seal has lifted.
+              // status='completed' is a valid unlocked state — the cron flips
+              // vaults to 'completed' after the delivery email goes out, but the
+              // recordings are still viewable and downloadable indefinitely.
               const todayIso = new Date().toISOString().split("T")[0];
               const deliveryReached = vault.delivery_date <= todayIso;
               const sealLifted = !vault.sealed_until || vault.sealed_until <= todayIso;
               const isUnlocked =
-                vault.status === "active" && deliveryReached && sealLifted;
+                (vault.status === "active" || vault.status === "completed") &&
+                deliveryReached &&
+                sealLifted;
 
               return (
                 <div
@@ -768,6 +805,24 @@ function MyVaultsInner() {
                         {returningId === vault.id ? "Returning..." : "Return Unused"}
                       </button>
                     )}
+                    {/* Cancel & Refund Vault — only when truly unused (zero
+                        recordings). Refunds the $10 vault fee plus any leftover
+                        recording credits, and marks the vault cancelled. */}
+                    {vault.recording_count === 0 &&
+                      vault.status !== "cancelled" && (
+                        <button
+                          onClick={() => cancelVault(vault)}
+                          disabled={cancellingId === vault.id}
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                            <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
+                          </svg>
+                          {cancellingId === vault.id
+                            ? "Cancelling..."
+                            : "Cancel & Refund Vault"}
+                        </button>
+                      )}
                     <Link
                       href={`/vault/wedding-kit?code=${vault.unique_code}`}
                       className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy transition hover:bg-gold/20"
