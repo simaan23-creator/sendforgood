@@ -73,6 +73,14 @@ export default function VaultBuyPage() {
   const [existingVaults, setExistingVaults] = useState<ExistingVault[]>([]);
   const [targetVaultId, setTargetVaultId] = useState<string>("NEW");
 
+  // Guest checkout: logged-out buyers purchase with just their email. The
+  // webhook creates/attaches their account after payment and magic-links them
+  // in. Removes the account wall that blocked cold traffic and gift buyers.
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [buyerName, setBuyerName] = useState("");
+  const isValidBuyerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail.trim());
+
   // Gift mode — only supported for the Anniversary Capsule today.
   // Purchaser pays; recipient receives an email with a /gift/vault/claim
   // link that materializes the credits on their account when they sign in
@@ -102,13 +110,14 @@ export default function VaultBuyPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth?redirect=/vault/buy");
-        return;
-      }
+      setIsAuthed(!!user);
+      // Pre-fill the email field for signed-in buyers (harmless; guest path
+      // reads it only when logged out).
+      if (user?.email) setBuyerEmail(user.email);
       // Fetch existing vaults so user can top up credits on one they already own
-      // (skipped entirely for bundle mode — the bundle always creates a fresh vault).
-      if (!isBundle) {
+      // (skipped entirely for bundle mode — the bundle always creates a fresh
+      // vault — and for logged-out guests, who have no vaults to top up).
+      if (user && !isBundle) {
         try {
           const res = await fetch("/api/memory-requests");
           if (res.ok) {
@@ -167,6 +176,10 @@ export default function VaultBuyPage() {
       setError("Please enter a valid recipient email address.");
       return;
     }
+    if (!isAuthed && !isValidBuyerEmail) {
+      setError("Please enter your email to continue to checkout.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -183,21 +196,30 @@ export default function VaultBuyPage() {
           }
         : {};
 
+    // Guest buyer identity — ignored server-side when a session exists.
+    const buyerFields = !isAuthed
+      ? {
+          buyerEmail: buyerEmail.trim().toLowerCase(),
+          ...(buyerName.trim() ? { buyerName: buyerName.trim() } : {}),
+        }
+      : {};
+
     try {
       const res = await fetch("/api/vault/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           isStarter
-            ? { bundle: "starter" }
+            ? { bundle: "starter", ...buyerFields }
             : isAnniversary
-              ? { bundle: "anniversary", ...giftFields }
+              ? { bundle: "anniversary", ...giftFields, ...buyerFields }
               : {
                   audioCredits: audioQty,
                   videoCredits: videoQty,
                   photoCredits: photoQty,
                   vaultFeeQty: effectiveVaultFeeQty,
                   targetVaultId: targetingExisting ? targetVaultId : null,
+                  ...buyerFields,
                 }
         ),
       });
@@ -670,6 +692,40 @@ export default function VaultBuyPage() {
             </div>
           </div>
 
+          {!isAuthed && (
+            <div className="mt-6 rounded-lg border border-cream-dark bg-cream/40 p-4">
+              <label
+                htmlFor="buyerEmail"
+                className="block text-sm font-semibold text-navy"
+              >
+                Your email
+              </label>
+              <input
+                id="buyerEmail"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={buyerEmail}
+                onChange={(e) => setBuyerEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="mt-1.5 w-full rounded-lg border border-cream-dark bg-white px-3 py-2.5 text-navy outline-none focus:border-navy"
+              />
+              <input
+                id="buyerName"
+                type="text"
+                autoComplete="name"
+                value={buyerName}
+                onChange={(e) => setBuyerName(e.target.value)}
+                placeholder="Your name (optional)"
+                className="mt-2 w-full rounded-lg border border-cream-dark bg-white px-3 py-2.5 text-navy outline-none focus:border-navy"
+              />
+              <p className="mt-2 text-xs text-warm-gray">
+                No account needed. After payment we’ll email you a one-click link
+                to set up {giftMode ? "the gift" : "your vault"}.
+              </p>
+            </div>
+          )}
+
           {error && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error}
@@ -681,7 +737,8 @@ export default function VaultBuyPage() {
             disabled={
               (!hasItems && !isBundle) ||
               submitting ||
-              (giftMode && !isValidGiftEmail)
+              (giftMode && !isValidGiftEmail) ||
+              (!isAuthed && !isValidBuyerEmail)
             }
             className="mt-4 w-full rounded-lg bg-gold px-6 py-4 text-lg font-bold text-navy shadow-md transition hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -704,10 +761,10 @@ export default function VaultBuyPage() {
         {/* Back link */}
         <div className="mt-6 text-center">
           <Link
-            href="/vault/my"
+            href={isAuthed ? "/vault/my" : "/wedding"}
             className="text-sm font-medium text-navy underline hover:text-gold"
           >
-            Back to my vaults
+            {isAuthed ? "Back to my vaults" : "Back to home"}
           </Link>
         </div>
       </div>

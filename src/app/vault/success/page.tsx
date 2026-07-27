@@ -2,8 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { trackPurchase } from "@/lib/analytics";
+import { createClient } from "@/lib/supabase/client";
 
 // Per-credit prices in USD. Mirrors src/app/api/vault/checkout/route.ts —
 // keep these in sync if pricing changes.
@@ -19,6 +20,15 @@ function SuccessContent() {
   const sessionId = searchParams.get("session_id") || "";
   const isGift = searchParams.get("gift") === "1";
   const giftRecipient = searchParams.get("recipient") || "";
+
+  // Guest checkout: a buyer who paid anonymously has no session here, so the
+  // "Create my vault" links would bounce them to the sign-in wall. Detect the
+  // session and, when absent, direct them to the magic link we emailed instead.
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setIsAuthed(!!data.user));
+  }, []);
 
   if (isGift) {
     return (
@@ -190,20 +200,38 @@ function SuccessContent() {
             </li>
           </ol>
 
-          <div className="mt-8 flex flex-col gap-3">
-            <Link
-              href="/request/create"
-              className="rounded-lg bg-gold px-6 py-4 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
-            >
-              Create my vault now &rarr;
-            </Link>
-            <Link
-              href="/vault/my"
-              className="text-sm font-medium text-warm-gray underline hover:text-navy"
-            >
-              I&rsquo;ll do it later &mdash; take me to my dashboard
-            </Link>
-          </div>
+          {isAuthed === false ? (
+            <div className="mt-8 rounded-lg border-2 border-gold bg-gold/5 p-5 text-left">
+              <div className="font-semibold text-navy">
+                Check your email to finish setup
+              </div>
+              <p className="mt-1.5 text-sm text-warm-gray">
+                We just sent a one-click link to{" "}
+                <span className="font-semibold text-navy">
+                  build your vault
+                </span>
+                . It signs you in automatically &mdash; no password. If it&rsquo;s
+                not there in a minute, check spam (from{" "}
+                <span className="font-mono text-xs">noreply@sealtheday.com</span>
+                ).
+              </p>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-col gap-3">
+              <Link
+                href="/request/create"
+                className="rounded-lg bg-gold px-6 py-4 text-base font-bold text-navy shadow-md transition hover:bg-gold-light"
+              >
+                Create my vault now &rarr;
+              </Link>
+              <Link
+                href="/vault/my"
+                className="text-sm font-medium text-warm-gray underline hover:text-navy"
+              >
+                I&rsquo;ll do it later &mdash; take me to my dashboard
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </main>

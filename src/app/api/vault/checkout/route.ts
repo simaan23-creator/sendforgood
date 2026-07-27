@@ -10,9 +10,52 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  const {
+    audioCredits,
+    videoCredits,
+    photoCredits,
+    vaultFeeQty,
+    targetVaultId,
+    bundle,
+    giftRecipientEmail,
+    giftRecipientName,
+    giftPersonalMessage,
+    buyerEmail,
+    buyerName,
+  } = body;
+
+  // Guest checkout: a signed-in user buys as themselves; an anonymous buyer
+  // supplies their email and the webhook creates/attaches their account after
+  // payment (then emails them a magic link to get in). This removes the
+  // account wall that was blocking every cold visitor and gift buyer.
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const guestEmail =
+    !user && typeof buyerEmail === "string" && emailRe.test(buyerEmail.trim())
+      ? buyerEmail.trim().toLowerCase()
+      : null;
+  const purchaserEmail = user?.email || guestEmail;
+
+  if (!purchaserEmail) {
+    return NextResponse.json(
+      { error: "Enter your email to continue to checkout." },
+      { status: 400 }
+    );
   }
+
+  // Topping up an existing vault requires an account (the vault is owned by a
+  // user) — guests can only buy new vaults / bundles, never target a vault id.
+  if (!user && typeof targetVaultId === "string" && targetVaultId.length > 0) {
+    return NextResponse.json(
+      { error: "Sign in to add credits to an existing vault." },
+      { status: 401 }
+    );
+  }
+
+  const guestName =
+    !user && typeof buyerName === "string" && buyerName.trim().length > 0
+      ? buyerName.trim().slice(0, 120)
+      : null;
 
   // Affiliate referral: middleware writes sfg_affiliate when ?ref=CODE
   // arrives. Forward it as Stripe metadata so the webhook can credit the
@@ -24,8 +67,9 @@ export async function POST(request: Request) {
   // Persistent affiliate attribution fallback: if the cookie is empty
   // (cleared, different device), look up profiles.attributed_affiliate_id
   // for this user. Set when a recipient claims a photographer's gift, so
-  // any future credit purchase still pays the gifting affiliate.
-  if (!affiliateCode) {
+  // any future credit purchase still pays the gifting affiliate. Only
+  // applies to signed-in buyers (guests have no profile row yet).
+  if (!affiliateCode && user) {
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("attributed_affiliate_id")
@@ -42,19 +86,6 @@ export async function POST(request: Request) {
       }
     }
   }
-
-  const body = await request.json();
-  const {
-    audioCredits,
-    videoCredits,
-    photoCredits,
-    vaultFeeQty,
-    targetVaultId,
-    bundle,
-    giftRecipientEmail,
-    giftRecipientName,
-    giftPersonalMessage,
-  } = body;
 
   // Gift mode: purchaser pays, recipient claims. Only supported for bundle
   // purchases (no targetVault, no à-la-carte gifts). Recipient email is
@@ -221,8 +252,14 @@ export async function POST(request: Request) {
     line_items: lineItems,
     metadata: {
       isVaultOrder: "true",
-      userId: user.id,
-      purchaserEmail: user.email || "",
+      // Signed-in buyer: pass userId so the webhook fulfills against the
+      // existing account. Guest buyer: pass email (+ name) so the webhook
+      // finds-or-creates the account and magic-links them in.
+      ...(user ? { userId: user.id } : {}),
+      email: purchaserEmail,
+      purchaserEmail,
+      ...(guestName ? { fullName: guestName } : {}),
+      ...(user ? {} : { isGuestCheckout: "true" }),
       audioCredits: String(audio),
       videoCredits: String(video),
       photoCredits: String(photo),
@@ -239,7 +276,7 @@ export async function POST(request: Request) {
           }
         : {}),
     },
-    customer_email: user.email,
+    customer_email: purchaserEmail,
     // session_id is replaced by Stripe at redirect time and used by the
   // success page as transaction_id for analytics deduplication.
   success_url: isGift

@@ -1933,7 +1933,43 @@ async function handleVaultCreditOrder(
   session: { amount_total: number | null; payment_intent: string | unknown; customer_email: string | null },
   metadata: Record<string, string>
 ) {
-  const userId = metadata.userId;
+  // Guest checkout: when no userId is present the buyer paid anonymously.
+  // Find-or-create their account from the email so fulfillment has an owner,
+  // then (below) email them a magic link so they can actually get into the
+  // vault they just bought. Mirrors the find-or-create pattern used by the
+  // other order handlers (handleIndividualOrder, handleCartOrder, etc.).
+  const orderEmail = (metadata.email || session.customer_email || "").toLowerCase();
+  let userId = metadata.userId;
+
+  if (!userId) {
+    if (!orderEmail) throw new Error("Vault credit order missing buyer email");
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => (u.email || "").toLowerCase() === orderEmail
+    );
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const { data: newUser, error: userError } = await supabaseAdmin.auth.admin.createUser({
+        email: orderEmail,
+        email_confirm: true,
+        user_metadata: { full_name: metadata.fullName || "" },
+      });
+      if (userError) throw userError;
+      userId = newUser.user.id;
+    }
+
+    // Ensure a profile row exists (other handlers do this before dependent
+    // inserts; memory_credits has no FK to profiles but keep it consistent).
+    await supabaseAdmin
+      .from("profiles")
+      .upsert(
+        { id: userId, email: orderEmail, full_name: metadata.fullName || "" },
+        { onConflict: "id" }
+      );
+  }
+
+  const isGuestCheckout = metadata.isGuestCheckout === "true" || !metadata.userId;
   const audioCredits = parseInt(metadata.audioCredits) || 0;
   const videoCredits = parseInt(metadata.videoCredits) || 0;
   const photoCredits = parseInt(metadata.photoCredits) || 0;
@@ -2029,6 +2065,29 @@ async function handleVaultCreditOrder(
   const customerEmail = metadata.email || session.customer_email!;
   const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
 
+  // For guest buyers (no session), generate a one-click magic link so the
+  // confirmation email drops them straight into vault creation — logged in —
+  // instead of bouncing them to the sign-in wall. Signed-in buyers keep the
+  // plain link (they already have a session).
+  let accessLink = "https://sealtheday.com/request/create";
+  if (isGuestCheckout && orderEmail) {
+    try {
+      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: orderEmail,
+        options: {
+          redirectTo:
+            "https://sealtheday.com/auth/callback?redirect=/request/create",
+        },
+      });
+      if (linkData?.properties?.action_link) {
+        accessLink = linkData.properties.action_link;
+      }
+    } catch (linkError) {
+      console.error("Failed to generate access magic link:", linkError);
+    }
+  }
+
   // Send confirmation email to customer
   try {
     const isStarter = metadata.bundle === "starter";
@@ -2067,12 +2126,10 @@ async function handleVaultCreditOrder(
           </ol>
 
           <p style="margin-top: 32px; text-align: center;">
-            <a href="https://sealtheday.com/request/create" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Create Your Vault &rarr;</a>
+            <a href="${accessLink}" style="background: #C9A961; color: #1a2744; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Create Your Vault &rarr;</a>
           </p>
 
-          <p style="margin-top: 24px; font-size: 13px; color: #6c6357; text-align: center;">
-            Already created a vault? <a href="https://sealtheday.com/vault/my" style="color: #722F37;">Go to your dashboard</a>
-          </p>
+          ${isGuestCheckout ? `<p style="margin-top: 16px; font-size: 13px; color: #6c6357; text-align: center;">This button signs you in automatically. Bookmark <a href="https://sealtheday.com/vault/my" style="color: #722F37;">your dashboard</a> once you’re in.</p>` : `<p style="margin-top: 24px; font-size: 13px; color: #6c6357; text-align: center;">Already created a vault? <a href="https://sealtheday.com/vault/my" style="color: #722F37;">Go to your dashboard</a></p>`}
 
           <hr style="border: none; border-top: 1px solid #f1e8db; margin: 40px 0 20px;" />
           <p style="font-size: 12px; color: #8a8275; text-align: center; line-height: 1.5;">
