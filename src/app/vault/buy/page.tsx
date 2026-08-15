@@ -67,7 +67,6 @@ export default function VaultBuyPage() {
   const audioQty = 0;
   const [videoQty, setVideoQty] = useState(initialBundleVideo);
   const [photoQty, setPhotoQty] = useState(initialBundlePhoto);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [existingVaults, setExistingVaults] = useState<ExistingVault[]>([]);
@@ -138,7 +137,6 @@ export default function VaultBuyPage() {
           // Non-fatal — picker just won't appear
         }
       }
-      setLoading(false);
     }
     init();
   }, [supabase, router, isBundle]);
@@ -244,14 +242,9 @@ export default function VaultBuyPage() {
       : `$${dollars.toFixed(2)}`;
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-cream">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-navy border-t-transparent" />
-      </div>
-    );
-  }
-
+  // No loading gate: the page renders instantly for guests (the majority of
+  // ad/Etsy traffic). Auth + existing-vault data resolve in the background —
+  // the guest email box hides and the vault picker appears once known.
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
