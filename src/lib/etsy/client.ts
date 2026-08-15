@@ -8,7 +8,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
  * Etsy rotates the refresh token on every refresh, so both tokens are
  * persisted back after each refresh.
  *
- * Env: ETSY_API_KEY (the app "keystring"), ETSY_SHOP_ID (numeric shop id).
+ * Env: ETSY_API_KEY (the app "keystring"), ETSY_SHARED_SECRET (required by
+ * Etsy for data calls as "keystring:secret" in x-api-key), ETSY_SHOP_ID.
  */
 
 const TOKEN_URL = "https://api.etsy.com/v3/public/oauth/token";
@@ -80,8 +81,12 @@ export async function etsyFetch<T = unknown>(
   path: string,
   init: RequestInit = {}
 ): Promise<T> {
-  const apiKey = process.env.ETSY_API_KEY;
-  if (!apiKey) throw new Error("ETSY_API_KEY is not set");
+  const keystring = process.env.ETSY_API_KEY;
+  if (!keystring) throw new Error("ETSY_API_KEY is not set");
+  // Etsy rejects data calls without the shared secret appended.
+  const apiKey = process.env.ETSY_SHARED_SECRET
+    ? `${keystring}:${process.env.ETSY_SHARED_SECRET}`
+    : keystring;
   const token = await getAccessToken();
 
   const res = await fetch(`${API_BASE}${path}`, {
