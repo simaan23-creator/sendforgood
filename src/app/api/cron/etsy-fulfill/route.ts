@@ -24,6 +24,15 @@ import { getUnshippedPaidReceipts, markReceiptShipped } from "@/lib/etsy/client"
 
 const ALERT_EMAIL = process.env.ETSY_ALERT_EMAIL || "simaan23@gmail.com";
 
+// Infrastructure blips (Supabase outage, network timeouts) self-heal on a
+// later run and affect the whole site — emailing every 15 minutes about them
+// is noise. Only genuine fulfillment problems should page a human.
+function isInfraOutage(err: unknown): boolean {
+  return /DB_UNAVAILABLE|fetch failed|522|ETIMEDOUT|ECONNRESET|ECONNREFUSED|Connection timed out|network/i.test(
+    String(err)
+  );
+}
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -41,6 +50,10 @@ export async function GET(request: Request) {
   try {
     receipts = await getUnshippedPaidReceipts(shopId);
   } catch (err) {
+    if (isInfraOutage(err)) {
+      console.warn("etsy-fulfill: infra outage, retrying next run:", String(err).slice(0, 200));
+      return NextResponse.json({ skipped: "infra outage, will retry", error: String(err) }, { status: 503 });
+    }
     await alert(`Etsy receipts fetch failed: ${(err as Error).message}`);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
@@ -102,9 +115,11 @@ export async function GET(request: Request) {
       summary.push({ receiptId, qty, emailed, status: "fulfilled" });
     } catch (err) {
       console.error(`etsy-fulfill failed for receipt ${receiptId}:`, err);
-      await alert(
-        `Etsy auto-fulfillment FAILED for order ${receiptId}: ${(err as Error).message}\n\nIt will retry on the next run (every 15 min). If it keeps failing, fulfill manually at https://sealtheday.com/admin/etsy and mark the order shipped on Etsy.`
-      );
+      if (!isInfraOutage(err)) {
+        await alert(
+          `Etsy auto-fulfillment FAILED for order ${receiptId}: ${(err as Error).message}\n\nIt will retry on the next run (every 15 min). If it keeps failing, fulfill manually at https://sealtheday.com/admin/etsy and mark the order shipped on Etsy.`
+        );
+      }
       summary.push({ receiptId, status: "error", error: String(err) });
     }
   }

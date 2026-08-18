@@ -28,7 +28,9 @@ async function getAccessToken(): Promise<string> {
     .eq("id", 1)
     .maybeSingle<EtsyTokenRow>();
 
-  if (error) throw new Error(`etsy_tokens read failed: ${error.message}`);
+  // DB_UNAVAILABLE prefix lets the cron distinguish "platform outage" (stay
+  // quiet, retry next run) from "token genuinely missing" (alert loudly).
+  if (error) throw new Error(`DB_UNAVAILABLE: etsy_tokens read failed: ${error.message}`);
   if (!row) {
     throw new Error(
       "No Etsy OAuth token found — run scripts/etsy/get-oauth-token.mjs once to connect the shop."
